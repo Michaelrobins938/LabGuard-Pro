@@ -96,11 +96,16 @@ coverage/
 # TypeScript build info
 *.tsbuildinfo
 
-# Personal files and directories - more specific exclusions
+# Exclude all files outside the project directory
+../../
+../../../
+
+# Exclude specific external directories
 ../../../.cache/
 ../../../.claude.json
 ../../../.cursor/
 ../../../.gitconfig
+../../../.glass/
 ../../../.lesshst
 ../../../.wdm/
 ../../../AppData/
@@ -113,251 +118,35 @@ coverage/
 ../../../Music/
 ../../../My Drive/
 ../../../NTUSER.DAT*
-../../../OneDrive/
 ../../../Saved Games/
 ../../../Searches/
 ../../../Settings/
 ../../../elite-digital-product-builder/
+../../../OneDrive/
 ../../../ntuser.dat.LOG*
 ../../../ntuser.ini
 
-# Exclude Downloads files but NOT the project files
-../../../Downloads/*.png
-../../../Downloads/*.jpg
-../../../Downloads/*.jpeg
-../../../Downloads/*.gif
-../../../Downloads/*.mp4
-../../../Downloads/*.mkv
-../../../Downloads/*.avi
-../../../Downloads/*.mov
-../../../Downloads/*.wmv
-../../../Downloads/*.flv
-../../../Downloads/*.webm
-../../../Downloads/*.mp3
-../../../Downloads/*.wav
-../../../Downloads/*.flac
-../../../Downloads/*.aac
-../../../Downloads/*.ogg
-../../../Downloads/*.exe
-../../../Downloads/*.msi
-../../../Downloads/*.dmg
-../../../Downloads/*.pkg
-../../../Downloads/*.deb
-../../../Downloads/*.rpm
-../../../Downloads/*.zip
-../../../Downloads/*.rar
-../../../Downloads/*.7z
-../../../Downloads/*.tar
-../../../Downloads/*.gz
-../../../Downloads/*.bz2
-../../../Downloads/*.docx
-../../../Downloads/*.doc
-../../../Downloads/*.pdf
-../../../Downloads/*.rtf
-../../../Downloads/*.txt
-../../../Downloads/*.md
-../../../Downloads/*.json
-../../../Downloads/*.xml
-../../../Downloads/*.yml
-../../../Downloads/*.yaml
-../../../Downloads/*.ini
-../../../Downloads/*.cfg
-../../../Downloads/*.conf
-../../../Downloads/*.bak
-../../../Downloads/*.backup
-../../../Downloads/*-backup-*
-../../../Downloads/*.tmp
-../../../Downloads/*.temp
-../../../Downloads/*.cache
-../../../Downloads/*.log
-../../../Downloads/*.pid
-../../../Downloads/*.seed
-../../../Downloads/*.pid.lock
-
-# Screenshots and media files
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.mp4
-*.mkv
-*.avi
-*.mov
-*.wmv
-*.flv
-*.webm
-*.mp3
-*.wav
-*.flac
-*.aac
-*.ogg
-
-# Executable files
-*.exe
-*.msi
-*.dmg
-*.pkg
-*.deb
-*.rpm
-
-# Archive files
-*.zip
-*.rar
-*.7z
-*.tar
-*.gz
-*.bz2
-
-# Document files
-*.docx
-*.doc
-*.pdf
-*.rtf
-*.txt
-*.md
-
-# Configuration files
-*.json
-*.xml
-*.yml
-*.yaml
-*.ini
-*.cfg
-*.conf
-
-# Backup files
-*.bak
-*.backup
-*-backup-*
-
-# Temporary and cache files
-*.tmp
-*.temp
-*.cache
-*.log
-*.pid
-*.seed
-*.pid.lock
-
-# System files
-desktop.ini
-Thumbs.db
-ehthumbs.db
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-
-# IDE and editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Build and deployment files
-build/
-dist/
-out/
-.next/
-.nuxt/
-.cache/
-.parcel-cache/
-
-# Environment and configuration
-.env*
-!.env.example
-!.env.local.example
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-*.db-journal
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-node_modules/
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-.env.test
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless/
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# Turbo
-.turbo
-
-# TypeScript
-*.tsbuildinfo
-
-# Specific project files to exclude
-env.biomni.example
-env.example
-env.production
-fix-deployment.ps1
-nginx.conf
-labguard-structure.txt 
+# Exclude all files in parent directories
+../../*.jpg
+../../*.png
+../../*.mp4
+../../*.mkv
+../../*.mp3
+../../*.exe
+../../*.zip
+../../*.7z
+../../*.docx
+../../*.pdf
+../../*.md
+../../*.txt
+../../*.json
+../../*.rtf
+../../*.avif
+../../*.html
+../../*.url
+../../*.lnk
+../../*.msi
+../../*.dmg
+../../*.crdownload
+../../*.blf
+../../*.regtrans-ms 

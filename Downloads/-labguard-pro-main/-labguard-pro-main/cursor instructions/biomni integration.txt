@@ -1,0 +1,1452 @@
+# 🧬 **BIOMNI INTEGRATION STRATEGY FOR LABGUARD PRO**
+
+## **📋 OVERVIEW: Transforming LabGuard Pro with Biomni**
+
+After implementing the 25 AI compliance templates, integrating [Biomni](https://biomni.stanford.edu/) will transform LabGuard Pro from a **compliance-focused platform** into a **comprehensive laboratory intelligence system** that combines compliance automation with advanced biomedical research capabilities.
+
+---
+
+## **🎯 BIOMNI INTEGRATION ARCHITECTURE**
+
+### **Current LabGuard Pro + Biomni = Enhanced Platform**
+
+```
+CURRENT LABGUARD PRO:
+✅ Equipment calibration management
+✅ AI compliance validation (25 templates)
+✅ Team management and notifications
+✅ Reports and analytics
+✅ Billing and subscription system
+
++ BIOMNI INTEGRATION:
+🧬 150 specialized biomedical tools
+🧬 59 scientific databases
+🧬 105 software packages
+🧬 Experimental design automation
+🧬 Research hypothesis generation
+🧬 Advanced biomedical analysis
+```
+
+---
+
+## **🚀 PHASE 1: BIOMNI CORE INTEGRATION**
+
+### **Step 1: Biomni Service Integration**
+
+```typescript
+// File: apps/api/src/services/BiomniService.ts
+import { spawn } from 'child_process'
+import { PrismaClient } from '@prisma/client'
+
+interface BiomniConfig {
+  pythonPath: string
+  biomniPath: string
+  dataPath: string
+  llmModel: string
+}
+
+interface BiomniRequest {
+  query: string
+  context?: string
+  tools?: string[]
+  databases?: string[]
+  userId: string
+  labId: string
+}
+
+interface BiomniResponse {
+  result: string
+  toolsUsed: string[]
+  databasesQueried: string[]
+  confidence: number
+  executionTime: number
+  cost: number
+}
+
+export class BiomniService {
+  private config: BiomniConfig
+  private prisma: PrismaClient
+
+  constructor() {
+    this.config = {
+      pythonPath: process.env.PYTHON_PATH || 'python',
+      biomniPath: process.env.BIOMNI_PATH || './biomni',
+      dataPath: process.env.BIOMNI_DATA_PATH || './data',
+      llmModel: process.env.BIOMNI_LLM || 'claude-3-5-sonnet-latest'
+    }
+    this.prisma = new PrismaClient()
+  }
+
+  async executeBiomniQuery(request: BiomniRequest): Promise<BiomniResponse> {
+    const startTime = Date.now()
+    
+    try {
+      // Record query for billing and analytics
+      const queryRecord = await this.prisma.biomniQuery.create({
+        data: {
+          query: request.query,
+          context: request.context,
+          userId: request.userId,
+          labId: request.labId,
+          status: 'EXECUTING'
+        }
+      })
+
+      // Execute Biomni agent
+      const result = await this.callBiomniAgent(request)
+      
+      const executionTime = Date.now() - startTime
+      
+      // Update query record with results
+      await this.prisma.biomniQuery.update({
+        where: { id: queryRecord.id },
+        data: {
+          result: result.result,
+          toolsUsed: result.toolsUsed,
+          databasesQueried: result.databasesQueried,
+          confidence: result.confidence,
+          executionTime,
+          cost: result.cost,
+          status: 'COMPLETED'
+        }
+      })
+
+      return {
+        ...result,
+        executionTime
+      }
+    } catch (error) {
+      console.error('Biomni execution failed:', error)
+      throw new Error('Biomni query execution failed')
+    }
+  }
+
+  private async callBiomniAgent(request: BiomniRequest): Promise<BiomniResponse> {
+    return new Promise((resolve, reject) => {
+      const biomniProcess = spawn(this.config.pythonPath, [
+        '-c',
+        `
+import sys
+sys.path.append('${this.config.biomniPath}')
+from biomni import biomni_agent
+import json
+
+# Initialize Biomni agent
+agent = biomni_agent(
+    path='${this.config.dataPath}',
+    llm='${this.config.llmModel}'
+)
+
+# Execute query
+try:
+    result = agent.query(
+        query="${request.query}",
+        context="${request.context || ''}",
+        tools=${JSON.stringify(request.tools || [])},
+        databases=${JSON.stringify(request.databases || [])}
+    )
+    
+    response = {
+        "result": result.text,
+        "toolsUsed": result.tools_used,
+        "databasesQueried": result.databases_queried,
+        "confidence": result.confidence,
+        "cost": result.cost
+    }
+    
+    print(json.dumps(response))
+except Exception as e:
+    print(json.dumps({"error": str(e)}))
+        `
+      ])
+
+      let output = ''
+      let error = ''
+
+      biomniProcess.stdout.on('data', (data) => {
+        output += data.toString()
+      })
+
+      biomniProcess.stderr.on('data', (data) => {
+        error += data.toString()
+      })
+
+      biomniProcess.on('close', (code) => {
+        if (code === 0) {
+          try {
+            const result = JSON.parse(output.trim())
+            if (result.error) {
+              reject(new Error(result.error))
+            } else {
+              resolve(result)
+            }
+          } catch (parseError) {
+            reject(new Error('Failed to parse Biomni response'))
+          }
+        } else {
+          reject(new Error(`Biomni process failed with code ${code}: ${error}`))
+        }
+      })
+    })
+  }
+
+  async getBiomniCapabilities(): Promise<{
+    tools: string[]
+    databases: string[]
+    software: string[]
+  }> {
+    // Return available Biomni capabilities
+    return {
+      tools: [
+        'DNA/RNA sequence analysis',
+        'Protein structure prediction',
+        'CRISPR guide design',
+        'Cell type annotation',
+        'Drug-target interaction',
+        'Pharmacokinetic modeling',
+        // ... 144 more tools
+      ],
+      databases: [
+        'GenBank',
+        'UniProt',
+        'PDB',
+        'KEGG',
+        'GO',
+        'ChEMBL',
+        // ... 53 more databases
+      ],
+      software: [
+        'BLAST',
+        'Clustal Omega',
+        'GROMACS',
+        'PyMOL',
+        'RDKit',
+        'Biopython',
+        // ... 99 more software packages
+      ]
+    }
+  }
+}
+```
+
+### **Step 2: Database Schema Extension**
+
+```sql
+-- Add Biomni-related tables to Prisma schema
+
+model BiomniQuery {
+  id                    String   @id @default(cuid())
+  query                 String   @db.Text
+  context               String?  @db.Text
+  result                String?  @db.Text
+  toolsUsed             String[]
+  databasesQueried      String[]
+  confidence            Float?
+  executionTime         Int?     // milliseconds
+  cost                  Float?   // API cost in dollars
+  status                BiomniQueryStatus @default(PENDING)
+  
+  // Relationships
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id])
+  labId                 String
+  laboratory            Laboratory @relation(fields: [labId], references: [id])
+  
+  // Equipment context (optional)
+  equipmentId           String?
+  equipment             Equipment? @relation(fields: [equipmentId], references: [id])
+  
+  // Calibration context (optional)
+  calibrationRecordId   String?
+  calibrationRecord     CalibrationRecord? @relation(fields: [calibrationRecordId], references: [id])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("biomni_queries")
+}
+
+model ExperimentalProtocol {
+  id                    String   @id @default(cuid())
+  name                  String
+  description           String   @db.Text
+  category              ProtocolCategory
+  biomniGenerated       Boolean  @default(false)
+  biomniQueryId         String?
+  biomniQuery           BiomniQuery? @relation(fields: [biomniQueryId], references: [id])
+  
+  // Protocol details
+  steps                 Json     // Array of protocol steps
+  reagents              Json     // Required reagents
+  equipment             Json     // Required equipment
+  safetyConsiderations  Json     // Safety requirements
+  expectedResults       Json     // Expected outcomes
+  
+  // Validation
+  validated             Boolean  @default(false)
+  validatedBy           String?
+  validatedAt           DateTime?
+  
+  // Usage tracking
+  usageCount            Int      @default(0)
+  successRate           Float?
+  
+  // Relationships
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  createdBy             String
+  creator               User     @relation(fields: [createdBy], references: [id])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("experimental_protocols")
+}
+
+model ResearchProject {
+  id                    String   @id @default(cuid())
+  name                  String
+  description           String   @db.Text
+  hypothesis            String   @db.Text
+  biomniGenerated       Boolean  @default(false)
+  
+  // Project details
+  objectives            Json     // Research objectives
+  methodology           Json     // Research methodology
+  timeline              Json     // Project timeline
+  budget                Json     // Budget considerations
+  
+  // Biomni insights
+  biomniInsights        Json?    // AI-generated insights
+  recommendedProtocols  Json?    // Suggested protocols
+  literatureReferences  Json?    // Relevant literature
+  
+  // Status tracking
+  status                ProjectStatus @default(PLANNING)
+  progress              Float    @default(0)
+  
+  // Relationships
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  principalInvestigator String
+  pi                    User     @relation(fields: [principalInvestigator], references: [id])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("research_projects")
+}
+
+enum BiomniQueryStatus {
+  PENDING
+  EXECUTING
+  COMPLETED
+  FAILED
+}
+
+enum ProtocolCategory {
+  MOLECULAR_BIOLOGY
+  CELL_CULTURE
+  BIOCHEMISTRY
+  ANALYTICAL_CHEMISTRY
+  MICROBIOLOGY
+  IMMUNOLOGY
+  GENOMICS
+  PROTEOMICS
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+```
+
+---
+
+## **🧪 PHASE 2: EXPERIMENTAL DESIGN AUTOMATION**
+
+### **Step 3: Protocol Generation Interface**
+
+```typescript
+// File: apps/web/src/components/biomni/ProtocolGenerator.tsx
+'use client'
+
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Loader2, Beaker, Database, Cpu } from 'lucide-react'
+
+interface ProtocolGeneratorProps {
+  onProtocolGenerated: (protocol: any) => void
+}
+
+export function ProtocolGenerator({ onProtocolGenerated }: ProtocolGeneratorProps) {
+  const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [selectedTools, setSelectedTools] = useState<string[]>([])
+  const [selectedDatabases, setSelectedDatabases] = useState<string[]>([])
+
+  const availableTools = [
+    'DNA/RNA sequence analysis',
+    'Protein structure prediction',
+    'CRISPR guide design',
+    'Cell type annotation',
+    'Drug-target interaction',
+    'Pharmacokinetic modeling',
+    'Primer design',
+    'Plasmid design',
+    'Western blot optimization',
+    'qPCR assay design'
+  ]
+
+  const availableDatabases = [
+    'GenBank',
+    'UniProt', 
+    'PDB',
+    'KEGG',
+    'Gene Ontology',
+    'ChEMBL',
+    'PubMed',
+    'Reactome',
+    'STRING',
+    'ClinVar'
+  ]
+
+  const handleGenerateProtocol = async () => {
+    if (!query.trim()) return
+
+    setLoading(true)
+    
+    try {
+      const response = await fetch('/api/biomni/generate-protocol', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query,
+          tools: selectedTools,
+          databases: selectedDatabases,
+          context: 'laboratory_protocol_generation'
+        })
+      })
+
+      const result = await response.json()
+      onProtocolGenerated(result)
+    } catch (error) {
+      console.error('Protocol generation failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Beaker className="w-5 h-5" />
+          <span>AI Protocol Generator</span>
+        </CardTitle>
+        <p className="text-sm text-gray-600">
+          Describe your experimental goal and let Biomni generate a detailed protocol
+        </p>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {/* Query Input */}
+        <div>
+          <label className="text-sm font-medium">Experimental Objective</label>
+          <Textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Example: Design a protocol to isolate and purify protein X from E. coli, including expression optimization and purification steps"
+            rows={4}
+            className="mt-1"
+          />
+        </div>
+
+        {/* Tool Selection */}
+        <div>
+          <label className="text-sm font-medium flex items-center space-x-2 mb-2">
+            <Cpu className="w-4 h-4" />
+            <span>Preferred Tools (Optional)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {availableTools.map((tool) => (
+              <Badge
+                key={tool}
+                variant={selectedTools.includes(tool) ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => {
+                  setSelectedTools(prev => 
+                    prev.includes(tool) 
+                      ? prev.filter(t => t !== tool)
+                      : [...prev, tool]
+                  )
+                }}
+              >
+                {tool}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Database Selection */}
+        <div>
+          <label className="text-sm font-medium flex items-center space-x-2 mb-2">
+            <Database className="w-4 h-4" />
+            <span>Databases to Query (Optional)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {availableDatabases.map((db) => (
+              <Badge
+                key={db}
+                variant={selectedDatabases.includes(db) ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => {
+                  setSelectedDatabases(prev => 
+                    prev.includes(db) 
+                      ? prev.filter(d => d !== db)
+                      : [...prev, db]
+                  )
+                }}
+              >
+                {db}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Generate Button */}
+        <Button 
+          onClick={handleGenerateProtocol}
+          disabled={!query.trim() || loading}
+          className="w-full"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Generating Protocol...
+            </>
+          ) : (
+            'Generate Protocol with Biomni'
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+### **Step 4: Protocol Display and Validation**
+
+```typescript
+// File: apps/web/src/components/biomni/ProtocolViewer.tsx
+'use client'
+
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CheckCircle, AlertTriangle, Clock, Beaker, ShieldCheck } from 'lucide-react'
+
+interface ProtocolViewerProps {
+  protocol: {
+    name: string
+    description: string
+    steps: any[]
+    reagents: any[]
+    equipment: any[]
+    safetyConsiderations: any[]
+    expectedResults: any[]
+    toolsUsed: string[]
+    databasesQueried: string[]
+    confidence: number
+    estimatedTime: string
+    estimatedCost: string
+  }
+  onValidate: () => void
+  onSave: () => void
+}
+
+export function ProtocolViewer({ protocol, onValidate, onSave }: ProtocolViewerProps) {
+  const [validationStatus, setValidationStatus] = useState<'pending' | 'validating' | 'validated'>('pending')
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return 'text-green-600'
+    if (confidence >= 0.6) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  const handleValidation = async () => {
+    setValidationStatus('validating')
+    
+    try {
+      // Run additional validation checks
+      await onValidate()
+      setValidationStatus('validated')
+    } catch (error) {
+      console.error('Validation failed:', error)
+      setValidationStatus('pending')
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Protocol Header */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-xl">{protocol.name}</CardTitle>
+              <p className="text-gray-600 mt-1">{protocol.description}</p>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={handleValidation}>
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Validate Protocol
+              </Button>
+              <Button onClick={onSave}>
+                Save Protocol
+              </Button>
+            </div>
+          </div>
+          
+          {/* Protocol Metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className={`text-2xl font-bold ${getConfidenceColor(protocol.confidence)}`}>
+                {Math.round(protocol.confidence * 100)}%
+              </div>
+              <div className="text-sm text-gray-600">Confidence</div>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{protocol.estimatedTime}</div>
+              <div className="text-sm text-gray-600">Est. Time</div>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{protocol.estimatedCost}</div>
+              <div className="text-sm text-gray-600">Est. Cost</div>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">{protocol.steps.length}</div>
+              <div className="text-sm text-gray-600">Steps</div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Protocol Details */}
+      <Tabs defaultValue="steps" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="steps">Protocol Steps</TabsTrigger>
+          <TabsTrigger value="reagents">Reagents</TabsTrigger>
+          <TabsTrigger value="equipment">Equipment</TabsTrigger>
+          <TabsTrigger value="safety">Safety</TabsTrigger>
+          <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="steps" className="space-y-4">
+          {protocol.steps.map((step, index) => (
+            <Card key={index}>
+              <CardContent className="pt-4">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium">{step.title}</h4>
+                    <p className="text-gray-600 mt-1">{step.description}</p>
+                    {step.duration && (
+                      <div className="flex items-center space-x-2 mt-2">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-500">{step.duration}</span>
+                      </div>
+                    )}
+                    {step.criticalPoints && (
+                      <div className="mt-2">
+                        <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          Critical Point
+                        </Badge>
+                        <p className="text-sm text-yellow-700 mt-1">{step.criticalPoints}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="reagents" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Required Reagents</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {protocol.reagents.map((reagent, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{reagent.name}</h4>
+                      <p className="text-sm text-gray-600">{reagent.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">{reagent.amount}</div>
+                      <div className="text-sm text-gray-500">{reagent.concentration}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="equipment" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Required Equipment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {protocol.equipment.map((item, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg">
+                    <Beaker className="w-5 h-5 text-blue-500" />
+                    <div>
+                      <h4 className="font-medium">{item.name}</h4>
+                      <p className="text-sm text-gray-600">{item.specifications}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="safety" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Safety Considerations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {protocol.safetyConsiderations.map((safety, index) => (
+                  <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-red-800">{safety.category}</h4>
+                      <p className="text-sm text-red-700">{safety.description}</p>
+                      <p className="text-sm text-red-600 mt-1 font-medium">PPE: {safety.ppe}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analysis" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tools Used</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {protocol.toolsUsed.map((tool, index) => (
+                    <Badge key={index} variant="outline">
+                      {tool}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Databases Queried</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {protocol.databasesQueried.map((db, index) => (
+                    <Badge key={index} variant="outline" className="bg-blue-50">
+                      {db}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Expected Results</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {protocol.expectedResults.map((result, index) => (
+                  <div key={index} className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <h4 className="font-medium text-green-800">{result.parameter}</h4>
+                    <p className="text-sm text-green-700">{result.expectedValue}</p>
+                    <p className="text-sm text-green-600 mt-1">{result.interpretation}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Validation Status */}
+      {validationStatus === 'validated' && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-4">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <span className="text-green-800 font-medium">Protocol Validated</span>
+            </div>
+            <p className="text-green-700 text-sm mt-1">
+              This protocol has been validated against laboratory standards and safety requirements.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
+## **🔬 PHASE 3: RESEARCH INTELLIGENCE**
+
+### **Step 5: Research Project Assistant**
+
+```typescript
+// File: apps/web/src/components/biomni/ResearchAssistant.tsx
+'use client'
+
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Lightbulb, BookOpen, Search, Target } from 'lucide-react'
+
+export function ResearchAssistant() {
+  const [researchArea, setResearchArea] = useState('')
+  const [hypothesis, setHypothesis] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [insights, setInsights] = useState(null)
+
+  const handleGenerateInsights = async () => {
+    setLoading(true)
+    
+    try {
+      const response = await fetch('/api/biomni/research-insights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          researchArea,
+          hypothesis,
+          query: `Generate research insights for: ${researchArea}. Hypothesis: ${hypothesis}`
+        })
+      })
+
+      const result = await response.json()
+      setInsights(result)
+    } catch (error) {
+      console.error('Research insights generation failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Input Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Lightbulb className="w-5 h-5" />
+            <span>AI Research Assistant</span>
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Get AI-powered insights, methodology suggestions, and literature recommendations
+          </p>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Research Area</label>
+            <Input
+              value={researchArea}
+              onChange={(e) => setResearchArea(e.target.value)}
+              placeholder="e.g., Cancer immunotherapy, CRISPR gene editing, Protein folding"
+              className="mt-1"
+            />
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium">Research Hypothesis (Optional)</label>
+            <Textarea
+              value={hypothesis}
+              onChange={(e) => setHypothesis(e.target.value)}
+              placeholder="Describe your research hypothesis or specific questions you want to investigate"
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+          
+          <Button 
+            onClick={handleGenerateInsights}
+            disabled={!researchArea.trim() || loading}
+            className="w-full"
+          >
+            {loading ? 'Generating Insights...' : 'Generate Research Insights'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Results */}
+      {insights && (
+        <div className="space-y-4">
+          {/* Key Insights */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Target className="w-5 h-5" />
+                <span>Key Research Insights</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {insights.keyInsights?.map((insight, index) => (
+                  <div key={index} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-medium text-blue-800">{insight.title}</h4>
+                    <p className="text-blue-700 text-sm mt-1">{insight.description}</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {insight.relevantTools?.map((tool, i) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {tool}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Methodology Suggestions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Search className="w-5 h-5" />
+                <span>Suggested Methodologies</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {insights.methodologies?.map((method, index) => (
+                  <div key={index} className="border rounded-lg p-3">
+                    <h4 className="font-medium">{method.name}</h4>
+                    <p className="text-gray-600 text-sm mt-1">{method.description}</p>
+                    <div className="mt-2">
+                      <span className="text-xs text-gray-500">Advantages: </span>
+                      <span className="text-xs">{method.advantages}</span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500">Considerations: </span>
+                      <span className="text-xs">{method.limitations}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Literature Recommendations */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <BookOpen className="w-5 h-5" />
+                <span>Relevant Literature</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {insights.literature?.map((paper, index) => (
+                  <div key={index} className="border rounded-lg p-3">
+                    <h4 className="font-medium text-sm">{paper.title}</h4>
+                    <p className="text-gray-600 text-xs mt-1">{paper.authors}</p>
+                    <p className="text-gray-500 text-xs">{paper.journal} ({paper.year})</p>
+                    <p className="text-sm mt-2">{paper.relevance}</p>
+                    {paper.doi && (
+                      <a 
+                        href={`https://doi.org/${paper.doi}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 text-xs hover:underline mt-1 inline-block"
+                      >
+                        DOI: {paper.doi}
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Experimental Design */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Suggested Experimental Design</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium">Objectives</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-600 mt-1">
+                    {insights.experimentalDesign?.objectives?.map((obj, index) => (
+                      <li key={index}>{obj}</li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium">Controls</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-600 mt-1">
+                    {insights.experimentalDesign?.controls?.map((control, index) => (
+                      <li key={index}>{control}</li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium">Statistical Considerations</h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {insights.experimentalDesign?.statistics}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
+## **🔧 PHASE 4: ADVANCED INTEGRATION FEATURES**
+
+### **Step 6: Equipment-Specific Biomni Integration**
+
+```typescript
+// File: apps/api/src/controllers/biomni-equipment.ts
+import { Request, Response } from 'express'
+import { BiomniService } from '../services/BiomniService'
+import { PrismaClient } from '@prisma/client'
+
+const biomniService = new BiomniService()
+const prisma = new PrismaClient()
+
+export const getEquipmentOptimization = async (req: Request, res: Response) => {
+  try {
+    const { equipmentId } = req.params
+    const { optimizationGoal } = req.body
+
+    // Get equipment details
+    const equipment = await prisma.equipment.findUnique({
+      where: { id: equipmentId },
+      include: {
+        calibrationRecords: {
+          take: 10,
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    })
+
+    if (!equipment) {
+      return res.status(404).json({ error: 'Equipment not found' })
+    }
+
+    // Generate Biomni query for equipment optimization
+    const query = `
+      Analyze ${equipment.type} equipment performance and suggest optimization strategies.
+      
+      Equipment Details:
+      - Model: ${equipment.model}
+      - Manufacturer: ${equipment.manufacturer}
+      - Current Status: ${equipment.status}
+      - Location: ${equipment.location}
+      
+      Recent Calibration Data:
+      ${equipment.calibrationRecords.map(cal => 
+        `- Date: ${cal.performedAt}, Status: ${cal.status}, Notes: ${cal.notes}`
+      ).join('\n')}
+      
+      Optimization Goal: ${optimizationGoal}
+      
+      Please provide:
+      1. Performance analysis
+      2. Optimization recommendations
+      3. Preventive maintenance suggestions
+      4. Cost-benefit analysis
+      5. Risk assessment
+    `
+
+    const result = await biomniService.executeBiomniQuery({
+      query,
+      context: 'equipment_optimization',
+      tools: ['equipment_analysis', 'maintenance_planning', 'cost_analysis'],
+      databases: ['equipment_specifications', 'maintenance_records'],
+      userId: req.user.id,
+      labId: req.user.laboratoryId
+    })
+
+    res.json({
+      equipmentId,
+      optimizationSuggestions: result,
+      generatedAt: new Date().toISOString()
+    })
+
+  } catch (error) {
+    console.error('Equipment optimization failed:', error)
+    res.status(500).json({ error: 'Equipment optimization failed' })
+  }
+}
+
+export const getMethodValidation = async (req: Request, res: Response) => {
+  try {
+    const { method, parameters } = req.body
+
+    const query = `
+      Validate the following analytical method and parameters:
+      
+      Method: ${method.name}
+      Description: ${method.description}
+      
+      Parameters:
+      ${Object.entries(parameters).map(([key, value]) => 
+        `- ${key}: ${value}`
+      ).join('\n')}
+      
+      Please provide:
+      1. Method validation assessment
+      2. Parameter optimization suggestions
+      3. Quality control recommendations
+      4. Regulatory compliance check
+      5. Literature references for validation
+      6. Potential interferences and limitations
+    `
+
+    const result = await biomniService.executeBiomniQuery({
+      query,
+      context: 'method_validation',
+      tools: ['method_validation', 'qc_analysis', 'regulatory_check'],
+      databases: ['analytical_methods', 'regulatory_guidelines', 'literature'],
+      userId: req.user.id,
+      labId: req.user.laboratoryId
+    })
+
+    res.json({
+      method: method.name,
+      validationResults: result,
+      generatedAt: new Date().toISOString()
+    })
+
+  } catch (error) {
+    console.error('Method validation failed:', error)
+    res.status(500).json({ error: 'Method validation failed' })
+  }
+}
+```
+
+### **Step 7: Dashboard Integration**
+
+```typescript
+// File: apps/web/src/components/dashboard/BiomniInsights.tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Brain, TrendingUp, AlertCircle, Lightbulb } from 'lucide-react'
+
+interface BiomniInsight {
+  id: string
+  type: 'optimization' | 'prediction' | 'recommendation' | 'alert'
+  title: string
+  description: string
+  confidence: number
+  equipmentId?: string
+  equipmentName?: string
+  createdAt: string
+}
+
+export function BiomniInsights() {
+  const [insights, setInsights] = useState<BiomniInsight[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchInsights()
+  }, [])
+
+  const fetchInsights = async () => {
+    try {
+      const response = await fetch('/api/biomni/insights')
+      const data = await response.json()
+      setInsights(data.insights)
+    } catch (error) {
+      console.error('Failed to fetch insights:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'optimization':
+        return <TrendingUp className="w-4 h-4 text-blue-500" />
+      case 'prediction':
+        return <Brain className="w-4 h-4 text-purple-500" />
+      case 'recommendation':
+        return <Lightbulb className="w-4 h-4 text-yellow-500" />
+      case 'alert':
+        return <AlertCircle className="w-4 h-4 text-red-500" />
+      default:
+        return <Brain className="w-4 h-4 text-gray-500" />
+    }
+  }
+
+  const getInsightBadge = (type: string) => {
+    const badgeStyles = {
+      optimization: 'bg-blue-100 text-blue-800',
+      prediction: 'bg-purple-100 text-purple-800',
+      recommendation: 'bg-yellow-100 text-yellow-800',
+      alert: 'bg-red-100 text-red-800'
+    }
+    
+    return (
+      <Badge className={badgeStyles[type] || 'bg-gray-100 text-gray-800'}>
+        {type.charAt(0).toUpperCase() + type.slice(1)}
+      </Badge>
+    )
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Brain className="w-5 h-5" />
+            <span>Biomni AI Insights</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center space-x-2">
+            <Brain className="w-5 h-5" />
+            <span>Biomni AI Insights</span>
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={fetchInsights}>
+            Refresh
+          </Button>
+        </div>
+        <p className="text-sm text-gray-600">
+          AI-powered insights and recommendations for your laboratory
+        </p>
+      </CardHeader>
+      
+      <CardContent>
+        {insights.length === 0 ? (
+          <div className="text-center py-8">
+            <Brain className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">No insights available yet</p>
+            <p className="text-sm text-gray-400">
+              Generate protocols or run equipment analysis to get AI insights
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {insights.slice(0, 5).map((insight) => (
+              <div key={insight.id} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    {getInsightIcon(insight.type)}
+                    <h4 className="font-medium text-sm">{insight.title}</h4>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {getInsightBadge(insight.type)}
+                    <div className="text-xs text-gray-500">
+                      {Math.round(insight.confidence * 100)}%
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-600 mb-2">{insight.description}</p>
+                
+                <div className="flex justify-between items-center">
+                  {insight.equipmentName && (
+                    <span className="text-xs text-blue-600">
+                      Equipment: {insight.equipmentName}
+                    </span>
+                  )}
+                  <span className="text-xs text-gray-400">
+                    {new Date(insight.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+            
+            {insights.length > 5 && (
+              <Button variant="link" className="w-full text-sm">
+                View all {insights.length} insights →
+              </Button>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+---
+
+## **📊 IMPLEMENTATION ROADMAP**
+
+### **Timeline: 4-6 Weeks**
+
+#### **Week 1-2: Core Integration**
+- [ ] Set up Biomni environment and dependencies
+- [ ] Implement BiomniService backend integration
+- [ ] Create database schema extensions
+- [ ] Build basic query interface
+
+#### **Week 3-4: Protocol Generation**
+- [ ] Implement protocol generation interface
+- [ ] Build protocol viewer and validation
+- [ ] Create research assistant features
+- [ ] Add equipment optimization
+
+#### **Week 5-6: Advanced Features**
+- [ ] Dashboard insights integration
+- [ ] Method validation tools
+- [ ] Research project management
+- [ ] Performance optimization
+
+---
+
+## **🎯 BUSINESS IMPACT**
+
+### **Value Proposition Enhancement**
+
+**Before Biomni Integration:**
+- LabGuard Pro = Compliance automation platform
+- Focus: Equipment calibration and audit preparation
+- Target: Laboratory managers and technicians
+
+**After Biomni Integration:**
+- LabGuard Pro = Comprehensive laboratory intelligence platform
+- Focus: Compliance + Research + Experimental design
+- Target: Research labs, pharmaceutical companies, biotechnology firms
+
+### **New Revenue Streams**
+
+```typescript
+// Enhanced subscription tiers with Biomni features
+
+const enhancedSubscriptionPlans = {
+  starter: {
+    price: '$299/month',
+    features: [
+      'Basic equipment management',
+      'Standard compliance templates',
+      'Basic reporting'
+    ]
+  },
+  professional: {
+    price: '$599/month', 
+    features: [
+      'Advanced equipment management',
+      'All compliance templates',
+      'Basic Biomni protocols (10/month)',
+      'Research assistant (limited)'
+    ]
+  },
+  enterprise: {
+    price: '$1,299/month',
+    features: [
+      'Unlimited equipment',
+      'All compliance templates',
+      'Unlimited Biomni protocols',
+      'Full research assistant',
+      'Equipment optimization',
+      'Method validation'
+    ]
+  },
+  research: {
+    price: '$2,499/month',
+    features: [
+      'Everything in Enterprise',
+      'Advanced Biomni tools (150 tools)',
+      'Database access (59 databases)',
+      'Custom protocol development',
+      'Research project management',
+      'Hypothesis generation'
+    ]
+  }
+}
+```
+
+### **Market Expansion**
+
+**New Target Markets:**
+- 🧬 **Biotechnology companies** - Protocol automation
+- 🏥 **Hospital research labs** - Clinical research support  
+- 🎓 **Academic institutions** - Research project management
+- 💊 **Pharmaceutical companies** - Drug development protocols
+- 🔬 **CROs (Contract Research Organizations)** - Standardized methodologies
+
+---
+
+## **🚀 COMPETITIVE ADVANTAGES**
+
+1. **First-to-Market**: AI-powered laboratory intelligence platform
+2. **Comprehensive Solution**: Compliance + Research in one platform
+3. **Stanford Technology**: Leverage cutting-edge Biomni capabilities
+4. **Scalable Platform**: From compliance to full research automation
+5. **Industry Expertise**: Deep laboratory domain knowledge
+
+**LabGuard Pro + Biomni = The world's most advanced laboratory automation platform** 🎯
+
+This integration positions LabGuard Pro as the definitive solution for modern laboratories, combining regulatory compliance with cutting-edge research capabilities powered by Stanford's Biomni technology.
