@@ -1,0 +1,330 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: labguard-api
+  namespace: labguard-pro
+  labels:
+    app: labguard-api
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: labguard-api
+  template:
+    metadata:
+      labels:
+        app: labguard-api
+        version: v1.0.0
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/labguard-pro/api:latest
+        ports:
+        - containerPort: 3001
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: redis-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: jwt-secret
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: stripe-secret-key
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: openai-api-key
+        - name: BIOMNI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: biomni-api-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: logs
+        emptyDir: {}
+      imagePullSecrets:
+      - name: ghcr-secret
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: labguard-web
+  namespace: labguard-pro
+  labels:
+    app: labguard-web
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: labguard-web
+  template:
+    metadata:
+      labels:
+        app: labguard-web
+        version: v1.0.0
+    spec:
+      containers:
+      - name: web
+        image: ghcr.io/labguard-pro/web:latest
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          value: "https://api.labguardpro.com"
+        - name: NEXTAUTH_URL
+          value: "https://app.labguardpro.com"
+        - name: NEXTAUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: nextauth-secret
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: google-client-id
+        - name: GOOGLE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: google-client-secret
+        - name: STRIPE_PUBLISHABLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: labguard-secrets
+              key: stripe-publishable-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      imagePullSecrets:
+      - name: ghcr-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: labguard-api-service
+  namespace: labguard-pro
+spec:
+  selector:
+    app: labguard-api
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3001
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: labguard-web-service
+  namespace: labguard-pro
+spec:
+  selector:
+    app: labguard-web
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: labguard-ingress
+  namespace: labguard-pro
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  tls:
+  - hosts:
+    - api.labguardpro.com
+    - app.labguardpro.com
+    secretName: labguard-tls
+  rules:
+  - host: api.labguardpro.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: labguard-api-service
+            port:
+              number: 80
+  - host: app.labguardpro.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: labguard-web-service
+            port:
+              number: 80
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: labguard-api-hpa
+  namespace: labguard-pro
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: labguard-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: labguard-web-hpa
+  namespace: labguard-pro
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: labguard-web
+  minReplicas: 3
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60 

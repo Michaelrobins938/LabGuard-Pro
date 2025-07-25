@@ -1,0 +1,675 @@
+# 🎯 **PHASE 2 COMPLETION PROMPTS FOR CURSOR**
+
+## **Prompt #24: Notifications & Alerts System**
+
+```
+PROJECT CONTEXT & CURRENT STATE:
+
+You are working on LabGuard Pro, an AI-powered laboratory compliance automation platform that helps labs manage equipment calibrations, pass CAP/CLIA audits, and prevent costly equipment failures.
+
+TECHNOLOGY STACK:
+- Frontend: Next.js 14 with TypeScript, Tailwind CSS, NextAuth.js, React Query
+- Backend: Express.js with TypeScript, Prisma ORM, PostgreSQL
+- AI: OpenAI API integration for compliance validation
+- Monorepo: Turborepo with apps/web (frontend) and apps/api (backend)
+
+PHASE 1 COMPLETED FEATURES:
+✅ Complete authentication system with role-based access
+✅ Equipment management with full CRUD operations
+✅ Calibration workflows with AI-powered validation
+✅ Reports and analytics dashboard with PDF generation
+✅ Complete backend API system with all endpoints
+✅ Frontend-backend integration with real data flow
+✅ Comprehensive testing infrastructure
+✅ Dashboard with stats, activity feed, and basic alerts
+
+CURRENT PROJECT STRUCTURE:
+- apps/web/ - Next.js frontend with all core pages built
+- apps/api/ - Express.js backend with complete API system
+- packages/database/ - Prisma schema with all models
+- Users can perform calibrations, generate reports, manage equipment
+
+EXISTING DATABASE MODELS:
+- User, Laboratory, Equipment, CalibrationRecord, ComplianceTemplate
+- Notification, AuditLog, Subscription, MaintenanceRecord
+- All relationships and constraints properly established
+
+CURRENT NOTIFICATION LIMITATIONS:
+- Basic notification display in dashboard header
+- No real-time notification delivery
+- No email/SMS alerts for critical events
+- No user preference management
+- No escalation workflows for overdue items
+- No notification templates or customization
+
+WHAT'S MISSING:
+Users need a comprehensive notification system that proactively alerts them about calibration due dates, equipment failures, compliance issues, and team activities. This is critical for preventing audit failures and equipment downtime.
+
+TASK: Build Complete Notifications & Alerts System
+
+Create a comprehensive real-time notification and alert system. Build the following EXACT structure:
+
+REQUIRED PAGES & COMPONENTS:
+1. Notifications center (/dashboard/notifications)
+2. Notification preferences page (/dashboard/settings/notifications)
+3. Alert configuration page (/dashboard/settings/alerts)
+4. Email notification templates management (/dashboard/settings/email-templates)
+5. Notification history and audit trail (/dashboard/notifications/history)
+
+NOTIFICATION TYPES TO IMPLEMENT:
+- Calibration due alerts (7 days, 3 days, 1 day, overdue)
+- Equipment failure notifications
+- AI compliance warnings and failures
+- Team activity notifications (assignments, completions)
+- System alerts (maintenance, updates, issues)
+- Report generation completed notifications
+- User invitation and role changes
+- Subscription and billing alerts
+
+REAL-TIME NOTIFICATION SYSTEM:
+- WebSocket/Server-Sent Events for live notifications
+- Browser notification API integration
+- In-app notification dropdown with real-time updates
+- Notification badge counters with live counts
+- Auto-refresh of notification status
+- Notification grouping and categorization
+- Mark as read/unread functionality
+- Bulk notification management
+
+EMAIL NOTIFICATION SYSTEM:
+- SMTP configuration with multiple providers (SendGrid, AWS SES)
+- HTML email templates with lab branding
+- Email delivery tracking and status monitoring
+- Bounce handling and failed delivery retry
+- Unsubscribe management with one-click links
+- Email notification scheduling and batching
+- Personalized email content with user data
+- Email delivery analytics and reporting
+
+SMS NOTIFICATION SYSTEM:
+- SMS provider integration (Twilio, AWS SNS)
+- SMS templates for critical alerts
+- International phone number support
+- SMS delivery confirmation tracking
+- Opt-out management for SMS notifications
+- Rate limiting for SMS to prevent spam
+- Emergency alert SMS for critical failures
+
+NOTIFICATION PREFERENCES:
+- Granular notification preferences per user
+- Channel selection (email, SMS, in-app, browser)
+- Frequency settings (immediate, daily digest, weekly)
+- Notification type enable/disable toggles
+- Quiet hours configuration
+- Emergency override settings
+- Team-wide default preferences
+- Role-based notification defaults
+
+ALERT ESCALATION WORKFLOWS:
+- Multi-level escalation chains
+- Time-based escalation triggers
+- Supervisor notification for unaddressed alerts
+- Automatic escalation for overdue calibrations
+- Emergency contact notification system
+- Weekend and holiday escalation handling
+- Custom escalation rules per equipment type
+- Escalation analytics and reporting
+
+NOTIFICATION TEMPLATES:
+- Customizable email templates with rich editor
+- Variable substitution (user name, equipment, dates)
+- Template versioning and approval workflow
+- A/B testing for notification effectiveness
+- Template performance analytics
+- Multi-language template support
+- Brand customization (logo, colors, footer)
+- Template preview and testing tools
+
+ALERT CONFIGURATION:
+- Custom alert thresholds per equipment type
+- Business rule engine for complex alert conditions
+- Alert severity levels (info, warning, critical, emergency)
+- Alert acknowledgment and resolution tracking
+- Alert suppression rules to prevent spam
+- Maintenance mode alert suspension
+- Custom alert actions and integrations
+- Alert analytics and trend analysis
+
+NOTIFICATION ANALYTICS:
+- Delivery rate tracking and reporting
+- Open rates and click-through analytics
+- Response time analysis for critical alerts
+- Notification effectiveness scoring
+- User engagement metrics
+- Alert resolution time tracking
+- Cost analysis for SMS/email delivery
+- ROI measurement for notification system
+
+INTEGRATION FEATURES:
+- Calendar integration for scheduled alerts
+- Microsoft Teams/Slack webhook notifications
+- Mobile app push notifications (placeholder)
+- Third-party ITSM integration (ServiceNow, Jira)
+- API webhooks for external system notifications
+- Zapier integration for workflow automation
+- Custom webhook configuration
+- Integration analytics and monitoring
+
+NOTIFICATION HISTORY:
+- Complete audit trail of all notifications sent
+- Delivery status tracking with timestamps
+- User interaction tracking (opened, clicked, dismissed)
+- Failed delivery investigation tools
+- Notification analytics dashboard
+- Export capabilities for compliance auditing
+- Retention policy management
+- Search and filtering of notification history
+
+UI/UX REQUIREMENTS:
+- Real-time notification dropdown in header
+- Notification center with categorization and filtering
+- Mobile-responsive notification management
+- Drag-and-drop notification prioritization
+- Bulk notification actions
+- Smart notification grouping
+- Visual notification status indicators
+- Accessibility compliance for all notification UI
+
+BACKEND REQUIREMENTS:
+- Notification queue system with Redis/Bull
+- Background job processing for email/SMS delivery
+- Webhook endpoint for delivery status updates
+- Rate limiting and throttling for notifications
+- Notification analytics data collection
+- Template rendering engine with variable substitution
+- Escalation timer management
+- Failed delivery retry mechanisms
+
+Build with proper TypeScript types, comprehensive error handling, real-time updates, mobile responsiveness, and role-based access control. Ensure seamless integration with existing equipment and calibration workflows. Include proper logging, monitoring, and analytics throughout the notification system.
+```
+
+## **Prompt #25: Team Management System**
+
+```
+PROJECT CONTEXT & CURRENT STATE:
+
+You are continuing work on LabGuard Pro, an AI-powered laboratory compliance automation platform used by laboratory managers and technicians.
+
+COMPLETED FEATURES (PHASE 1 + NOTIFICATIONS):
+✅ Authentication system with role-based access (ADMIN, SUPERVISOR, TECHNICIAN, VIEWER)
+✅ Equipment management with full CRUD operations
+✅ Calibration workflows with AI validation
+✅ Reports and analytics dashboard
+✅ Complete backend API system
+✅ Real-time notifications and alerts system
+✅ Email/SMS notification delivery
+✅ Notification preferences and templates
+
+CURRENT USER SYSTEM:
+- Basic user authentication with NextAuth.js
+- Four user roles with different permissions
+- Single user registration and login
+- Basic user profile information
+- Laboratory association per user
+
+EXISTING DATABASE MODELS:
+- User (id, email, name, role, laboratoryId, etc.)
+- Laboratory (id, name, settings, subscription info)
+- All other models: Equipment, CalibrationRecord, Notification, etc.
+- Proper relationships established
+
+CURRENT LIMITATIONS:
+- No way to invite team members to join a laboratory
+- No user management interface for administrators
+- No activity tracking for team members
+- No team dashboard or collaboration features
+- No user performance analytics
+- No team-based assignment workflows
+- Limited user profile management
+
+BUSINESS NEED:
+Laboratory administrators need to invite team members, manage permissions, track team performance, and collaborate on calibration workflows. This is essential for multi-user laboratory environments and proper compliance delegation.
+
+TASK: Build Complete Team Management System
+
+Create a comprehensive team management system for multi-user laboratory environments. Build the following EXACT structure:
+
+REQUIRED PAGES & COMPONENTS:
+1. Team dashboard (/dashboard/team)
+2. Team member invitation page (/dashboard/team/invite)
+3. User management interface (/dashboard/team/users)
+4. Team activity tracking (/dashboard/team/activity)
+5. User profile management (/dashboard/settings/profile)
+6. Team settings and permissions (/dashboard/team/settings)
+7. User onboarding workflow (/onboarding)
+
+TEAM INVITATION SYSTEM:
+- Email-based invitation workflow
+- Role assignment during invitation
+- Invitation link generation with expiration
+- Invitation tracking and resend capability
+- Bulk invitation for multiple users
+- Custom invitation message templates
+- Invitation analytics and acceptance rates
+- Domain-based auto-acceptance for verified labs
+
+USER MANAGEMENT INTERFACE:
+- Complete user directory with search and filtering
+- User status management (active, inactive, pending)
+- Role changes with approval workflow
+- User permission matrix visualization
+- Bulk user operations (role changes, deactivation)
+- User activity summary and last seen
+- User photo and profile management
+- User export and import capabilities
+
+ROLE-BASED PERMISSIONS SYSTEM:
+- Granular permission management beyond basic roles
+- Custom permission groups creation
+- Equipment-specific access control
+- Location-based access restrictions
+- Time-based access permissions
+- Permission inheritance and delegation
+- Permission audit trail and changes
+- Role templates for quick assignment
+
+TEAM ACTIVITY TRACKING:
+- Real-time activity feed for team actions
+- User performance metrics and KPIs
+- Calibration assignment and completion tracking
+- Time tracking for calibration workflows
+- Team collaboration on complex calibrations
+- Workload distribution analysis
+- Performance benchmarking between team members
+- Activity export for performance reviews
+
+USER ONBOARDING SYSTEM:
+- Multi-step onboarding workflow for new users
+- Interactive product tour and tutorials
+- Role-specific onboarding paths
+- Progress tracking and completion metrics
+- Knowledge base integration
+- Video tutorials and documentation links
+- Onboarding feedback collection
+- Completion certificates and badges
+
+TEAM DASHBOARD:
+- Team overview with member status
+- Active assignments and workloads
+- Team performance metrics and trends
+- Collaboration tools and communication
+- Team calendar with assignments
+- Skill matrix and expertise tracking
+- Team achievements and milestones
+- Resource allocation and planning
+
+USER PROFILE MANAGEMENT:
+- Comprehensive user profile editing
+- Professional information and certifications
+- Contact preferences and availability
+- Skill sets and expertise areas
+- Profile photo and bio management
+- Privacy settings and visibility controls
+- Integration with third-party profiles (LinkedIn)
+- Profile completion progress tracking
+
+ASSIGNMENT & WORKFLOW SYSTEM:
+- Calibration assignment to specific team members
+- Work queue management for technicians
+- Task dependencies and prerequisite checking
+- Collaborative calibration workflows
+- Peer review and approval processes
+- Escalation for incomplete assignments
+- Assignment scheduling and planning
+- Workload balancing and optimization
+
+TEAM COMMUNICATION:
+- Internal messaging system for team coordination
+- Equipment-specific discussion threads
+- Calibration notes and collaboration
+- @mention notifications for team members
+- File sharing for procedures and documentation
+- Team announcements and updates
+- Knowledge sharing and best practices
+- Communication analytics and engagement
+
+PERFORMANCE ANALYTICS:
+- Individual user performance dashboards
+- Team productivity metrics and trends
+- Calibration completion rates and quality
+- Time-to-completion analysis
+- Error rates and improvement tracking
+- Training needs identification
+- Performance review support documentation
+- Goal setting and achievement tracking
+
+TEAM SETTINGS & CONFIGURATION:
+- Laboratory-wide team policies
+- Default role assignments
+- Approval workflows for sensitive operations
+- Team hierarchy and reporting structure
+- Integration with HR systems
+- Compliance training requirements
+- Team certification tracking
+- Custom field configuration for users
+
+MOBILE TEAM FEATURES:
+- Mobile-responsive team management
+- Mobile user directory with quick contact
+- Mobile task assignments and updates
+- Mobile team communication
+- Mobile performance tracking
+- Offline capability for remote team members
+- Mobile photo upload for profiles
+- Push notifications for team activities
+
+INTEGRATION CAPABILITIES:
+- Active Directory/LDAP integration
+- SSO integration (SAML, OAuth)
+- HR system integration for user data
+- Calendar integration for scheduling
+- Time tracking system integration
+- Learning management system integration
+- Third-party communication tools (Slack, Teams)
+- API access for custom integrations
+
+SECURITY & COMPLIANCE:
+- Data access audit trails
+- User session management and monitoring
+- Multi-factor authentication options
+- Password policy enforcement
+- Account lockout and security monitoring
+- GDPR compliance for user data
+- Data retention and deletion policies
+- Security incident reporting
+
+ANALYTICS & REPORTING:
+- Team performance reports
+- User engagement analytics
+- Onboarding success metrics
+- Permission usage analysis
+- Team collaboration insights
+- Cost per user analytics
+- ROI measurement for team features
+- Custom team analytics dashboards
+
+Build with proper TypeScript types, role-based access control, real-time updates, mobile responsiveness, and comprehensive error handling. Ensure seamless integration with existing equipment, calibration, and notification systems. Include proper audit logging for all team management activities.
+```
+
+## **Prompt #26: Settings & Configuration System**
+
+```
+PROJECT CONTEXT & CURRENT STATE:
+
+You are completing Phase 2 of LabGuard Pro, an AI-powered laboratory compliance automation platform.
+
+COMPLETED FEATURES (PHASE 1 + PHASE 2 PARTIAL):
+✅ Complete authentication and authorization system
+✅ Equipment management with full CRUD operations
+✅ Calibration workflows with AI validation
+✅ Reports and analytics with PDF generation
+✅ Real-time notifications and alerts system
+✅ Team management with user invitations and permissions
+✅ Activity tracking and user performance analytics
+✅ Complete backend API system with all endpoints
+
+CURRENT APPLICATION STATE:
+- Multi-user laboratory environments fully supported
+- Role-based access control (ADMIN, SUPERVISOR, TECHNICIAN, VIEWER)
+- Real-time notifications via email, SMS, and in-app
+- Team collaboration on calibration workflows
+- Comprehensive reporting and analytics
+
+EXISTING SETTINGS:
+- Basic notification preferences per user
+- Simple laboratory information in database
+- User profile basic information
+- Hard-coded application configuration
+- Limited customization options
+
+SETTINGS LIMITATIONS:
+- No centralized settings management
+- No laboratory branding customization
+- No API key management for integrations
+- No system configuration options
+- No backup and data management tools
+- No integration configuration interface
+
+BUSINESS NEED:
+Laboratory administrators need comprehensive settings management to customize the platform for their specific workflows, brand the interface, manage integrations, and configure system behavior. This is essential for enterprise deployments and platform adoption.
+
+TASK: Build Complete Settings & Configuration System
+
+Create a comprehensive settings and configuration system for laboratory customization and system management. Build the following EXACT structure:
+
+REQUIRED PAGES & COMPONENTS:
+1. Settings dashboard (/dashboard/settings)
+2. Laboratory settings (/dashboard/settings/laboratory)
+3. User profile management (/dashboard/settings/profile)
+4. Integration configurations (/dashboard/settings/integrations)
+5. API key management (/dashboard/settings/api)
+6. System preferences (/dashboard/settings/system)
+7. Data management (/dashboard/settings/data)
+8. Billing and subscription (/dashboard/settings/billing)
+
+LABORATORY SETTINGS:
+- Laboratory information and branding
+- Logo upload and brand color customization
+- Contact information and addresses
+- Operating hours and timezone configuration
+- Default calibration frequencies per equipment type
+- Custom equipment categories and types
+- Location management and hierarchy
+- Compliance standards selection (CAP, CLIA, ISO)
+- Custom fields for equipment and calibrations
+- Laboratory-specific business rules
+
+BRANDING & CUSTOMIZATION:
+- Logo upload with automatic resizing and optimization
+- Brand color palette configuration
+- Custom CSS injection for advanced styling
+- Email template branding customization
+- Report header and footer customization
+- Custom domain configuration
+- White-labeling options for enterprise clients
+- PDF template customization
+- Mobile app icon customization
+- Custom login page branding
+
+USER PROFILE MANAGEMENT:
+- Personal information editing
+- Profile photo upload and management
+- Contact preferences and communication settings
+- Password change and security settings
+- Two-factor authentication setup
+- API key generation for personal use
+- Timezone and language preferences
+- Accessibility settings and preferences
+- Professional certifications and licenses
+- Emergency contact information
+
+INTEGRATION CONFIGURATIONS:
+- LIMS system integration setup
+- ERP system connection configuration
+- Calendar integration (Google, Outlook, Exchange)
+- Active Directory/LDAP configuration
+- SSO setup (SAML, OAuth, OIDC)
+- Email provider configuration (SMTP, SendGrid, AWS SES)
+- SMS provider setup (Twilio, AWS SNS)
+- Webhook configuration for external systems
+- Third-party service API keys management
+- Integration testing and validation tools
+
+API KEY MANAGEMENT:
+- API key generation and management
+- Scope and permission configuration for API keys
+- API usage analytics and monitoring
+- Rate limiting configuration per API key
+- API key rotation and security policies
+- Webhook endpoint management
+- API documentation access
+- Developer portal access
+- API audit logs and usage reports
+- API key sharing and team access
+
+SYSTEM PREFERENCES:
+- Default user roles and permissions
+- Automatic assignment rules
+- Data retention policies configuration
+- Backup scheduling and configuration
+- Maintenance window scheduling
+- System notification preferences
+- Performance monitoring settings
+- Error logging and alerting configuration
+- Cache configuration and management
+- Database optimization settings
+
+COMPLIANCE CONFIGURATION:
+- Regulatory standard selection and configuration
+- Custom compliance templates creation
+- Audit trail configuration and retention
+- Digital signature requirements setup
+- Compliance reporting automation
+- Regulatory change notifications
+- Compliance training requirements
+- Certificate management and validation
+- Third-party audit support tools
+- Compliance dashboard customization
+
+DATA MANAGEMENT:
+- Database backup and restore tools
+- Data export and import capabilities
+- Data archival and retention policies
+- GDPR compliance tools and data requests
+- Data anonymization and pseudonymization
+- Data quality monitoring and reporting
+- Database performance optimization
+- Storage usage analytics and management
+- Data migration tools and utilities
+- Disaster recovery configuration
+
+SECURITY SETTINGS:
+- Password policy configuration
+- Session timeout and security settings
+- IP whitelist and access control
+- Multi-factor authentication policies
+- Audit log configuration and retention
+- Security incident response configuration
+- Encryption settings and key management
+- Vulnerability scanning configuration
+- Security monitoring and alerting
+- Compliance security frameworks
+
+NOTIFICATION SETTINGS:
+- Global notification policies
+- Emergency escalation procedures
+- Notification template customization
+- Delivery method prioritization
+- Quiet hours and do-not-disturb settings
+- Notification frequency limits
+- Alert threshold configuration
+- Custom notification triggers
+- Integration with external alerting systems
+- Notification analytics and optimization
+
+WORKFLOW CONFIGURATION:
+- Custom calibration workflows creation
+- Approval process configuration
+- Escalation rules and procedures
+- Custom form fields and validation
+- Business rule engine configuration
+- Automated task assignment rules
+- Quality control checkpoint configuration
+- Custom reporting workflows
+- Integration workflow automation
+- Process optimization recommendations
+
+BILLING & SUBSCRIPTION:
+- Subscription plan management
+- Usage tracking and billing metrics
+- Payment method management
+- Invoice history and downloads
+- Usage alerts and notifications
+- Plan upgrade/downgrade requests
+- Billing contact management
+- Tax configuration and reporting
+- Cost allocation and chargeback
+- Usage optimization recommendations
+
+BACKUP & RECOVERY:
+- Automated backup configuration
+- Manual backup creation and restoration
+- Disaster recovery planning tools
+- Data replication settings
+- Recovery point objectives configuration
+- Business continuity planning
+- Backup verification and testing
+- Cloud storage integration
+- Backup encryption and security
+- Recovery time optimization
+
+MOBILE CONFIGURATION:
+- Mobile app settings and preferences
+- Push notification configuration
+- Offline data synchronization settings
+- Mobile device management
+- App version control and updates
+- Mobile security policies
+- Device registration and authentication
+- Mobile feature toggles
+- Performance optimization for mobile
+- Mobile analytics and usage tracking
+
+ADVANCED CONFIGURATION:
+- Feature flag management
+- A/B testing configuration
+- Performance monitoring setup
+- Custom analytics and tracking
+- Advanced search configuration
+- Machine learning model settings
+- Custom AI prompt templates
+- Advanced reporting configuration
+- Third-party analytics integration
+- System health monitoring
+
+UI/UX REQUIREMENTS:
+- Tabbed interface for easy navigation
+- Progressive disclosure for advanced settings
+- Live preview for branding changes
+- Form validation with real-time feedback
+- Settings search and filtering
+- Import/export configuration profiles
+- Settings versioning and rollback
+- Guided setup wizards for complex configurations
+- Context-sensitive help and documentation
+- Mobile-responsive settings interface
+
+Build with proper TypeScript types, comprehensive validation, role-based access control, audit logging for all changes, and seamless integration with all existing systems. Include proper error handling, rollback capabilities, and settings versioning. Ensure all settings changes are properly propagated throughout the application.
+```
+
+---
+
+## **📋 PHASE 2 EXECUTION ORDER**
+
+Run these prompts in **exact sequence**:
+
+1. **Prompt #24** - Notifications & Alerts System (Critical for user engagement)
+2. **Prompt #25** - Team Management System (Multi-user collaboration)  
+3. **Prompt #26** - Settings & Configuration System (Platform customization)
+
+## **⏱️ Estimated Timeline**
+- **Prompt #24**: 4-5 days (Complex real-time system)
+- **Prompt #25**: 3-4 days (User management workflows)
+- **Prompt #26**: 3-4 days (Comprehensive settings)
+
+**Total Phase 2 Completion: 10-13 days**
+
+## **🎯 After Phase 2 Completion**
+
+You'll have a **fully-featured enterprise platform** with:
+- ✅ Complete core functionality (equipment, calibrations, AI validation)
+- ✅ Professional user experience (notifications, team management, settings)
+- ✅ Multi-user collaboration capabilities
+- ✅ Enterprise-grade customization and configuration
+
+**Next would be Phase 3 (Business Features)** - billing integration, advanced features, and production deployment.

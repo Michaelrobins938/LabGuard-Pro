@@ -1,0 +1,1273 @@
+# 🎯 **CURSOR AGENT PROMPT: Complete Authentication System & Dashboard**
+
+```
+Create the complete authentication system and dashboard for LabGuard Pro with the following EXACT implementations:
+
+File: apps/web/src/lib/auth.ts
+```typescript
+import { NextAuthOptions } from 'next-auth'
+import { PrismaAdapter } from '@auth/prisma-adapter'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
+
+const prisma = new PrismaClient()
+
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    CredentialsProvider({
+      name: 'credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Email and password required')
+        }
+
+        const user = await prisma.user.findUnique({
+          where: {
+            email: credentials.email.toLowerCase()
+          },
+          include: {
+            laboratory: {
+              select: {
+                id: true,
+                name: true,
+                isActive: true
+              }
+            }
+          }
+        })
+
+        if (!user || !user.hashedPassword) {
+          throw new Error('Invalid credentials')
+        }
+
+        if (!user.isActive || user.deletedAt) {
+          throw new Error('Account is deactivated')
+        }
+
+        if (!user.laboratory?.isActive) {
+          throw new Error('Laboratory account is deactivated')
+        }
+
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.hashedPassword)
+
+        if (!isPasswordValid) {
+          throw new Error('Invalid credentials')
+        }
+
+        // Update last login
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() }
+        })
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          role: user.role,
+          laboratoryId: user.laboratoryId,
+          laboratoryName: user.laboratory.name
+        }
+      }
+    })
+  ],
+  session: {
+    strategy: 'jwt',
+    maxAge: 7 * 24 * 60 * 60 // 7 days
+  },
+  jwt: {
+    maxAge: 7 * 24 * 60 * 60 // 7 days
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+        token.laboratoryId = user.laboratoryId
+        token.laboratoryName = user.laboratoryName
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.sub!
+        session.user.role = token.role as string
+        session.user.laboratoryId = token.laboratoryId as string
+        session.user.laboratoryName = token.laboratoryName as string
+      }
+      return session
+    }
+  },
+  pages: {
+    signIn: '/login',
+    signUp: '/register',
+    error: '/auth/error'
+  },
+  secret: process.env.NEXTAUTH_SECRET
+}
+```
+
+File: apps/web/src/types/auth.ts
+```typescript
+import { DefaultSession, DefaultUser } from 'next-auth'
+import { JWT, DefaultJWT } from 'next-auth/jwt'
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string
+      role: string
+      laboratoryId: string
+      laboratoryName: string
+    } & DefaultSession['user']
+  }
+
+  interface User extends DefaultUser {
+    role: string
+    laboratoryId: string
+    laboratoryName: string
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT extends DefaultJWT {
+    role: string
+    laboratoryId: string
+    laboratoryName: string
+  }
+}
+```
+
+File: apps/web/src/app/api/auth/[...nextauth]/route.ts
+```typescript
+import NextAuth from 'next-auth'
+import { authOptions } from '@/lib/auth'
+
+const handler = NextAuth(authOptions)
+
+export { handler as GET, handler as POST }
+```
+
+File: apps/web/src/app/api/auth/register/route.ts
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
+import { z } from 'zod'
+
+const prisma = new PrismaClient()
+
+const registerSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  name: z.string().min(1, 'Name is required'),
+  laboratoryName: z.string().min(1, 'Laboratory name is required'),
+  phone: z.string().optional(),
+  licenseNumber: z.string().optional()
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const validatedData = registerSchema.parse(body)
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: validatedData.email.toLowerCase() }
+    })
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'User with this email already exists' },
+        { status: 409 }
+      )
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(validatedData.password, 12)
+
+    // Create laboratory and user in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create laboratory
+      const laboratory = await tx.laboratory.create({
+        data: {
+          name: validatedData.laboratoryName,
+          phone: validatedData.phone,
+          licenseNumber: validatedData.licenseNumber,
+          settings: {
+            timezone: 'America/New_York',
+            currency: 'USD',
+            language: 'en'
+          }
+        }
+      })
+
+      // Create admin user
+      const user = await tx.user.create({
+        data: {
+          email: validatedData.email.toLowerCase(),
+          name: validatedData.name,
+          hashedPassword,
+          role: 'ADMIN',
+          laboratoryId: laboratory.id
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          laboratoryId: true
+        }
+      })
+
+      return { user, laboratory }
+    })
+
+    return NextResponse.json({
+      message: 'Account created successfully',
+      user: result.user
+    }, { status: 201 })
+
+  } catch (error) {
+    console.error('Registration error:', error)
+    
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+File: apps/web/src/middleware.ts
+```typescript
+import { withAuth } from 'next-auth/middleware'
+import { NextResponse } from 'next/server'
+
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token
+    const isAuth = !!token
+    const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
+                      req.nextUrl.pathname.startsWith('/register')
+    const isDashboard = req.nextUrl.pathname.startsWith('/dashboard')
+
+    // Redirect authenticated users away from auth pages
+    if (isAuthPage && isAuth) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+
+    // Redirect unauthenticated users to login
+    if (isDashboard && !isAuth) {
+      return NextResponse.redirect(new URL('/login', req.url))
+    }
+
+    // Role-based access control
+    if (isDashboard && isAuth) {
+      const userRole = token?.role as string
+      const pathname = req.nextUrl.pathname
+
+      // Admin-only routes
+      if (pathname.startsWith('/dashboard/admin') && userRole !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
+
+      // Supervisor+ routes
+      if (pathname.startsWith('/dashboard/reports') && 
+          !['ADMIN', 'SUPERVISOR'].includes(userRole)) {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
+    }
+
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
+                          req.nextUrl.pathname.startsWith('/register')
+        const isDashboard = req.nextUrl.pathname.startsWith('/dashboard')
+
+        // Allow access to auth pages
+        if (isAuthPage) return true
+
+        // Require authentication for dashboard
+        if (isDashboard) return !!token
+
+        // Allow access to public pages
+        return true
+      }
+    }
+  }
+)
+
+export const config = {
+  matcher: [
+    '/dashboard/:path*',
+    '/login',
+    '/register'
+  ]
+}
+```
+
+File: apps/web/src/app/login/page.tsx
+```typescript
+'use client'
+
+import { useState } from 'react'
+import { signIn, getSession } from 'next-auth/react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Shield, Eye, EyeOff, Loader2 } from 'lucide-react'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false
+      })
+
+      if (result?.error) {
+        setError(result.error)
+      } else if (result?.ok) {
+        // Refresh session to get updated user data
+        await getSession()
+        router.push(callbackUrl)
+        router.refresh()
+      }
+    } catch (error) {
+      setError('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const updateFormData = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    setError('') // Clear error when user types
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Logo */}
+        <Link href="/" className="flex items-center justify-center space-x-2 mb-8">
+          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <Shield className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-2xl font-bold text-gray-900">LabGuard Pro</span>
+        </Link>
+
+        <h2 className="text-center text-3xl font-bold text-gray-900 mb-2">
+          Sign in to your account
+        </h2>
+        <p className="text-center text-sm text-gray-600 mb-8">
+          Or{' '}
+          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            create a new account
+          </Link>
+        </p>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <Alert className="mb-6 border-red-200 bg-red-50">
+              <AlertDescription className="text-red-800">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={(e) => updateFormData('email', e.target.value)}
+                className="mt-1"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </Label>
+              <div className="mt-1 relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={formData.password}
+                  onChange={(e) => updateFormData('password', e.target.value)}
+                  className="pr-10"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+                  Forgot your password?
+                </Link>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign in'
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">New to LabGuard Pro?</span>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <Link href="/register">
+                <Button variant="outline" className="w-full">
+                  Create your account
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Demo credentials */}
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-blue-900 mb-2">Demo Credentials</h3>
+          <div className="text-xs text-blue-700 space-y-1">
+            <div>Email: admin@advanceddiagnostics.com</div>
+            <div>Password: admin123</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+File: apps/web/src/app/register/page.tsx
+```typescript
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Shield, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react'
+
+export default function RegisterPage() {
+  const router = useRouter()
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    laboratoryName: '',
+    phone: '',
+    licenseNumber: ''
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          laboratoryName: formData.laboratoryName,
+          phone: formData.phone,
+          licenseNumber: formData.licenseNumber
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSuccess(true)
+        setTimeout(() => {
+          router.push('/login?message=Registration successful')
+        }, 2000)
+      } else {
+        setError(data.error || 'Registration failed')
+      }
+    } catch (error) {
+      setError('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const updateFormData = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    setError('') // Clear error when user types
+  }
+
+  const passwordStrength = (password: string) => {
+    let strength = 0
+    if (password.length >= 8) strength++
+    if (/[A-Z]/.test(password)) strength++
+    if (/[a-z]/.test(password)) strength++
+    if (/\d/.test(password)) strength++
+    if (/[^A-Za-z0-9]/.test(password)) strength++
+    return strength
+  }
+
+  const getPasswordStrengthColor = (strength: number) => {
+    if (strength < 2) return 'bg-red-500'
+    if (strength < 4) return 'bg-yellow-500'
+    return 'bg-green-500'
+  }
+
+  const getPasswordStrengthText = (strength: number) => {
+    if (strength < 2) return 'Weak'
+    if (strength < 4) return 'Medium'
+    return 'Strong'
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
+            <p className="text-gray-600 mb-4">
+              Your LabGuard Pro account has been created successfully.
+            </p>
+            <p className="text-sm text-gray-500">
+              Redirecting you to sign in...
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        {/* Logo */}
+        <Link href="/" className="flex items-center justify-center space-x-2 mb-8">
+          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <Shield className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-2xl font-bold text-gray-900">LabGuard Pro</span>
+        </Link>
+
+        <h2 className="text-center text-3xl font-bold text-gray-900 mb-2">
+          Create your account
+        </h2>
+        <p className="text-center text-sm text-gray-600 mb-8">
+          Already have an account?{' '}
+          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            Sign in
+          </Link>
+        </p>
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <Alert className="mb-6 border-red-200 bg-red-50">
+              <AlertDescription className="text-red-800">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Personal Information */}
+            <div>
+              <Label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Full Name *
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => updateFormData('name', e.target.value)}
+                className="mt-1"
+                placeholder="John Doe"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email Address *
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={(e) => updateFormData('email', e.target.value)}
+                className="mt-1"
+                placeholder="you@yourlaboratory.com"
+              />
+            </div>
+
+            {/* Laboratory Information */}
+            <div>
+              <Label htmlFor="laboratoryName" className="block text-sm font-medium text-gray-700">
+                Laboratory Name *
+              </Label>
+              <Input
+                id="laboratoryName"
+                name="laboratoryName"
+                type="text"
+                required
+                value={formData.laboratoryName}
+                onChange={(e) => updateFormData('laboratoryName', e.target.value)}
+                className="mt-1"
+                placeholder="Your Laboratory Name"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => updateFormData('phone', e.target.value)}
+                  className="mt-1"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700">
+                  License Number
+                </Label>
+                <Input
+                  id="licenseNumber"
+                  name="licenseNumber"
+                  type="text"
+                  value={formData.licenseNumber}
+                  onChange={(e) => updateFormData('licenseNumber', e.target.value)}
+                  className="mt-1"
+                  placeholder="LAB-12345"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password *
+              </Label>
+              <div className="mt-1 relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={formData.password}
+                  onChange={(e) => updateFormData('password', e.target.value)}
+                  className="pr-10"
+                  placeholder="Create a strong password"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
+              
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-500">Password strength:</span>
+                    <span className={`font-medium ${
+                      passwordStrength(formData.password) >= 4 ? 'text-green-600' :
+                      passwordStrength(formData.password) >= 2 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {getPasswordStrengthText(passwordStrength(formData.password))}
+                    </span>
+                  </div>
+                  <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
+                    <div 
+                      className={`h-1 rounded-full transition-all ${getPasswordStrengthColor(passwordStrength(formData.password))}`}
+                      style={{ width: `${(passwordStrength(formData.password) / 5) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                Confirm Password *
+              </Label>
+              <div className="mt-1 relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) => updateFormData('confirmPassword', e.target.value)}
+                  className="pr-10"
+                  placeholder="Confirm your password"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
+              </div>
+              
+              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="mt-1 text-xs text-red-600">
+                  Passwords do not match
+                </p>
+              )}
+            </div>
+
+            {/* Terms */}
+            <div className="flex items-center">
+              <input
+                id="agree-terms"
+                name="agree-terms"
+                type="checkbox"
+                required
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="agree-terms" className="ml-2 block text-sm text-gray-900">
+                I agree to the{' '}
+                <Link href="/terms" className="text-blue-600 hover:text-blue-500">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
+                  Privacy Policy
+                </Link>
+              </label>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Create account'
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Start your 14-day free trial</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+File: apps/web/src/app/dashboard/layout.tsx
+```typescript
+'use client'
+
+import { useSession } from 'next-auth/react'
+import { redirect } from 'next/navigation'
+import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
+import { Loader2 } from 'lucide-react'
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const { data: session, status } = useSession()
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    redirect('/login')
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DashboardSidebar />
+      <div className="pl-64">
+        <DashboardHeader />
+        <main className="py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+```
+
+File: apps/web/src/components/dashboard/DashboardSidebar.tsx
+```typescript
+'use client'
+
+import { useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { 
+  Shield, 
+  Home, 
+  Microscope, 
+  Calendar, 
+  FileText, 
+  BarChart3, 
+  Settings, 
+  Users, 
+  Bell,
+  CreditCard,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react'
+
+interface NavItem {
+  name: string
+  href: string
+  icon: any
+  badge?: string
+  children?: NavItem[]
+  roles?: string[]
+}
+
+export function DashboardSidebar() {
+  const { data: session } = useSession()
+  const pathname = usePathname()
+  const [expandedItems, setExpandedItems] = useState<string[]>(['equipment'])
+
+  const navigation: NavItem[] = [
+    {
+      name: 'Overview',
+      href: '/dashboard',
+      icon: Home
+    },
+    {
+      name: 'Equipment',
+      href: '/dashboard/equipment',
+      icon: Microscope,
+      children: [
+        { name: 'All Equipment', href: '/dashboard/equipment', icon: Microscope },
+        { name: 'Add Equipment', href: '/dashboard/equipment/new', icon: Microscope },
+        { name: 'Maintenance', href: '/dashboard/equipment/maintenance', icon: Microscope }
+      ]
+    },
+    {
+      name: 'Calibrations',
+      href: '/dashboard/calibrations',
+      icon: Calendar,
+      children: [
+        { name: 'All Calibrations', href: '/dashboard/calibrations', icon: Calendar },
+        { name: 'Schedule Calibration', href: '/dashboard/calibrations/new', icon: Calendar },
+        { name: 'Overdue Items', href: '/dashboard/calibrations/overdue', icon: Calendar, badge: '3' }
+      ]
+    },
+    {
+      name: 'Reports',
+      href: '/dashboard/reports',
+      icon: FileText,
+      roles: ['ADMIN', 'SUPERVISOR'],
+      children: [
+        { name: 'Compliance Reports', href: '/dashboard/reports/compliance', icon: FileText },
+        { name: 'Audit Reports', href: '/dashboard/reports/audit', icon: FileText },
+        { name: 'Custom Reports', href: '/dashboard/reports/custom', icon: FileText }
+      ]
+    },
+    {
+      name: 'Analytics',
+      href: '/dashboard/analytics',
+      icon: BarChart3,
+      roles: ['ADMIN', 'SUPERVISOR']
+    },
+    {
+      name: 'Notifications',
+      href: '/dashboard/notifications',
+      icon: Bell,
+      badge: '5'
+    },
+    {
+      name: 'Team',
+      href: '/dashboard/team',
+      icon: Users,
+      roles: ['ADMIN', 'SUPERVISOR']
+    },
+    {
+      name: 'Billing',
+      href: '/dashboard/billing',
+      icon: CreditCard,
+      roles: ['ADMIN']
+    },
+    {
+      name: 'Settings',
+      href: '/dashboard/settings',
+      icon: Settings,
+      children: [
+        { name: 'Laboratory Settings', href: '/dashboard/settings/laboratory', icon: Settings },
+        { name: 'User Profile', href: '/dashboard/settings/profile', icon: Settings },
+        { name: 'Integrations', href: '/dashboard/settings/integrations', icon: Settings },
+        { name: 'API Keys', href: '/dashboard/settings/api', icon: Settings, roles: ['ADMIN'] }
+      ]
+    }
+  ]
+
+  const toggleExpanded = (itemName: string) => {
+    setExpandedItems(prev => 
+      prev.includes(itemName) 
+        ? prev.filter(name => name !== itemName)
+        : [...prev, itemName]
+    )
+  }
+
+  const isActiveItem = (href: string) => {
+    if (href === '/dashboard') {
+      return pathname === '/dashboard'
+    }
+    return pathname.startsWith(href)
+  }
+
+  const hasPermission = (item: NavItem) => {
+    if (!item.roles || !session?.user?.role) return true
+    return item.roles.includes(session.user.role)
+  }
+
+  const renderNavItem = (item: NavItem, isChild = false) => {
+    if (!hasPermission(item)) return null
+
+    const isActive = isActiveItem(item.href)
+    const hasChildren = item.children && item.children.length > 0
+    const isExpanded = expandedItems.includes(item.name)
+
+    return (
+      <div key={item.name}>
+        {hasChildren ? (
+          <button
+            onClick={() => toggleExpanded(item.name)}
+            className={`group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md ${
+              isActive
+                ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
+                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+            } ${isChild ? 'pl-6' : ''}`}
+          >
+            <div className="flex items-center">
+              <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+              <span>{item.name}</span>
+              {item.badge && (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  {item.badge}
+                </span>
+              )}
+            </div>
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
+        ) : (
+          <Link
+            href={item.href}
+            className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+              isActive
+                ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
+                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+            } ${isChild ? 'pl-6' : ''}`}
+          >
+            <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+            <span>{item.name}</span>
+            {item.badge && (
+              <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                {item.badge}
+              </span>
+            )}
+          </Link>
+        )}
+
+        {/* Render children if expanded */}
+        {hasChildren && isExpanded && (
+          <div className="mt-1 space-y-1">
+            {item.children!.map(child => renderNavItem(child, true))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
+      {/* Logo */}
+      <div className="flex items-center flex-shrink-0 px-4 mb-8">
+        <Link href="/dashboard" className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <Shield className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-xl font-bold text-gray-900">LabGuard Pro</span>
+        </Link>
+      </div>
+
+      {/* Laboratory Info */}
+      <div className="px-4 mb-6">
+        <div className="bg-gray-50 rounded-lg p-3">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            Laboratory
+          </div>
+          <div className="text-sm font-medium text-gray-900 truncate">
+            {session?.user?.laboratoryName}
+          </div>
+          <div className="text-xs text-gray-500">
+            {session?.user?.role}
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="px-3 space-y-1">
+        {navigation.map(item => renderNavItem(item))}
+      </nav>
+
+      {/* Subscription Status */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="bg-blue-50 rounded-lg p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium text-blue-900">Professional Plan</div>
+              <div className="text-xs text-blue-700">450/500 checks used</div>
+            </div>
+            <Link 
+              href="/dashboard/billing"
+              className="text-xs text-blue-600 hover:text-blue-500 font-medium"
+            >
+              Upgrade
+            </Link>
+          </div>
+          <div className="mt-2 w-full bg-blue-200 rounded-full h-1">
+            <div className="bg-blue-600 h-1 rounded-full" style={{ width: '90%' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+Create the additional UI component for alerts:
+
+File: apps/web/src/components/ui/alert.tsx
+```typescript
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
+
+const alertVariants = cva(
+  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  {
+    variants: {
+      variant: {
+        default: "bg-background text-foreground",
+        destructive:
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+const Alert = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
+>(({ className, variant, ...props }, ref) => (
+  <div
+    ref={ref}
+    role="alert"
+    className={cn(alertVariants({ variant }), className)}
+    {...props}
+  />
+))
+Alert.displayName = "Alert"
+
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props}
+  />
+))
+AlertDescription.displayName = "AlertDescription"
+
+export { Alert, AlertDescription }
+```
+
+Create ALL the above files exactly as specified. This creates a complete authentication system with:
+
+1. **NextAuth.js integration** with credentials provider
+2. **Registration system** with laboratory creation
+3. **Role-based authentication** and route protection
+4. **Professional login/register pages** with validation
+5. **Dashboard layout** with sidebar navigation
+6. **Session management** and user context
+7. **Middleware protection** for routes
+
+After creating these files, you'll have a fully functional authentication system. The next step would be to create the main dashboard page and equipment management pages.
+```

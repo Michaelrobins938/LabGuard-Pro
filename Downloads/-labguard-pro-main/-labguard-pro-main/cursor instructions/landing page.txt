@@ -1,0 +1,902 @@
+# 🎯 **NEXT STEP: Complete Landing Page Components**
+
+You need to create the remaining landing page components that are referenced in your `page.tsx` but not yet built.
+
+## **Give Cursor This EXACT Prompt:**
+
+```
+Complete the LabGuard Pro landing page by creating the following EXACT remaining components:
+
+File: apps/web/src/components/landing/TestimonialsSection.tsx
+```typescript
+'use client'
+
+import { useState } from 'react'
+import { ChevronLeft, ChevronRight, Star, Quote } from 'lucide-react'
+
+export function TestimonialsSection() {
+  const [currentTestimonial, setCurrentTestimonial] = useState(0)
+
+  const testimonials = [
+    {
+      name: 'Dr. Sarah Chen',
+      title: 'Laboratory Director',
+      company: 'Regional Medical Center',
+      image: '/testimonials/sarah-chen.jpg',
+      rating: 5,
+      quote: 'LabGuard Pro transformed our compliance workflow. We went from 20 hours of manual paperwork per week to just 2 hours. The AI catches issues we would have missed, preventing a $25K equipment failure last month.',
+      results: {
+        timeSaved: '18 hours/week',
+        costSaved: '$45K annually',
+        complianceRate: '99.8%'
+      }
+    },
+    {
+      name: 'Michael Rodriguez',
+      title: 'Quality Manager',
+      company: 'Diagnostics Plus Laboratory',
+      image: '/testimonials/michael-rodriguez.jpg',
+      rating: 5,
+      quote: 'The CAP inspection that used to terrify us is now a breeze. LabGuard Pro had all our documentation ready instantly. The inspector was impressed with our compliance tracking.',
+      results: {
+        timeSaved: '40 hours/audit',
+        complianceRate: '100%',
+        auditResult: 'Zero citations'
+      }
+    },
+    {
+      name: 'Dr. Emily Johnson',
+      title: 'Lab Operations Manager',
+      company: 'University Medical Lab',
+      image: '/testimonials/emily-johnson.jpg',
+      rating: 5,
+      quote: 'ROI was immediate. The platform paid for itself in the first month by preventing calibration failures. Our technicians love how easy it is to use.',
+      results: {
+        roi: '300% in first year',
+        errorReduction: '95%',
+        staffSatisfaction: '98%'
+      }
+    },
+    {
+      name: 'Dr. James Wilson',
+      title: 'Laboratory Director',
+      company: 'Metro Health System',
+      image: '/testimonials/james-wilson.jpg',
+      rating: 5,
+      quote: 'Managing compliance across 12 lab locations was a nightmare. LabGuard Pro gives us centralized visibility and control. We can spot issues before they become problems.',
+      results: {
+        locationsManaged: '12 labs',
+        costSaved: '$150K annually',
+        complianceRate: '99.9%'
+      }
+    }
+  ]
+
+  const nextTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
+  }
+
+  const prevTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+  }
+
+  const current = testimonials[currentTestimonial]
+
+  return (
+    <section id="testimonials" className="py-20 bg-blue-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Loved by <span className="text-blue-600">500+ Laboratory Professionals</span>
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            See how LabGuard Pro is transforming compliance workflows and saving labs thousands of dollars.
+          </p>
+        </div>
+
+        {/* Main Testimonial */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 lg:p-12 mb-12 relative">
+          <Quote className="absolute top-6 left-6 w-8 h-8 text-blue-200" />
+          
+          <div className="lg:grid lg:grid-cols-3 lg:gap-8 lg:items-center">
+            {/* Testimonial Content */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center mb-4">
+                {[...Array(current.rating)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              
+              <blockquote className="text-xl lg:text-2xl text-gray-900 leading-relaxed mb-6">
+                "{current.quote}"
+              </blockquote>
+              
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-gray-600">
+                    {current.name.split(' ').map(n => n[0]).join('')}
+                  </span>
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-900">{current.name}</div>
+                  <div className="text-gray-600">{current.title}</div>
+                  <div className="text-sm text-gray-500">{current.company}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Results */}
+            <div className="lg:col-span-1">
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="font-semibold text-gray-900 mb-4">Results Achieved:</h4>
+                <div className="space-y-3">
+                  {Object.entries(current.results).map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span className="text-gray-600 capitalize">
+                        {key.replace(/([A-Z])/g, ' $1').trim()}:
+                      </span>
+                      <span className="font-semibold text-blue-600">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between mt-8">
+            <button
+              onClick={prevTestimonial}
+              className="flex items-center justify-center w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </button>
+
+            <div className="flex space-x-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentTestimonial(index)}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === currentTestimonial ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={nextTestimonial}
+              className="flex items-center justify-center w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
+            <div className="text-gray-600">Happy Customers</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600 mb-2">99.9%</div>
+            <div className="text-gray-600">Compliance Rate</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600 mb-2">$2.5M</div>
+            <div className="text-gray-600">Total Savings</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600 mb-2">4.9★</div>
+            <div className="text-gray-600">Average Rating</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+File: apps/web/src/components/landing/ROICalculatorSection.tsx
+```typescript
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Calculator, TrendingUp, DollarSign, Clock } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+
+export function ROICalculatorSection() {
+  const [inputs, setInputs] = useState({
+    labSize: 50, // number of equipment items
+    technicianHours: 20, // hours per week on compliance
+    hourlyRate: 35, // technician hourly rate
+    failuresPerYear: 2, // equipment failures per year
+    avgFailureCost: 15000, // average cost per failure
+    auditCost: 25000 // annual audit preparation cost
+  })
+
+  const [results, setResults] = useState({
+    currentAnnualCost: 0,
+    labguardCost: 0,
+    annualSavings: 0,
+    roi: 0,
+    paybackMonths: 0
+  })
+
+  useEffect(() => {
+    calculateROI()
+  }, [inputs])
+
+  const calculateROI = () => {
+    // Current annual costs
+    const manualLaborCost = inputs.technicianHours * 52 * inputs.hourlyRate
+    const failureCosts = inputs.failuresPerYear * inputs.avgFailureCost
+    const currentAnnualCost = manualLaborCost + failureCosts + inputs.auditCost
+
+    // LabGuard Pro costs (estimate based on lab size)
+    let monthlyPlan = 299 // Starter
+    if (inputs.labSize > 10 && inputs.labSize <= 50) monthlyPlan = 599 // Professional
+    if (inputs.labSize > 50) monthlyPlan = 1299 // Enterprise
+    
+    const labguardCost = monthlyPlan * 12
+
+    // Savings calculation
+    const laborSavings = manualLaborCost * 0.8 // 80% reduction in manual work
+    const failureReduction = failureCosts * 0.9 // 90% reduction in failures
+    const auditSavings = inputs.auditCost * 0.7 // 70% reduction in audit prep
+    
+    const annualSavings = laborSavings + failureReduction + auditSavings - labguardCost
+    const roi = ((annualSavings / labguardCost) * 100)
+    const paybackMonths = labguardCost / (annualSavings / 12)
+
+    setResults({
+      currentAnnualCost,
+      labguardCost,
+      annualSavings,
+      roi,
+      paybackMonths: Math.max(0.1, paybackMonths)
+    })
+  }
+
+  const updateInput = (field: string, value: number) => {
+    setInputs(prev => ({ ...prev, [field]: value }))
+  }
+
+  return (
+    <section className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <Calculator className="w-4 h-4" />
+            <span>ROI Calculator</span>
+          </div>
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Calculate Your <span className="text-blue-600">Potential Savings</span>
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            See how much LabGuard Pro could save your laboratory in time, money, and compliance costs.
+          </p>
+        </div>
+
+        <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start">
+          {/* Calculator Inputs */}
+          <div className="bg-gray-50 rounded-2xl p-8 mb-8 lg:mb-0">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Your Laboratory Details</h3>
+            
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="labSize" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Number of Equipment Items
+                </Label>
+                <Input
+                  id="labSize"
+                  type="number"
+                  value={inputs.labSize}
+                  onChange={(e) => updateInput('labSize', parseInt(e.target.value) || 0)}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="technicianHours" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Hours/Week on Manual Compliance
+                </Label>
+                <Input
+                  id="technicianHours"
+                  type="number"
+                  value={inputs.technicianHours}
+                  onChange={(e) => updateInput('technicianHours', parseInt(e.target.value) || 0)}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="hourlyRate" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Technician Hourly Rate ($)
+                </Label>
+                <Input
+                  id="hourlyRate"
+                  type="number"
+                  value={inputs.hourlyRate}
+                  onChange={(e) => updateInput('hourlyRate', parseInt(e.target.value) || 0)}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="failuresPerYear" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Equipment Failures Per Year
+                </Label>
+                <Input
+                  id="failuresPerYear"
+                  type="number"
+                  value={inputs.failuresPerYear}
+                  onChange={(e) => updateInput('failuresPerYear', parseInt(e.target.value) || 0)}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="avgFailureCost" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Average Cost Per Failure ($)
+                </Label>
+                <Input
+                  id="avgFailureCost"
+                  type="number"
+                  value={inputs.avgFailureCost}
+                  onChange={(e) => updateInput('avgFailureCost', parseInt(e.target.value) || 0)}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="auditCost" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Annual Audit Preparation Cost ($)
+                </Label>
+                <Input
+                  id="auditCost"
+                  type="number"
+                  value={inputs.auditCost}
+                  onChange={(e) => updateInput('auditCost', parseInt(e.target.value) || 0)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Results */}
+          <div className="space-y-6">
+            {/* ROI Highlight */}
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-8 text-white">
+              <div className="flex items-center space-x-3 mb-4">
+                <TrendingUp className="w-8 h-8" />
+                <h3 className="text-2xl font-bold">Your ROI with LabGuard Pro</h3>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <div className="text-3xl font-bold mb-1">
+                    {results.roi > 0 ? '+' : ''}{Math.round(results.roi)}%
+                  </div>
+                  <div className="text-blue-100">Annual ROI</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold mb-1">
+                    {Math.round(results.paybackMonths)}
+                  </div>
+                  <div className="text-blue-100">Months to payback</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detailed Breakdown */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Annual Cost Breakdown</h4>
+              
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Current Annual Costs</span>
+                  <span className="font-semibold text-red-600">
+                    ${results.currentAnnualCost.toLocaleString()}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">LabGuard Pro Annual Cost</span>
+                  <span className="font-semibold text-gray-900">
+                    ${results.labguardCost.toLocaleString()}
+                  </span>
+                </div>
+                
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-900 font-medium">Net Annual Savings</span>
+                    <span className="font-bold text-green-600 text-lg">
+                      ${results.annualSavings.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Savings Categories */}
+            <div className="grid grid-cols-1 gap-4">
+              <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg">
+                <Clock className="w-5 h-5 text-green-600" />
+                <div>
+                  <div className="font-medium text-gray-900">Labor Savings</div>
+                  <div className="text-sm text-gray-600">80% reduction in manual compliance work</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
+                <DollarSign className="w-5 h-5 text-blue-600" />
+                <div>
+                  <div className="font-medium text-gray-900">Failure Prevention</div>
+                  <div className="text-sm text-gray-600">90% reduction in equipment failures</div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="text-center pt-4">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                Start Saving Today - Free Trial
+              </Button>
+              <p className="text-sm text-gray-500 mt-2">
+                No credit card required • 14-day free trial
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+File: apps/web/src/components/landing/FAQSection.tsx
+```typescript
+'use client'
+
+import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+
+export function FAQSection() {
+  const [openFAQ, setOpenFAQ] = useState<number | null>(0)
+
+  const faqs = [
+    {
+      question: 'How quickly can we get started with LabGuard Pro?',
+      answer: 'Most labs are up and running within 24-48 hours. Our onboarding process includes data import, user setup, and initial training. For larger implementations, we provide dedicated support to ensure smooth deployment.'
+    },
+    {
+      question: 'Do you integrate with existing LIMS or laboratory systems?',
+      answer: 'Yes, LabGuard Pro integrates with major LIMS platforms including Epic Beaker, Cerner PowerChart, Sunquest, and others. We also offer API access for custom integrations. Our team handles the technical setup.'
+    },
+    {
+      question: 'Is LabGuard Pro compliant with CAP, CLIA, and other regulations?',
+      answer: 'Absolutely. LabGuard Pro is designed specifically for CAP and CLIA compliance. Our platform maintains complete audit trails, generates CAP-ready documentation, and follows all regulatory requirements for laboratory data management.'
+    },
+    {
+      question: 'What types of equipment does LabGuard Pro support?',
+      answer: 'We support all major laboratory equipment including analytical balances, centrifuges, incubators, autoclaves, spectrophotometers, PCR machines, pipettes, and more. Our AI templates cover the most common calibration and validation procedures.'
+    },
+    {
+      question: 'How accurate is the AI compliance checking?',
+      answer: 'Our AI compliance checking has a 99.9% accuracy rate, validated across thousands of calibrations. The system is trained on CAP standards and continuously improved based on real laboratory data. All AI recommendations include detailed explanations.'
+    },
+    {
+      question: 'Can multiple technicians use the system simultaneously?',
+      answer: 'Yes, LabGuard Pro supports unlimited users with role-based access control. Administrators can set permissions for different user types (technicians, supervisors, directors) and track all activities with complete audit trails.'
+    },
+    {
+      question: 'What happens to our data if we cancel our subscription?',
+      answer: 'You retain full ownership of your data. We provide complete data export in standard formats and maintain your data for 90 days after cancellation. There are no data hostage situations - your compliance records are always accessible.'
+    },
+    {
+      question: 'Do you provide training and ongoing support?',
+      answer: 'Yes, all plans include comprehensive training and support. Professional and Enterprise plans include dedicated onboarding, live training sessions, and priority support. We also provide extensive documentation and video tutorials.'
+    },
+    {
+      question: 'How does pricing work for multi-location laboratories?',
+      answer: 'For multi-location labs, we offer centralized billing and management. Each location can be managed separately or together, depending on your needs. Enterprise plans include volume discounts for multiple locations.'
+    },
+    {
+      question: 'Is there a mobile app for technicians in the field?',
+      answer: 'Yes, we offer iOS and Android apps that sync with the main platform. Technicians can perform calibrations, check compliance status, and receive notifications on their mobile devices, even when offline.'
+    }
+  ]
+
+  const toggleFAQ = (index: number) => {
+    setOpenFAQ(openFAQ === index ? null : index)
+  }
+
+  return (
+    <section className="py-20 bg-gray-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            Frequently Asked <span className="text-blue-600">Questions</span>
+          </h2>
+          <p className="text-xl text-gray-600">
+            Everything you need to know about LabGuard Pro
+          </p>
+        </div>
+
+        {/* FAQ List */}
+        <div className="space-y-4">
+          {faqs.map((faq, index) => (
+            <div key={index} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <button
+                onClick={() => toggleFAQ(index)}
+                className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
+              >
+                <h3 className="text-lg font-medium text-gray-900 pr-4">
+                  {faq.question}
+                </h3>
+                {openFAQ === index ? (
+                  <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                )}
+              </button>
+              
+              {openFAQ === index && (
+                <div className="px-6 pb-4">
+                  <p className="text-gray-600 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Contact CTA */}
+        <div className="text-center mt-12">
+          <p className="text-gray-600 mb-4">
+            Still have questions? We're here to help.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium">
+              Schedule a Demo
+            </button>
+            <button className="border border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium">
+              Contact Support
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+File: apps/web/src/components/landing/CTASection.tsx
+```typescript
+'use client'
+
+import { useState } from 'react'
+import { ArrowRight, Shield, Clock, DollarSign } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+
+export function CTASection() {
+  const [email, setEmail] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log('Email submitted:', email)
+    window.location.href = `/demo?email=${encodeURIComponent(email)}`
+  }
+
+  return (
+    <section className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Main CTA Content */}
+        <div className="mb-12">
+          <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6">
+            Ready to Transform Your Lab Compliance?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+            Join 500+ laboratories already saving time, money, and stress with AI-powered compliance automation.
+          </p>
+
+          {/* Benefits */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-3">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">99.9% Compliance</h3>
+              <p className="text-blue-100 text-sm">Never fail another audit</p>
+            </div>
+            
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-3">
+                <Clock className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">10+ Hours Saved</h3>
+              <p className="text-blue-100 text-sm">Every single week</p>
+            </div>
+            
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-3">
+                <DollarSign className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">$50K+ Savings</h3>
+              <p className="text-blue-100 text-sm">Annually per lab</p>
+            </div>
+          </div>
+
+          {/* Email Capture Form */}
+          <form onSubmit={handleSubmit} className="max-w-md mx-auto mb-8">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Input
+                type="email"
+                placeholder="Enter your lab email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="flex-1 h-12 text-base bg-white border-white"
+              />
+              <Button 
+                type="submit"
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-gray-100 h-12 px-8 font-medium"
+              >
+                Start Free Trial
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </form>
+
+          {/* Trust Signals */}
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-blue-100 text-sm">
+            <div className="flex items-center">
+              <Shield className="w-4 h-4 mr-1" />
+              <span>14-day free trial</span>
+            </div>
+            <div className="flex items-center">
+              <Shield className="w-4 h-4 mr-1" />
+              <span>No credit card required</span>
+            </div>
+            <div className="flex items-center">
+              <Shield className="w-4 h-4 mr-1" />
+              <span>Cancel anytime</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary CTAs */}
+        <div className="border-t border-blue-500 pt-8">
+          <p className="text-blue-100 mb-6">
+            Want to see it in action first?
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="border-white text-white hover:bg-white hover:text-blue-600"
+            >
+              Watch 2-Min Demo
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="border-white text-white hover:bg-white hover:text-blue-600"
+            >
+              Schedule Live Demo
+            </Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+```
+
+File: apps/web/src/components/landing/Footer.tsx
+```typescript
+import Link from 'next/link'
+import { Shield, Mail, Phone, MapPin, Linkedin, Twitter, Youtube } from 'lucide-react'
+
+export function Footer() {
+  const currentYear = new Date().getFullYear()
+
+  return (
+    <footer className="bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Main Footer Content */}
+        <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Company Info */}
+          <div className="lg:col-span-1">
+            <Link href="/" className="flex items-center space-x-2 mb-6">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold">LabGuard Pro</span>
+            </Link>
+            <p className="text-gray-400 mb-6 leading-relaxed">
+              AI-powered laboratory compliance automation trusted by 500+ labs worldwide. 
+              Prevent failures, save time, and pass audits with confidence.
+            </p>
+            <div className="flex space-x-4">
+              <a href="#" className="text-gray-400 hover:text-white">
+                <Linkedin className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white">
+                <Twitter className="w-5 h-5" />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white">
+                <Youtube className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Product Links */}
+          <div>
+            <h3 className="text-lg font-semibold mb-6">Product</h3>
+            <ul className="space-y-3">
+              <li><Link href="#features" className="text-gray-400 hover:text-white">Features</Link></li>
+              <li><Link href="#pricing" className="text-gray-400 hover:text-white">Pricing</Link></li>
+              <li><Link href="/integrations" className="text-gray-400 hover:text-white">Integrations</Link></li>
+              <li><Link href="/security" className="text-gray-400 hover:text-white">Security</Link></li>
+              <li><Link href="/api" className="text-gray-400 hover:text-white">API Documentation</Link></li>
+              <li><Link href="/roadmap" className="text-gray-400 hover:text-white">Roadmap</Link></li>
+            </ul>
+          </div>
+
+          {/* Resources Links */}
+          <div>
+            <h3 className="text-lg font-semibold mb-6">Resources</h3>
+            <ul className="space-y-3">
+              <li><Link href="/blog" className="text-gray-400 hover:text-white">Blog</Link></li>
+              <li><Link href="/case-studies" className="text-gray-400 hover:text-white">Case Studies</Link></li>
+              <li><Link href="/compliance-guide" className="text-gray-400 hover:text-white">Compliance Guide</Link></li>
+              <li><Link href="/roi-calculator" className="text-gray-400 hover:text-white">ROI Calculator</Link></li>
+              <li><Link href="/help" className="text-gray-400 hover:text-white">Help Center</Link></li>
+              <li><Link href="/webinars" className="text-gray-400 hover:text-white">Webinars</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact & Support */}
+          <div>
+            <h3 className="text-lg font-semibold mb-6">Contact & Support</h3>
+            <ul className="space-y-3 mb-6">
+              <li><Link href="/contact" className="text-gray-400 hover:text-white">Contact Sales</Link></li>
+              <li><Link href="/support" className="text-gray-400 hover:text-white">Customer Support</Link></li>
+              <li><Link href="/demo" className="text-gray-400 hover:text-white">Schedule Demo</Link></li>
+              <li><Link href="/partners" className="text-gray-400 hover:text-white">Partners</Link></li>
+              <li><Link href="/careers" className="text-gray-400 hover:text-white">Careers</Link></li>
+            </ul>
+
+            <div className="space-y-3 text-sm text-gray-400">
+              <div className="flex items-center">
+                <Mail className="w-4 h-4 mr-2" />
+                <span>support@labguardpro.com</span>
+              </div>
+              <div className="flex items-center">
+                <Phone className="w-4 h-4 mr-2" />
+                <span>1-800-LABGUARD</span>
+              </div>
+              <div className="flex items-center">
+                <MapPin className="w-4 h-4 mr-2" />
+                <span>Boston, MA</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Footer */}
+        <div className="border-t border-gray-800 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex flex-wrap items-center space-x-6 text-sm text-gray-400 mb-4 md:mb-0">
+              <span>&copy; {currentYear} LabGuard Pro. All rights reserved.</span>
+              <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white">Terms of Service</Link>
+              <Link href="/cookies" className="hover:text-white">Cookie Policy</Link>
+            </div>
+            
+            <div className="flex items-center space-x-4 text-sm text-gray-400">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>All systems operational</span>
+              </div>
+              <Link href="/status" className="hover:text-white">Status Page</Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+```
+
+Also create these required UI components:
+
+File: apps/web/src/components/ui/input.tsx
+```typescript
+import * as React from "react"
+import { cn } from "@/lib/utils"
+
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Input.displayName = "Input"
+
+export { Input }
+```
+
+File: apps/web/src/components/ui/label.tsx
+```typescript
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
+
+const labelVariants = cva(
+  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+)
+
+const Label = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
+    VariantProps<typeof labelVariants>
+>(({ className, ...props }, ref) => (
+  <LabelPrimitive.Root
+    ref={ref}
+    className={cn(labelVariants(), className)}
+    {...props}
+  />
+))
+Label.displayName = LabelPrimitive.Root.displayName
+
+export { Label }
+```
+
+File: apps/web/src/lib/utils.ts
+```typescript
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+
+Create ALL the above files exactly as specified. This completes your landing page with:
+
+1. **Interactive testimonials** with customer results
+2. **ROI calculator** that shows real savings potential  
+3. **Comprehensive FAQ** addressing common concerns
+4. **Strong final CTA** with multiple conversion paths
+5. **Professional footer** with all necessary links
+6. **Required UI components** for forms and interactions
+
+After creating these files, your landing page will be complete and ready for production. Test it by running `npm run dev` in the web app directory.
+```
+
+After Cursor creates these files, your **complete landing page will be ready**. The next step would be to create the **authentication system and dashboard**, but first make sure this landing page works properly.

@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Core models only for now
+model User {
+  id                      String      @id @default(cuid())
+  email                   String      @unique
+  password                String
+  firstName               String
+  lastName                String
+  role                    String      @default("USER")
+  laboratoryId            String
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  calibrationRecords      CalibrationRecord[]
+  reports                 Report[]
+  biomniQueries           BiomniQuery[]
+  
+  @@map("users")
+}
+
+model Laboratory {
+  id                      String      @id @default(cuid())
+  name                    String
+  email                   String      @unique
+  planType                String      @default("starter")
+  subscriptionStatus      String      @default("trial")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  users                   User[]
+  equipment               Equipment[]
+  reports                 Report[]
+  
+  @@map("laboratories")
+}
+
+model Equipment {
+  id                      String              @id @default(cuid())
+  name                    String
+  model                   String
+  manufacturer            String
+  serialNumber            String
+  status                  String              @default("ACTIVE")
+  location                String?
+  specifications          String              @default("{}")
+  laboratoryId            String
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  
+  laboratory              Laboratory          @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  calibrationRecords      CalibrationRecord[]
+  
+  @@map("equipment")
+}
+
+model CalibrationRecord {
+  id                      String              @id @default(cuid())
+  equipmentId             String
+  userId                  String
+  status                  String              @default("PENDING")
+  result                  String?
+  measurements            String              @default("{}")
+  notes                   String?
+  dueDate                 DateTime
+  performedAt             DateTime?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  
+  equipment               Equipment           @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  user                    User                @relation(fields: [userId], references: [id])
+  
+  @@map("calibration_records")
+}
+
+model Report {
+  id                      String      @id @default(cuid())
+  laboratoryId            String
+  userId                  String
+  type                    String      @default("CALIBRATION")
+  status                  String      @default("DRAFT")
+  title                   String
+  content                 String
+  metadata                String      @default("{}")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("reports")
+}
+
+model BiomniQuery {
+  id                      String      @id @default(cuid())
+  userId                  String
+  query                   String
+  response                String?
+  status                  String      @default("EXECUTING")
+  metadata                String      @default("{}")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("biomni_queries")
+}
