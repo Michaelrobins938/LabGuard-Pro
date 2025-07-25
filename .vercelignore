@@ -1,0 +1,18 @@
+# Ignore everything except the web app and necessary files
+backend/
+apps/api/
+packages/
+cursor instructions/
+frontend/
+node_modules/
+.git/
+.env.local
+.env.*.local
+*.log
+.DS_Store
+*.md
+!README.md
+env.example
+docker-compose.yml
+setup-beta.sh
+BETA_LAUNCH_GUIDE.md 

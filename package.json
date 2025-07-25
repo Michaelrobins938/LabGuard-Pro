@@ -1,0 +1,25 @@
+{
+  "name": "labguard-pro-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:api": "cd apps/api && npm run dev",
+    "build": "turbo run build",
+    "build:web": "cd apps/web && npm run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  },
+  "packageManager": "npm@8.0.0",
+  "workspaces": [
+    "apps/web",
+    "apps/api",
+    "packages/*"
+  ]
+}

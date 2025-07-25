@@ -1,0 +1,849 @@
+# 🎯 **PHASE 3 COMPLETION PROMPTS FOR CURSOR**
+
+## **Prompt #27: Billing & Subscription Management System**
+
+```
+PROJECT CONTEXT & CURRENT STATE:
+
+You are working on LabGuard Pro, an AI-powered laboratory compliance automation platform that's now ready for monetization and enterprise deployment.
+
+COMPLETED FEATURES (PHASES 1 & 2):
+✅ Complete authentication system with role-based access
+✅ Equipment management with full CRUD operations
+✅ Calibration workflows with AI-powered validation
+✅ Reports and analytics dashboard with PDF generation
+✅ Real-time notifications and alerts system (email, SMS, in-app)
+✅ Team management with user invitations and permissions
+✅ Activity tracking and user performance analytics
+✅ Settings and configuration system with branding
+✅ API key management and integrations
+✅ Complete backend API system with all endpoints
+
+CURRENT APPLICATION STATE:
+- Multi-user laboratory environments fully supported
+- Enterprise-ready with custom branding and configurations
+- Real-time collaboration and notification systems
+- Comprehensive reporting and compliance documentation
+- Role-based access control and team management
+
+EXISTING SUBSCRIPTION MODEL:
+- Basic subscription tracking in database (Subscription model exists)
+- Hard-coded plan limits and features
+- No payment processing or billing integration
+- No usage tracking or metering
+- Manual subscription management
+- No self-service billing portal
+
+CURRENT LIMITATIONS:
+- No payment processing or credit card handling
+- No subscription lifecycle management
+- No usage-based billing or metering
+- No invoice generation and delivery
+- No subscription analytics and revenue tracking
+- No self-service customer portal
+- No plan upgrade/downgrade workflows
+
+BUSINESS NEED:
+LabGuard Pro needs a complete billing and subscription system to monetize the platform, handle enterprise customers, track usage, and provide self-service billing management. This is essential for business growth and customer acquisition.
+
+TASK: Build Complete Billing & Subscription Management System
+
+Create a comprehensive billing and subscription system with Stripe integration. Build the following EXACT structure:
+
+REQUIRED PAGES & COMPONENTS:
+1. Billing dashboard (/dashboard/billing)
+2. Subscription management (/dashboard/billing/subscription)
+3. Payment methods (/dashboard/billing/payment-methods)
+4. Invoice history (/dashboard/billing/invoices)
+5. Usage analytics (/dashboard/billing/usage)
+6. Plan comparison and upgrade (/dashboard/billing/plans)
+7. Billing settings (/dashboard/billing/settings)
+8. Admin billing management (/admin/billing)
+
+SUBSCRIPTION PLANS TO IMPLEMENT:
+- **Starter Plan**: $299/month
+  - Up to 10 equipment items
+  - 100 AI compliance checks
+  - Basic reporting
+  - Email support
+  - 2 team members
+
+- **Professional Plan**: $599/month
+  - Up to 50 equipment items
+  - 500 AI compliance checks
+  - Advanced analytics
+  - Priority support
+  - 10 team members
+  - Custom branding
+
+- **Enterprise Plan**: $1,299/month
+  - Unlimited equipment
+  - 2,000 AI compliance checks
+  - White-label options
+  - Dedicated support
+  - Unlimited team members
+  - API access
+  - Custom integrations
+
+- **Enterprise Plus**: Custom pricing
+  - Volume discounts
+  - Custom AI check limits
+  - On-premise deployment
+  - SLA guarantees
+  - Custom development
+
+STRIPE INTEGRATION:
+- Stripe Checkout for subscription signup
+- Stripe Customer Portal for self-service
+- Stripe Webhooks for subscription events
+- Payment method management
+- Invoice generation and delivery
+- Failed payment handling and dunning
+- Proration for plan changes
+- Multi-currency support
+- Tax calculation and compliance
+- Subscription analytics integration
+
+USAGE TRACKING & METERING:
+- AI compliance check usage tracking
+- Equipment count monitoring
+- Team member usage tracking
+- API call usage metering
+- Storage usage tracking
+- Report generation usage
+- Email/SMS notification usage
+- Real-time usage analytics
+- Usage alerts and notifications
+- Overage billing and notifications
+
+SUBSCRIPTION LIFECYCLE:
+- Self-service subscription creation
+- Plan upgrade/downgrade workflows
+- Proration calculations for changes
+- Subscription pause and resume
+- Cancellation workflow with retention
+- Failed payment retry logic
+- Subscription renewal automation
+- Grace period management
+- Account suspension for non-payment
+- Win-back campaigns for churned users
+
+BILLING DASHBOARD:
+- Current subscription status and details
+- Usage metrics and remaining limits
+- Billing history and upcoming charges
+- Payment method status and updates
+- Plan comparison and upgrade options
+- Usage forecasting and optimization
+- Cost savings recommendations
+- Billing alerts and notifications
+- Support contact and escalation
+- Account health scoring
+
+INVOICE MANAGEMENT:
+- Automated invoice generation
+- PDF invoice downloads
+- Invoice email delivery
+- Payment status tracking
+- Late payment notifications
+- Invoice dispute handling
+- Credit note generation
+- Billing address management
+- Tax information and compliance
+- Accounting system integration
+
+PAYMENT PROCESSING:
+- Secure credit card processing via Stripe
+- Multiple payment method support
+- Payment method validation and verification
+- Failed payment retry and recovery
+- Payment analytics and reporting
+- Fraud detection and prevention
+- PCI compliance and security
+- International payment support
+- Payment method backup and redundancy
+- Payment reconciliation
+
+CUSTOMER PORTAL:
+- Self-service billing management
+- Payment method updates
+- Invoice downloads and history
+- Subscription changes and upgrades
+- Usage monitoring and analytics
+- Support ticket creation
+- Billing contact management
+- Account information updates
+- Cancellation and retention flow
+- Billing preferences and settings
+
+ADMIN BILLING FEATURES:
+- Customer billing overview dashboard
+- Subscription management tools
+- Manual billing adjustments
+- Customer support billing tools
+- Revenue analytics and reporting
+- Churn analysis and prevention
+- Customer lifetime value tracking
+- Billing operation automation
+- Fraud monitoring and investigation
+- Financial reporting and reconciliation
+
+USAGE ANALYTICS:
+- Real-time usage dashboards
+- Usage trends and forecasting
+- Feature adoption analytics
+- User engagement metrics
+- Cost per feature analysis
+- Usage optimization recommendations
+- Capacity planning tools
+- Usage alerts and thresholds
+- Custom usage reports
+- API usage analytics
+
+PLAN MANAGEMENT:
+- Dynamic plan configuration
+- Feature flag integration with plans
+- Plan A/B testing capabilities
+- Granular feature permissions
+- Usage limit enforcement
+- Plan recommendation engine
+- Custom enterprise plan creation
+- Plan migration tools
+- Legacy plan support
+- Plan analytics and optimization
+
+ENTERPRISE FEATURES:
+- Custom enterprise contracts
+- Volume discount management
+- Multi-seat licensing
+- Department-based billing
+- Purchase order support
+- Annual billing discounts
+- Custom payment terms
+- Dedicated account management
+- SLA monitoring and reporting
+- Custom integration billing
+
+FINANCIAL REPORTING:
+- Revenue recognition and reporting
+- Monthly recurring revenue (MRR) tracking
+- Annual recurring revenue (ARR) analysis
+- Customer acquisition cost (CAC) tracking
+- Customer lifetime value (CLV) calculation
+- Churn rate analysis and reporting
+- Revenue forecasting and projections
+- Financial dashboard for executives
+- Integration with accounting systems
+- Tax reporting and compliance
+
+DUNNING MANAGEMENT:
+- Automated failed payment retry
+- Progressive dunning campaigns
+- Payment recovery workflows
+- Customer communication automation
+- Grace period management
+- Account suspension automation
+- Payment method update requests
+- Win-back campaign automation
+- Churn prevention workflows
+- Payment recovery analytics
+
+COMPLIANCE & SECURITY:
+- PCI DSS compliance for payment data
+- SOX compliance for financial reporting
+- GDPR compliance for billing data
+- Data encryption and security
+- Audit trails for all billing events
+- Financial data backup and recovery
+- Billing system monitoring
+- Security incident response
+- Compliance reporting and documentation
+- Third-party security audits
+
+INTEGRATION CAPABILITIES:
+- Stripe webhook processing
+- Accounting system integration (QuickBooks, Xero)
+- CRM integration (Salesforce, HubSpot)
+- Analytics platform integration
+- Email marketing integration
+- Customer support platform integration
+- Revenue analytics tools integration
+- Tax calculation service integration
+- Payment gateway redundancy
+- Custom billing API access
+
+MOBILE BILLING FEATURES:
+- Mobile-responsive billing interface
+- Mobile payment method management
+- Mobile invoice access and downloads
+- Mobile usage monitoring
+- Mobile billing notifications
+- Mobile subscription management
+- Mobile payment processing
+- Touch ID/Face ID for payment verification
+- Mobile billing support
+- Offline billing data access
+
+Build with proper TypeScript types, comprehensive error handling, PCI compliance, real-time usage tracking, and seamless integration with existing systems. Include proper audit logging for all billing events, robust webhook handling, and comprehensive testing for payment flows.
+```
+
+## **Prompt #28: Individual Equipment Detail Pages**
+
+```
+PROJECT CONTEXT & CURRENT STATE:
+
+You are enhancing LabGuard Pro with detailed equipment management capabilities. This is an AI-powered laboratory compliance automation platform.
+
+COMPLETED FEATURES (PHASES 1-2 + BILLING):
+✅ Complete authentication and team management
+✅ Equipment listing and basic management
+✅ Calibration workflows with AI validation
+✅ Reports and analytics dashboard
+✅ Real-time notifications and alerts
+✅ Settings and configuration management
+✅ Billing and subscription system with Stripe
+✅ Usage tracking and plan enforcement
+
+CURRENT EQUIPMENT SYSTEM:
+- Equipment listing page with cards and filtering
+- Basic equipment creation and editing forms
+- Equipment status tracking and badges
+- Basic calibration scheduling from equipment list
+- Simple equipment details in database
+
+EXISTING EQUIPMENT FEATURES:
+- Equipment CRUD operations
+- Status management (Active, Maintenance, etc.)
+- Basic specifications and location tracking
+- Calibration due date tracking
+- Simple equipment search and filtering
+
+CURRENT LIMITATIONS:
+- No detailed individual equipment pages
+- No comprehensive equipment history
+- No maintenance tracking and scheduling
+- No equipment performance analytics
+- No document and photo management
+- No equipment relationships and dependencies
+- No predictive maintenance capabilities
+
+BUSINESS NEED:
+Laboratory managers need detailed equipment views to track complete history, manage maintenance schedules, analyze performance trends, store documentation, and make data-driven decisions about equipment lifecycle management.
+
+TASK: Build Comprehensive Individual Equipment Detail Pages
+
+Create detailed equipment management with comprehensive tracking and analytics. Build the following EXACT structure:
+
+REQUIRED PAGES & COMPONENTS:
+1. Equipment detail overview (/dashboard/equipment/[id])
+2. Equipment calibration history (/dashboard/equipment/[id]/calibrations)
+3. Equipment maintenance records (/dashboard/equipment/[id]/maintenance)
+4. Equipment performance analytics (/dashboard/equipment/[id]/analytics)
+5. Equipment documentation (/dashboard/equipment/[id]/documents)
+6. Equipment settings and configuration (/dashboard/equipment/[id]/settings)
+7. Equipment QR code and labels (/dashboard/equipment/[id]/labels)
+
+EQUIPMENT OVERVIEW PAGE:
+- Complete equipment information dashboard
+- Current status with visual indicators
+- Key performance metrics and health score
+- Recent activity timeline
+- Quick action buttons (calibrate, maintain, retire)
+- Equipment photo gallery and documentation
+- Compliance status with AI insights
+- Next scheduled maintenance and calibrations
+- Equipment utilization statistics
+- Cost tracking and ROI analysis
+
+EQUIPMENT SPECIFICATIONS:
+- Detailed technical specifications display
+- Manufacturer documentation and manuals
+- Operating ranges and environmental requirements
+- Accuracy specifications and tolerances
+- Calibration requirements and standards
+- Custom specification fields per equipment type
+- Specification change history and versioning
+- Comparison with similar equipment
+- Specification compliance checking
+- Industry standard reference integration
+
+CALIBRATION HISTORY:
+- Complete chronological calibration history
+- Calibration results with pass/fail status
+- AI compliance analysis for each calibration
+- Calibration certificates and documentation
+- Trend analysis of calibration measurements
+- Calibration frequency optimization suggestions
+- Technician performance on this equipment
+- Cost analysis of calibration activities
+- Calibration method evolution tracking
+- Predictive calibration scheduling
+
+MAINTENANCE MANAGEMENT:
+- Preventive maintenance scheduling
+- Maintenance history with detailed records
+- Parts replacement tracking and costs
+- Service provider management
+- Maintenance photo documentation
+- Maintenance cost analysis and budgeting
+- Equipment downtime tracking
+- Maintenance effectiveness analysis
+- Vendor service agreement tracking
+- Warranty claim management
+
+PERFORMANCE ANALYTICS:
+- Equipment uptime and availability tracking
+- Performance trend analysis over time
+- Failure prediction using historical data
+- Cost per test/analysis calculations
+- Equipment utilization optimization
+- Comparative analysis with similar equipment
+- ROI analysis and lifecycle costing
+- Energy consumption tracking
+- Environmental impact assessment
+- Benchmark comparison with industry standards
+
+DOCUMENT MANAGEMENT:
+- Equipment manual and documentation storage
+- Calibration certificates and reports
+- Maintenance records and photos
+- Vendor correspondence and contracts
+- Compliance documentation
+- Training materials and procedures
+- Quality control documentation
+- Audit trail documents
+- File versioning and approval workflows
+- Document search and organization
+
+EQUIPMENT PHOTOS & MEDIA:
+- Equipment photo gallery with timestamps
+- Before/after maintenance photos
+- Condition assessment photos
+- Installation and setup documentation
+- Video tutorials and training materials
+- Photo-based damage reporting
+- Visual inspection checklists
+- Photo annotation and commenting
+- Media file organization and tagging
+- Automatic photo metadata extraction
+
+COMPLIANCE TRACKING:
+- Regulatory compliance status dashboard
+- Compliance history and changes
+- Audit preparation documentation
+- Non-compliance issue tracking
+- Corrective action management
+- Compliance cost analysis
+- Regulatory change impact assessment
+- Third-party audit support
+- Compliance training requirements
+- Industry standard adherence tracking
+
+EQUIPMENT RELATIONSHIPS:
+- Equipment dependency mapping
+- Related equipment and systems
+- Equipment group and category management
+- Location hierarchy and room assignments
+- Equipment network topology
+- Shared resource management
+- Equipment interaction analysis
+- System integration documentation
+- Equipment replacement planning
+- Asset relationship visualization
+
+PREDICTIVE MAINTENANCE:
+- AI-powered failure prediction
+- Maintenance recommendation engine
+- Optimal replacement timing analysis
+- Cost-benefit analysis for repairs vs replacement
+- Predictive maintenance scheduling
+- Early warning system for potential issues
+- Maintenance optimization algorithms
+- Historical pattern analysis
+- Vendor recommendation integration
+- Predictive analytics dashboard
+
+COST MANAGEMENT:
+- Total cost of ownership (TCO) calculation
+- Purchase price and depreciation tracking
+- Operating cost analysis (energy, supplies)
+- Maintenance and repair cost tracking
+- Cost per test/analysis calculations
+- Budget planning and forecasting
+- Cost comparison with alternatives
+- ROI analysis and payback calculations
+- Cost optimization recommendations
+- Financial reporting and analytics
+
+EQUIPMENT LIFECYCLE:
+- Equipment lifecycle stage tracking
+- Replacement planning and budgeting
+- End-of-life disposal planning
+- Upgrade and modernization planning
+- Lifecycle cost analysis
+- Asset retirement procedures
+- Equipment transfer and relocation
+- Disposal documentation and compliance
+- Equipment resale value estimation
+- Sustainability and environmental impact
+
+MOBILE EQUIPMENT FEATURES:
+- Mobile-responsive equipment details
+- QR code scanning for quick access
+- Mobile photo capture and upload
+- Mobile calibration data entry
+- Offline equipment information access
+- Mobile maintenance reporting
+- GPS location tracking for portable equipment
+- Mobile equipment search and discovery
+- Push notifications for equipment alerts
+- Mobile equipment verification
+
+EQUIPMENT ALERTS & MONITORING:
+- Real-time equipment status monitoring
+- Automated alert generation for issues
+- Custom alert threshold configuration
+- Equipment health scoring
+- Performance degradation detection
+- Environmental condition monitoring
+- Usage pattern analysis and alerts
+- Maintenance due date notifications
+- Compliance deadline reminders
+- Equipment availability notifications
+
+QR CODE & LABELING:
+- Custom QR code generation for equipment
+- Printable equipment labels and tags
+- NFC tag programming and management
+- Barcode integration and scanning
+- Asset tag design and customization
+- Label template management
+- Bulk label printing capabilities
+- Equipment identification standards
+- Mobile scanning integration
+- Label tracking and inventory
+
+INTEGRATION FEATURES:
+- LIMS system integration for equipment data
+- ERP system integration for financial data
+- IoT sensor integration for monitoring
+- Third-party maintenance system integration
+- Vendor portal integration
+- Calibration service provider integration
+- Asset management system integration
+- Environmental monitoring integration
+- Energy management system integration
+- Facility management system integration
+
+REPORTING & EXPORTS:
+- Equipment-specific report generation
+- Performance report automation
+- Maintenance report scheduling
+- Compliance report generation
+- Cost analysis report creation
+- Equipment portfolio reports
+- Custom report builder for equipment data
+- Data export in multiple formats
+- Automated report delivery
+- Report analytics and insights
+
+Build with proper TypeScript types, mobile responsiveness, real-time updates, comprehensive error handling, and seamless integration with existing calibration and maintenance workflows. Include proper image handling, file uploads, and document management capabilities.
+```
+
+## **Prompt #29: Advanced Features & LIMS Integration**
+
+```
+PROJECT CONTEXT & CURRENT STATE:
+
+You are completing LabGuard Pro with advanced enterprise features. This is a mature AI-powered laboratory compliance automation platform ready for large-scale deployment.
+
+COMPLETED FEATURES (PHASES 1-3 PARTIAL):
+✅ Complete core functionality (equipment, calibrations, AI validation)
+✅ Professional user experience (notifications, team management, settings)
+✅ Enterprise billing and subscription management
+✅ Detailed equipment management with analytics
+✅ Comprehensive reporting and compliance documentation
+✅ Real-time collaboration and communication
+✅ Role-based access control and security
+
+CURRENT PLATFORM CAPABILITIES:
+- Multi-laboratory enterprise deployment ready
+- AI-powered compliance automation
+- Complete audit trail and documentation
+- Real-time notifications and alerts
+- Team collaboration and performance tracking
+- Custom branding and configuration
+- Usage-based billing and subscription management
+
+CURRENT LIMITATIONS:
+- No bulk operations for large datasets
+- No advanced search and filtering capabilities
+- No data export and import functionality
+- No integration with external LIMS systems
+- No advanced automation and workflows
+- No API ecosystem for third-party integrations
+- No enterprise-grade data management tools
+
+BUSINESS NEED:
+Enterprise customers need advanced features for managing hundreds of equipment items, integrating with existing laboratory systems, automating complex workflows, and providing API access for custom integrations. This is essential for large laboratory networks and enterprise deployments.
+
+TASK: Build Advanced Features & Enterprise Integration System
+
+Create advanced enterprise features with LIMS integration and automation capabilities. Build the following EXACT structure:
+
+REQUIRED PAGES & COMPONENTS:
+1. Advanced search and filtering (/dashboard/search)
+2. Bulk operations interface (/dashboard/bulk-operations)
+3. Data import/export center (/dashboard/data-management)
+4. LIMS integration dashboard (/dashboard/integrations/lims)
+5. API management console (/dashboard/api)
+6. Automation workflows (/dashboard/automation)
+7. Enterprise analytics (/dashboard/analytics/enterprise)
+8. System administration (/admin/system)
+
+ADVANCED SEARCH & FILTERING:
+- Global search across all data types
+- Advanced boolean search operators
+- Saved search queries and filters
+- Real-time search suggestions and autocomplete
+- Faceted search with multiple criteria
+- Date range and time-based filtering
+- Geolocation and proximity search
+- Full-text search in documents and notes
+- Search result ranking and relevance scoring
+- Export search results in multiple formats
+
+BULK OPERATIONS SYSTEM:
+- Bulk equipment creation and updates
+- Batch calibration scheduling and execution
+- Mass user management and role assignments
+- Bulk notification sending and management
+- Batch report generation and delivery
+- Mass data validation and cleanup
+- Bulk equipment status changes
+- Batch maintenance scheduling
+- Mass configuration updates
+- Bulk audit trail operations
+
+DATA IMPORT/EXPORT:
+- CSV/Excel import with validation and mapping
+- Equipment data bulk import from spreadsheets
+- Calibration history import from legacy systems
+- User data import from HR systems
+- Configuration export and import for deployment
+- Complete data backup and restore
+- Selective data export with filtering
+- Automated data synchronization
+- Data migration tools and utilities
+- Data format conversion and transformation
+
+LIMS INTEGRATION SYSTEM:
+- Popular LIMS platform connectors (Epic Beaker, Cerner, Sunquest)
+- Real-time data synchronization with LIMS
+- Equipment data sharing between systems
+- Calibration result integration
+- Sample tracking integration
+- Quality control data exchange
+- Automated workflow triggers from LIMS events
+- Bi-directional data synchronization
+- LIMS-specific compliance rule integration
+- Custom LIMS adapter development framework
+
+API MANAGEMENT CONSOLE:
+- RESTful API endpoint documentation
+- API key generation and management
+- Rate limiting and quota management
+- API usage analytics and monitoring
+- Webhook management and testing
+- API versioning and deprecation management
+- Developer portal with documentation
+- API testing and debugging tools
+- Custom API endpoint creation
+- API security and authentication management
+
+AUTOMATION WORKFLOWS:
+- Visual workflow builder with drag-and-drop interface
+- Trigger-based automation (time, events, conditions)
+- Conditional logic and branching workflows
+- Multi-step approval processes
+- Automated notification sequences
+- Scheduled task automation
+- Integration with external systems
+- Workflow testing and debugging
+- Workflow performance monitoring
+- Custom action and trigger development
+
+ENTERPRISE ANALYTICS:
+- Multi-laboratory analytics dashboard
+- Cross-site performance comparisons
+- Predictive analytics for equipment failures
+- Cost optimization analysis across locations
+- Compliance trend analysis and forecasting
+- Resource utilization optimization
+- Performance benchmarking and KPIs
+- Executive dashboard with key metrics
+- Custom analytics and reporting
+- Advanced data visualization and insights
+
+ADVANCED AUTOMATION:
+- Intelligent calibration scheduling optimization
+- Automated equipment lifecycle management
+- Smart maintenance prediction and scheduling
+- Automated compliance monitoring
+- Dynamic resource allocation and optimization
+- Intelligent alert prioritization
+- Automated report generation and distribution
+- Smart notification routing and escalation
+- Predictive capacity planning
+- Automated quality assurance workflows
+
+ENTERPRISE DATA MANAGEMENT:
+- Data governance and quality management
+- Master data management (MDM)
+- Data lineage and impact analysis
+- Data catalog and metadata management
+- Data privacy and compliance tools
+- Advanced data archival and retention
+- Data lake integration for analytics
+- Real-time data streaming and processing
+- Data warehouse integration
+- Advanced data modeling and relationships
+
+THIRD-PARTY INTEGRATIONS:
+- ERP system integration (SAP, Oracle, NetSuite)
+- CMMS integration for maintenance management
+- Business intelligence tool integration
+- Document management system integration
+- Electronic signature platform integration
+- Video conferencing platform integration
+- Project management tool integration
+- Time tracking system integration
+- Learning management system integration
+- Supplier and vendor management integration
+
+ADVANCED SECURITY:
+- Single Sign-On (SSO) with SAML/OAuth
+- Multi-factor authentication (MFA)
+- Advanced audit logging and monitoring
+- Data loss prevention (DLP)
+- Encryption key management
+- Network security and firewall rules
+- Vulnerability scanning and management
+- Security incident response automation
+- Compliance framework integration
+- Advanced threat detection and response
+
+ENTERPRISE DEPLOYMENT:
+- Multi-tenant architecture support
+- On-premise deployment options
+- Hybrid cloud deployment
+- High availability and disaster recovery
+- Horizontal scaling and load balancing
+- Advanced monitoring and alerting
+- Performance optimization and tuning
+- Backup and recovery automation
+- Environment management (dev/staging/prod)
+- Configuration management and deployment
+
+ADVANCED REPORTING:
+- Custom report builder with advanced features
+- Scheduled report automation
+- Interactive dashboards and visualizations
+- Real-time data streaming reports
+- Advanced analytics and statistical analysis
+- Comparative analysis across time periods
+- Drill-down and drill-through capabilities
+- Report collaboration and sharing
+- Advanced export options and formats
+- Report performance optimization
+
+MOBILE ENTERPRISE FEATURES:
+- Offline capability for remote locations
+- Mobile device management (MDM) integration
+- Advanced mobile security features
+- Mobile application customization
+- Push notification management
+- Mobile analytics and usage tracking
+- Gesture and voice command support
+- Augmented reality (AR) features for equipment
+- Mobile barcode and QR code scanning
+- Mobile signature capture and verification
+
+PERFORMANCE OPTIMIZATION:
+- Advanced caching and optimization
+- Database query optimization
+- Content delivery network (CDN) integration
+- Image and file optimization
+- Real-time performance monitoring
+- Automated performance tuning
+- Resource usage optimization
+- Scalability testing and optimization
+- Memory and CPU optimization
+- Network performance optimization
+
+COMPLIANCE & GOVERNANCE:
+- Advanced compliance framework support
+- Regulatory change management
+- Compliance reporting automation
+- Data governance and stewardship
+- Privacy impact assessment tools
+- Consent management and tracking
+- Data subject rights automation
+- Cross-border data transfer compliance
+- Industry-specific compliance modules
+- Continuous compliance monitoring
+
+AI & MACHINE LEARNING:
+- Advanced AI model training and optimization
+- Custom AI template creation
+- Machine learning for predictive maintenance
+- Natural language processing for document analysis
+- Computer vision for equipment inspection
+- Anomaly detection and alerting
+- Intelligent data classification
+- Automated insights and recommendations
+- AI model performance monitoring
+- Custom AI integration framework
+
+Build with enterprise-grade architecture, comprehensive error handling, advanced security, scalability for large datasets, and seamless integration with existing systems. Include proper API documentation, extensive testing capabilities, and enterprise support features.
+```
+
+---
+
+## **📋 PHASE 3 EXECUTION ORDER**
+
+Run these prompts in **exact sequence**:
+
+1. **Prompt #27** - Billing & Subscription Management (Revenue generation)
+2. **Prompt #28** - Individual Equipment Detail Pages (Enhanced user experience)  
+3. **Prompt #29** - Advanced Features & LIMS Integration (Enterprise capabilities)
+
+## **⏱️ Estimated Timeline**
+- **Prompt #27**: 5-6 days (Complex payment integration)
+- **Prompt #28**: 3-4 days (Detailed equipment views)
+- **Prompt #29**: 4-5 days (Advanced enterprise features)
+
+**Total Phase 3 Completion: 12-15 days**
+
+## **🎯 After Phase 3 Completion**
+
+You'll have a **complete enterprise-ready platform** with:
+- ✅ Full core functionality and user experience
+- ✅ Enterprise billing and subscription management
+- ✅ Advanced equipment management and analytics
+- ✅ LIMS integration and enterprise features
+- ✅ Comprehensive API ecosystem
+- ✅ Advanced automation and workflows
+
+**Next would be Phase 4 (Production & Polish)** - deployment, monitoring, and final optimization for launch.
+
+## **🚀 READY FOR ENTERPRISE DEPLOYMENT**
+
+After Phase 3, LabGuard Pro will be a **fully-featured, enterprise-ready SaaS platform** that can:
+- Handle hundreds of laboratories
+- Process thousands of calibrations
+- Integrate with existing LIMS systems
+- Generate significant recurring revenue
+- Support enterprise customers with advanced needs
+
+**Perfect for beta testing with real laboratories and scaling to production!**

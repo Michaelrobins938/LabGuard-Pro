@@ -1,0 +1,48 @@
+// prisma/schema.prisma - Simple Auth Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String      @id @default(cuid())
+  email                   String      @unique
+  password                String
+  firstName               String
+  lastName                String
+  role                    UserRole    @default(USER)
+  laboratoryId            String
+  isActive                Boolean     @default(true)
+  lastLoginAt             DateTime?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  
+  @@map("users")
+}
+
+model Laboratory {
+  id                      String      @id @default(cuid())
+  name                    String
+  email                   String      @unique
+  planType                String      @default("starter")
+  subscriptionStatus      String      @default("trial")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  users                   User[]
+  
+  @@map("laboratories")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  TECHNICIAN
+  USER
+}

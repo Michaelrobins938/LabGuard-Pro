@@ -1,0 +1,1036 @@
+# 🧬 **AI COMPLIANCE PROMPT TEMPLATES IMPLEMENTATION GUIDE**
+
+## **📋 OVERVIEW: Integrating 25 Compliance Templates**
+
+You have **25 specialized AI prompt templates** for laboratory compliance validation. Here's how to implement them into your LabGuard Pro platform:
+
+---
+
+## **🎯 IMPLEMENTATION ARCHITECTURE**
+
+### **1. Template Storage & Management System**
+
+```typescript
+// File: apps/api/src/services/ComplianceTemplateService.ts
+interface ComplianceTemplate {
+  id: string
+  title: string
+  category: 'EQUIPMENT_CALIBRATION' | 'SAMPLE_HANDLING' | 'RESULT_VALIDATION' | 'AUDIT_PREPARATION'
+  useCase: string
+  promptTemplate: string
+  variables: TemplateVariable[]
+  safetyChecks: string[]
+  validationCriteria: ValidationCriteria[]
+  regulatoryStandards: string[]
+}
+
+interface TemplateVariable {
+  name: string
+  type: 'string' | 'number' | 'date' | 'enum'
+  required: boolean
+  description: string
+  enumValues?: string[]
+  validationRules?: ValidationRule[]
+}
+```
+
+### **2. Template Categories Organization**
+
+```
+EQUIPMENT_CALIBRATION (Templates 4-9):
+├── Analytical Balance Calibration (#4)
+├── Pipette Volume Verification (#5)
+├── Centrifuge Performance (#6)
+├── Incubator Temperature Mapping (#7)
+├── Autoclave Sterilization (#8)
+└── Spectrophotometer Accuracy (#9)
+
+SAMPLE_HANDLING (Templates 10-15):
+├── Pre-Analytical Assessment (#10)
+├── Chain of Custody (#11)
+├── Storage & Stability (#12)
+├── Biohazard Handling (#13)
+├── Frozen Sample Thaw (#14)
+└── Aliquoting & Labeling (#15)
+
+RESULT_VALIDATION (Templates 16-20):
+├── Critical Value Alert (#16)
+├── Quality Control Evaluation (#17)
+├── Reference Interval Validation (#18)
+├── Inter-Laboratory Comparison (#19)
+└── Delta Check Investigation (#20)
+
+AUDIT_PREPARATION (Templates 21-25):
+├── CAP Inspection Readiness (#21)
+├── Quality Management Audit (#22)
+├── Document Control Audit (#23)
+├── Personnel Competency (#24)
+└── LIS Validation Audit (#25)
+```
+
+---
+
+## **🚀 STEP-BY-STEP IMPLEMENTATION**
+
+### **Phase 1: Backend Template Storage**
+
+#### **Step 1: Database Schema Extension**
+```sql
+-- Add to your Prisma schema
+model ComplianceTemplate {
+  id                    String   @id @default(cuid())
+  title                 String
+  category              TemplateCategory
+  useCase               String
+  promptTemplate        String   @db.Text
+  variables             Json
+  safetyChecks          String[]
+  validationCriteria    Json
+  regulatoryStandards   String[]
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Usage tracking
+  usageRecords          TemplateUsage[]
+  
+  @@map("compliance_templates")
+}
+
+model TemplateUsage {
+  id                    String   @id @default(cuid())
+  templateId            String
+  template              ComplianceTemplate @relation(fields: [templateId], references: [id])
+  equipmentId           String?
+  equipment             Equipment? @relation(fields: [equipmentId], references: [id])
+  calibrationRecordId   String?
+  calibrationRecord     CalibrationRecord? @relation(fields: [calibrationRecordId], references: [id])
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id])
+  inputData             Json
+  aiResponse            Json
+  complianceScore       Float?
+  status                String   // PASS, FAIL, WARNING
+  executedAt            DateTime @default(now())
+  
+  @@map("template_usage")
+}
+
+enum TemplateCategory {
+  EQUIPMENT_CALIBRATION
+  SAMPLE_HANDLING
+  RESULT_VALIDATION
+  AUDIT_PREPARATION
+  PCR_PROTOCOLS
+  INCIDENT_RESPONSE
+}
+```
+
+#### **Step 2: Template Seeding Script**
+```typescript
+// File: apps/api/src/scripts/seedComplianceTemplates.ts
+import { PrismaClient } from '@prisma/client'
+import { complianceTemplates } from './templates/complianceTemplates'
+
+const prisma = new PrismaClient()
+
+async function seedComplianceTemplates() {
+  console.log('Seeding compliance templates...')
+  
+  for (const template of complianceTemplates) {
+    await prisma.complianceTemplate.upsert({
+      where: { id: template.id },
+      update: template,
+      create: template
+    })
+  }
+  
+  console.log('Compliance templates seeded successfully!')
+}
+
+seedComplianceTemplates()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect())
+```
+
+#### **Step 3: Template Data Files**
+```typescript
+// File: apps/api/src/scripts/templates/complianceTemplates.ts
+export const complianceTemplates = [
+  {
+    id: 'template-001',
+    title: 'PCR Protocol Verification & Compliance Check',
+    category: 'PCR_PROTOCOLS',
+    useCase: 'Pre-execution validation of PCR run setup against validated protocols',
+    promptTemplate: `You are a CAP-compliant laboratory validation agent. Your role is to verify PCR setup parameters against validated protocols before execution authorization.
+
+PROTOCOL VALIDATION TASK:
+Test Type: {TEST_TYPE}
+Protocol ID: {PROTOCOL_ID}
+Operator: {OPERATOR_NAME}
+Date/Time: {TIMESTAMP}
+
+CURRENT SETUP PARAMETERS:
+- Sample Volume: {SAMPLE_VOLUME}
+- Primer Concentrations: {PRIMER_CONC}
+- Buffer Type/Lot: {BUFFER_LOT}
+- Thermal Cycling Profile: {CYCLING_PROFILE}
+- Expected Controls: {CONTROL_TYPES}
+- Instrumentation: {INSTRUMENT_ID}
+
+VALIDATION REQUIREMENTS:
+1. Cross-reference all parameters against Protocol {PROTOCOL_ID}
+2. Verify operator certification for {TEST_TYPE}
+3. Check reagent expiration dates and lot numbers
+4. Confirm contamination prevention measures are documented
+5. Validate that all required controls are included
+
+SAFETY PROTOCOL:
+- STOP execution if ANY parameter deviates >5% from validated protocol
+- ALERT if operator lacks current certification
+- FLAG if reagents expire within 7 days
+- REQUIRE sign-off for any protocol modifications
+
+OUTPUT FORMAT:
+- COMPLIANCE STATUS: [PASS/FAIL/WARNING]
+- DEVIATION SUMMARY: [List any issues found]
+- CORRECTIVE ACTIONS: [Specific steps to resolve issues]
+- AUTHORIZATION CODE: [Generate if all checks pass]
+
+If issues are detected, provide specific remediation steps and do not authorize run until resolved.`,
+    variables: [
+      {
+        name: 'TEST_TYPE',
+        type: 'enum',
+        required: true,
+        description: 'Specific PCR test being performed',
+        enumValues: ['COVID-19', 'Influenza A/B', 'Respiratory Panel', 'Custom PCR']
+      },
+      {
+        name: 'PROTOCOL_ID',
+        type: 'string',
+        required: true,
+        description: 'Validated protocol reference number'
+      },
+      {
+        name: 'OPERATOR_NAME',
+        type: 'string',
+        required: true,
+        description: 'Technician performing the test'
+      },
+      {
+        name: 'SAMPLE_VOLUME',
+        type: 'number',
+        required: true,
+        description: 'Sample volume in microliters'
+      }
+      // ... more variables
+    ],
+    safetyChecks: [
+      'Parameter deviation limits',
+      'Operator certification verification',
+      'Reagent expiration monitoring',
+      'Contamination prevention protocols'
+    ],
+    validationCriteria: [
+      {
+        criterion: 'Parameter Accuracy',
+        threshold: '±5%',
+        action: 'STOP_EXECUTION'
+      },
+      {
+        criterion: 'Operator Certification',
+        threshold: 'CURRENT',
+        action: 'ALERT'
+      }
+    ],
+    regulatoryStandards: ['CAP', 'CLIA', 'FDA']
+  },
+  // ... Add all 25 templates here
+]
+```
+
+---
+
+### **Phase 2: Frontend Integration**
+
+#### **Step 4: Template Selection Interface**
+```typescript
+// File: apps/web/src/components/compliance/TemplateSelector.tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+
+interface ComplianceTemplate {
+  id: string
+  title: string
+  category: string
+  useCase: string
+  safetyChecks: string[]
+}
+
+interface TemplateSelectorProps {
+  onTemplateSelect: (template: ComplianceTemplate) => void
+  category?: string
+}
+
+export function TemplateSelector({ onTemplateSelect, category }: TemplateSelectorProps) {
+  const [templates, setTemplates] = useState<ComplianceTemplate[]>([])
+  const [selectedCategory, setSelectedCategory] = useState(category || 'ALL')
+
+  useEffect(() => {
+    fetchTemplates()
+  }, [selectedCategory])
+
+  const fetchTemplates = async () => {
+    const response = await fetch(`/api/compliance-templates?category=${selectedCategory}`)
+    const data = await response.json()
+    setTemplates(data.templates)
+  }
+
+  const getCategoryBadgeColor = (cat: string) => {
+    switch (cat) {
+      case 'EQUIPMENT_CALIBRATION': return 'bg-blue-100 text-blue-800'
+      case 'SAMPLE_HANDLING': return 'bg-green-100 text-green-800'
+      case 'RESULT_VALIDATION': return 'bg-purple-100 text-purple-800'
+      case 'AUDIT_PREPARATION': return 'bg-orange-100 text-orange-800'
+      case 'PCR_PROTOCOLS': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-2 mb-6">
+        {['ALL', 'EQUIPMENT_CALIBRATION', 'SAMPLE_HANDLING', 'RESULT_VALIDATION', 'AUDIT_PREPARATION', 'PCR_PROTOCOLS'].map(cat => (
+          <Button
+            key={cat}
+            variant={selectedCategory === cat ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedCategory(cat)}
+          >
+            {cat.replace('_', ' ')}
+          </Button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {templates.map((template) => (
+          <Card key={template.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start mb-2">
+                <Badge className={getCategoryBadgeColor(template.category)}>
+                  {template.category.replace('_', ' ')}
+                </Badge>
+              </div>
+              <CardTitle className="text-lg">{template.title}</CardTitle>
+              <p className="text-sm text-gray-600">{template.useCase}</p>
+            </CardHeader>
+            
+            <CardContent>
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Safety Checks:</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {template.safetyChecks.slice(0, 3).map((check, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {check}
+                      </Badge>
+                    ))}
+                    {template.safetyChecks.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{template.safetyChecks.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                <Button 
+                  className="w-full"
+                  onClick={() => onTemplateSelect(template)}
+                >
+                  Use Template
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+#### **Step 5: Variable Input Form**
+```typescript
+// File: apps/web/src/components/compliance/VariableInputForm.tsx
+'use client'
+
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+
+interface TemplateVariable {
+  name: string
+  type: 'string' | 'number' | 'date' | 'enum'
+  required: boolean
+  description: string
+  enumValues?: string[]
+}
+
+interface VariableInputFormProps {
+  variables: TemplateVariable[]
+  onSubmit: (data: Record<string, any>) => void
+  loading?: boolean
+}
+
+export function VariableInputForm({ variables, onSubmit, loading }: VariableInputFormProps) {
+  // Dynamically create Zod schema based on variables
+  const createSchema = () => {
+    const schemaFields: Record<string, any> = {}
+    
+    variables.forEach(variable => {
+      let field: any
+      
+      switch (variable.type) {
+        case 'string':
+          field = z.string()
+          break
+        case 'number':
+          field = z.number()
+          break
+        case 'date':
+          field = z.string().datetime()
+          break
+        case 'enum':
+          field = z.enum(variable.enumValues as [string, ...string[]])
+          break
+        default:
+          field = z.string()
+      }
+      
+      if (!variable.required) {
+        field = field.optional()
+      }
+      
+      schemaFields[variable.name] = field
+    })
+    
+    return z.object(schemaFields)
+  }
+
+  const schema = createSchema()
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(schema)
+  })
+
+  const renderField = (variable: TemplateVariable) => {
+    switch (variable.type) {
+      case 'enum':
+        return (
+          <select
+            {...register(variable.name)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Select {variable.description}</option>
+            {variable.enumValues?.map(value => (
+              <option key={value} value={value}>{value}</option>
+            ))}
+          </select>
+        )
+      
+      case 'number':
+        return (
+          <Input
+            type="number"
+            {...register(variable.name, { valueAsNumber: true })}
+            placeholder={variable.description}
+          />
+        )
+      
+      case 'date':
+        return (
+          <Input
+            type="datetime-local"
+            {...register(variable.name)}
+          />
+        )
+      
+      default:
+        return (
+          <Input
+            type="text"
+            {...register(variable.name)}
+            placeholder={variable.description}
+          />
+        )
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Template Variables</CardTitle>
+        <p className="text-sm text-gray-600">
+          Fill in the required information for compliance validation
+        </p>
+      </CardHeader>
+      
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {variables.map((variable) => (
+            <div key={variable.name} className="space-y-2">
+              <Label htmlFor={variable.name}>
+                {variable.description}
+                {variable.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              
+              {renderField(variable)}
+              
+              {errors[variable.name] && (
+                <p className="text-sm text-red-600">
+                  {errors[variable.name]?.message as string}
+                </p>
+              )}
+            </div>
+          ))}
+          
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={loading}
+          >
+            {loading ? 'Running Compliance Check...' : 'Run Compliance Validation'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+---
+
+### **Phase 3: AI Processing Integration**
+
+#### **Step 6: Template Processing Service**
+```typescript
+// File: apps/api/src/services/ComplianceValidationService.ts
+import OpenAI from 'openai'
+import { PrismaClient } from '@prisma/client'
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+})
+
+const prisma = new PrismaClient()
+
+export class ComplianceValidationService {
+  async executeTemplate(
+    templateId: string,
+    variables: Record<string, any>,
+    userId: string,
+    equipmentId?: string,
+    calibrationRecordId?: string
+  ) {
+    // 1. Get template
+    const template = await prisma.complianceTemplate.findUnique({
+      where: { id: templateId }
+    })
+    
+    if (!template) {
+      throw new Error('Template not found')
+    }
+
+    // 2. Substitute variables in prompt
+    const processedPrompt = this.substituteVariables(template.promptTemplate, variables)
+
+    // 3. Call OpenAI API
+    const aiResponse = await this.callOpenAI(processedPrompt)
+
+    // 4. Parse and validate response
+    const parsedResponse = this.parseAIResponse(aiResponse)
+
+    // 5. Calculate compliance score
+    const complianceScore = this.calculateComplianceScore(parsedResponse)
+
+    // 6. Record usage
+    const usageRecord = await prisma.templateUsage.create({
+      data: {
+        templateId,
+        equipmentId,
+        calibrationRecordId,
+        userId,
+        inputData: variables,
+        aiResponse: parsedResponse,
+        complianceScore,
+        status: parsedResponse.complianceStatus || 'UNKNOWN'
+      }
+    })
+
+    return {
+      usageId: usageRecord.id,
+      templateTitle: template.title,
+      complianceStatus: parsedResponse.complianceStatus,
+      complianceScore,
+      aiResponse: parsedResponse,
+      safetyChecks: template.safetyChecks,
+      correctiveActions: parsedResponse.correctiveActions || []
+    }
+  }
+
+  private substituteVariables(template: string, variables: Record<string, any>): string {
+    let processedTemplate = template
+    
+    Object.entries(variables).forEach(([key, value]) => {
+      const placeholder = `{${key}}`
+      processedTemplate = processedTemplate.replace(new RegExp(placeholder, 'g'), String(value))
+    })
+    
+    return processedTemplate
+  }
+
+  private async callOpenAI(prompt: string) {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a laboratory compliance validation expert. Provide structured, accurate responses following the exact format specified in the prompt.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.1, // Low temperature for consistency
+      max_tokens: 1500
+    })
+
+    return response.choices[0]?.message?.content || ''
+  }
+
+  private parseAIResponse(response: string) {
+    // Parse the structured AI response
+    // This should extract specific sections like COMPLIANCE STATUS, DEVIATION SUMMARY, etc.
+    
+    const sections = this.extractSections(response)
+    
+    return {
+      complianceStatus: this.extractComplianceStatus(sections),
+      deviationSummary: this.extractSection(sections, 'DEVIATION SUMMARY'),
+      correctiveActions: this.extractSection(sections, 'CORRECTIVE ACTIONS'),
+      authorizationCode: this.extractSection(sections, 'AUTHORIZATION CODE'),
+      rawResponse: response
+    }
+  }
+
+  private extractSections(response: string): Record<string, string> {
+    const sections: Record<string, string> = {}
+    const lines = response.split('\n')
+    let currentSection = ''
+    let currentContent = ''
+
+    lines.forEach(line => {
+      if (line.includes(':') && line.toUpperCase() === line) {
+        if (currentSection) {
+          sections[currentSection] = currentContent.trim()
+        }
+        currentSection = line.replace(':', '').trim()
+        currentContent = ''
+      } else {
+        currentContent += line + '\n'
+      }
+    })
+
+    if (currentSection) {
+      sections[currentSection] = currentContent.trim()
+    }
+
+    return sections
+  }
+
+  private extractComplianceStatus(sections: Record<string, string>): string {
+    const statusSection = sections['COMPLIANCE STATUS'] || ''
+    
+    if (statusSection.includes('PASS')) return 'PASS'
+    if (statusSection.includes('FAIL')) return 'FAIL'
+    if (statusSection.includes('WARNING')) return 'WARNING'
+    
+    return 'UNKNOWN'
+  }
+
+  private calculateComplianceScore(parsedResponse: any): number {
+    // Calculate a numerical compliance score based on the response
+    if (parsedResponse.complianceStatus === 'PASS') return 100
+    if (parsedResponse.complianceStatus === 'WARNING') return 75
+    if (parsedResponse.complianceStatus === 'FAIL') return 25
+    return 0
+  }
+
+  private extractSection(sections: Record<string, string>, sectionName: string): string[] {
+    const content = sections[sectionName] || ''
+    return content.split('\n').filter(line => line.trim().length > 0)
+  }
+}
+```
+
+---
+
+### **Phase 4: User Interface Integration**
+
+#### **Step 7: Compliance Validation Page**
+```typescript
+// File: apps/web/src/app/dashboard/compliance/validate/page.tsx
+'use client'
+
+import { useState } from 'react'
+import { TemplateSelector } from '@/components/compliance/TemplateSelector'
+import { VariableInputForm } from '@/components/compliance/VariableInputForm'
+import { ComplianceResults } from '@/components/compliance/ComplianceResults'
+
+export default function ComplianceValidationPage() {
+  const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [validationResults, setValidationResults] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleTemplateSelect = (template) => {
+    setSelectedTemplate(template)
+    setValidationResults(null)
+  }
+
+  const handleVariableSubmit = async (variables) => {
+    setLoading(true)
+    
+    try {
+      const response = await fetch('/api/compliance/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          templateId: selectedTemplate.id,
+          variables
+        })
+      })
+
+      const results = await response.json()
+      setValidationResults(results)
+    } catch (error) {
+      console.error('Validation failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Compliance Validation</h1>
+        <p className="text-sm text-gray-600">
+          Select a compliance template and run AI-powered validation checks
+        </p>
+      </div>
+
+      {!selectedTemplate ? (
+        <TemplateSelector onTemplateSelect={handleTemplateSelect} />
+      ) : !validationResults ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Selected Template</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium">{selectedTemplate.title}</h4>
+              <p className="text-sm text-gray-600">{selectedTemplate.useCase}</p>
+              <button 
+                onClick={() => setSelectedTemplate(null)}
+                className="mt-2 text-blue-600 text-sm hover:underline"
+              >
+                Change Template
+              </button>
+            </div>
+          </div>
+          
+          <VariableInputForm
+            variables={selectedTemplate.variables}
+            onSubmit={handleVariableSubmit}
+            loading={loading}
+          />
+        </div>
+      ) : (
+        <ComplianceResults
+          results={validationResults}
+          onNewValidation={() => {
+            setSelectedTemplate(null)
+            setValidationResults(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+```
+
+#### **Step 8: Results Display Component**
+```typescript
+// File: apps/web/src/components/compliance/ComplianceResults.tsx
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { CheckCircle, AlertTriangle, XCircle, Download } from 'lucide-react'
+
+interface ComplianceResultsProps {
+  results: {
+    complianceStatus: string
+    complianceScore: number
+    aiResponse: any
+    templateTitle: string
+    safetyChecks: string[]
+    correctiveActions: string[]
+  }
+  onNewValidation: () => void
+}
+
+export function ComplianceResults({ results, onNewValidation }: ComplianceResultsProps) {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'PASS':
+        return <CheckCircle className="w-6 h-6 text-green-600" />
+      case 'WARNING':
+        return <AlertTriangle className="w-6 h-6 text-yellow-600" />
+      case 'FAIL':
+        return <XCircle className="w-6 h-6 text-red-600" />
+      default:
+        return <AlertTriangle className="w-6 h-6 text-gray-600" />
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PASS':
+        return <Badge className="bg-green-100 text-green-800">COMPLIANT</Badge>
+      case 'WARNING':
+        return <Badge className="bg-yellow-100 text-yellow-800">WARNING</Badge>
+      case 'FAIL':
+        return <Badge className="bg-red-100 text-red-800">NON-COMPLIANT</Badge>
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">UNKNOWN</Badge>
+    }
+  }
+
+  const downloadReport = async () => {
+    // Generate and download compliance report
+    const response = await fetch('/api/compliance/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ usageId: results.usageId })
+    })
+
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `compliance-report-${Date.now()}.pdf`
+    a.click()
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Compliance Validation Results</h2>
+          <p className="text-sm text-gray-600">{results.templateTitle}</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={downloadReport}>
+            <Download className="w-4 h-4 mr-2" />
+            Download Report
+          </Button>
+          <Button onClick={onNewValidation}>
+            New Validation
+          </Button>
+        </div>
+      </div>
+
+      {/* Status Overview */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2">
+              {getStatusIcon(results.complianceStatus)}
+              <span>Compliance Status</span>
+            </CardTitle>
+            {getStatusBadge(results.complianceStatus)}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-medium text-gray-700">Compliance Score</h4>
+              <div className="mt-1">
+                <div className="flex items-center">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        results.complianceScore >= 80 ? 'bg-green-500' :
+                        results.complianceScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${results.complianceScore}%` }}
+                    ></div>
+                  </div>
+                  <span className="ml-2 text-sm font-medium">{results.complianceScore}%</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-700">Validation Date</h4>
+              <p className="text-sm text-gray-600">{new Date().toLocaleString()}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Detailed Results */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Safety Checks */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Safety Checks Performed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {results.safetyChecks.map((check, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-sm">{check}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Corrective Actions */}
+        {results.correctiveActions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Corrective Actions Required</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {results.correctiveActions.map((action, index) => (
+                  <div key={index} className="flex items-start space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5" />
+                    <span className="text-sm">{action}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* AI Response Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Analysis Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="prose max-w-none">
+            <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded-lg">
+              {results.aiResponse.rawResponse}
+            </pre>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+```
+
+---
+
+## **🎯 INTEGRATION POINTS**
+
+### **1. Equipment Calibration Integration**
+```typescript
+// Link templates to equipment calibration workflows
+// In calibration form, show relevant templates based on equipment type
+
+const getRelevantTemplates = (equipmentType: string) => {
+  const templateMapping = {
+    'ANALYTICAL_BALANCE': ['template-004'], // Analytical Balance Calibration
+    'CENTRIFUGE': ['template-006'], // Centrifuge Performance
+    'INCUBATOR': ['template-007'], // Incubator Temperature Mapping
+    'AUTOCLAVE': ['template-008'], // Autoclave Sterilization
+    'SPECTROPHOTOMETER': ['template-009'] // Spectrophotometer Accuracy
+  }
+  
+  return templateMapping[equipmentType] || []
+}
+```
+
+### **2. Automated Compliance Checking**
+```typescript
+// Run templates automatically during calibration workflows
+// Trigger compliance checks at key points in the process
+
+const runAutomatedCompliance = async (calibrationId: string) => {
+  const calibration = await getCalibrationRecord(calibrationId)
+  const equipment = await getEquipment(calibration.equipmentId)
+  
+  const templates = getRelevantTemplates(equipment.type)
+  
+  for (const templateId of templates) {
+    const variables = extractCalibrationVariables(calibration)
+    await complianceService.executeTemplate(templateId, variables, calibration.userId)
+  }
+}
+```
+
+### **3. Dashboard Integration**
+```typescript
+// Show compliance status on main dashboard
+// Display template usage analytics
+// Track compliance trends over time
+
+const getComplianceDashboardData = async () => {
+  const recentValidations = await prisma.templateUsage.findMany({
+    take: 10,
+    orderBy: { executedAt: 'desc' },
+    include: { template: true, equipment: true }
+  })
+  
+  const complianceRate = await calculateComplianceRate()
+  const trendingIssues = await getTrendingComplianceIssues()
+  
+  return { recentValidations, complianceRate, trendingIssues }
+}
+```
+
+---
+
+## **📊 SUCCESS METRICS**
+
+After implementation, you'll have:
+
+✅ **25 AI compliance templates** integrated into your platform  
+✅ **Automated compliance checking** during calibration workflows  
+✅ **Real-time validation results** with corrective actions  
+✅ **Compliance scoring** and trend analysis  
+✅ **Audit-ready documentation** generated automatically  
+✅ **Template usage analytics** for optimization  
+✅ **CAP/CLIA compliant** validation processes  
+
+**This transforms LabGuard Pro into a true AI-powered compliance automation platform!** 🚀
