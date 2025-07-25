@@ -1,0 +1,310 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production builds
+dist/
+build/
+.next/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+apps/api/prisma/dev.db
+packages/database/dev.db
+
+# Prisma
+prisma/migrations/
+.prisma/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Package manager lock files (keep one)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Testing
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Turbo
+.turbo
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Personal files and directories
+../../../.cache/
+../../../.claude.json
+../../../.cursor/
+../../../.gitconfig
+../../../.lesshst
+../../../.wdm/
+../../../AppData/
+../../../Contacts/
+../../../Documents/
+../../../Favorites/
+../../../IntelGraphicsProfiles/
+../../../Links/
+../../../Muse Hub/
+../../../Music/
+../../../My Drive/
+../../../NTUSER.DAT*
+../../../OneDrive/
+../../../Saved Games/
+../../../Searches/
+../../../Settings/
+../../../elite-digital-product-builder/
+../../../ntuser.dat.LOG*
+../../../ntuser.ini
+
+# Screenshots and media files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+
+# Executable files
+*.exe
+*.msi
+*.dmg
+*.pkg
+*.deb
+*.rpm
+
+# Archive files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.bz2
+
+# Document files
+*.docx
+*.doc
+*.pdf
+*.rtf
+*.txt
+*.md
+
+# Configuration files
+*.json
+*.xml
+*.yml
+*.yaml
+*.ini
+*.cfg
+*.conf
+
+# Backup files
+*.bak
+*.backup
+*-backup-*
+
+# Temporary and cache files
+*.tmp
+*.temp
+*.cache
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# System files
+desktop.ini
+Thumbs.db
+ehthumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build and deployment files
+build/
+dist/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Environment and configuration
+.env*
+!.env.example
+!.env.local.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Turbo
+.turbo
+
+# TypeScript
+*.tsbuildinfo
+
+# Specific project files to exclude
+env.biomni.example
+env.example
+env.production
+fix-deployment.ps1
+nginx.conf
+labguard-structure.txt 
