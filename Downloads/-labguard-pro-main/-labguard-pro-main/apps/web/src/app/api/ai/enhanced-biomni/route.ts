@@ -1,21 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { enhancedBiomniAgent, MultiModalInput, AgenticTask } from '@/lib/ai/enhanced-biomni-agent';
-import { withRateLimit } from '@/lib/rate-limit';
+import { withRateLimit, aiRateLimiter } from '@/lib/rate-limit';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// Rate limiting for AI endpoints
-const aiRateLimiter = withRateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  maxRequests: 10, // 10 requests per minute
-  keyGenerator: (req: NextRequest) => {
-    const session = getServerSession(authOptions);
-    return session?.user?.id || req.ip || 'anonymous';
-  }
-});
-
 export async function POST(request: NextRequest) {
-  return aiRateLimiter(request, async () => {
+  return withRateLimit(request, aiRateLimiter, async () => {
     try {
       const session = await getServerSession(authOptions);
       
@@ -155,7 +145,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  return aiRateLimiter(request, async () => {
+  return withRateLimit(request, aiRateLimiter, async () => {
     try {
       const session = await getServerSession(authOptions);
       
@@ -233,7 +223,7 @@ export async function GET(request: NextRequest) {
 
 // Handle file uploads for multi-modal processing
 export async function PUT(request: NextRequest) {
-  return aiRateLimiter(request, async () => {
+  return withRateLimit(request, aiRateLimiter, async () => {
     try {
       const session = await getServerSession(authOptions);
       
