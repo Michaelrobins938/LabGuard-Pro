@@ -1,189 +1,235 @@
-# 🧪 LabGuard Pro - Laboratory Management Platform
+# LabGuard Pro - Web Application
 
-A comprehensive laboratory management system with AI-powered insights, built with modern technologies.
+A comprehensive laboratory management system with AI-powered compliance validation and equipment management.
 
-## ✨ Features
+## Features
 
-- 🔐 **Authentication System** - Secure user registration and login
-- 🏭 **Laboratory Management** - Multi-laboratory support with role-based access
-- ⚙️ **Equipment Management** - Track, calibrate, and maintain laboratory equipment
-- 📊 **Compliance Reporting** - Automated compliance tracking and reporting
-- 👥 **Team Management** - User invitations, roles, and permissions
-- 🤖 **AI Assistant** - Biomni AI integration for laboratory insights
-- 📈 **Analytics Dashboard** - Real-time metrics and insights
-- 🔔 **Notifications** - Real-time alerts and updates
+- **Complete Authentication System**
+  - User registration with email verification
+  - Secure password hashing with bcrypt
+  - Password reset functionality
+  - Role-based access control
+  - Session management with NextAuth.js
 
-## 🏗️ Tech Stack
+- **Laboratory Management**
+  - Multi-tenant laboratory support
+  - Equipment tracking and calibration
+  - Compliance validation tools
+  - Audit logging and reporting
 
-### Backend
-- **Framework**: Node.js + Express
-- **Database**: SQLite (development) / PostgreSQL (production)
-- **ORM**: Prisma
-- **Authentication**: JWT + bcryptjs
-- **Validation**: Zod
-- **Security**: Helmet, CORS, Rate Limiting
+- **AI-Powered Features**
+  - Biomni AI integration for intelligent assistance
+  - Compliance validation automation
+  - Predictive maintenance insights
+  - Natural language report generation
 
-### Frontend
-- **Framework**: Next.js 14 + React
-- **Styling**: Tailwind CSS
-- **UI Components**: Custom component library
-- **State Management**: React hooks + Context
-- **Type Safety**: TypeScript
+## Prerequisites
 
-### Infrastructure
-- **Monorepo**: npm workspaces
-- **Database**: Prisma + SQLite/PostgreSQL
-- **Development**: Hot reload, TypeScript compilation
-- **Production**: Docker-ready, scalable architecture
-
-## 🚀 Quick Start
-
-### Prerequisites
 - Node.js 18+ 
-- npm 8+
-- Git
+- PostgreSQL 12+
+- npm or yarn
 
-### Installation
+## Environment Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd labguard-pro
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   # API environment
-   cp apps/api/env.example apps/api/.env
-   
-   # Web environment
-   cp apps/web/env.local.example apps/web/.env.local
-   ```
-
-4. **Set up the database**
-   ```bash
-   cd apps/api
-   npx prisma generate
-   npx prisma db push
-   ```
-
-5. **Start development servers**
-   ```bash
-   # From project root
-   npm run dev
-   ```
-
-6. **Access the application**
-   - **Frontend**: http://localhost:3000
-   - **API**: http://localhost:3001
-   - **Health Check**: http://localhost:3001/health
-
-## 📁 Project Structure
-
-```
-labguard-pro/
-├── apps/
-│   ├── api/              # Express.js API server
-│   │   ├── src/
-│   │   │   ├── controllers/
-│   │   │   ├── routes/
-│   │   │   ├── middleware/
-│   │   │   ├── services/
-│   │   │   └── types/
-│   │   └── prisma/       # Database schema
-│   └── web/              # Next.js frontend
-│       ├── src/
-│       │   ├── app/
-│       │   ├── components/
-│       │   ├── hooks/
-│       │   └── lib/
-│       └── public/
-├── packages/             # Shared packages
-└── docs/                # Documentation
+1. Copy the environment template:
+```bash
+cp env.local.example .env.local
 ```
 
-## 🔌 API Endpoints
+2. Configure your environment variables in `.env.local`:
+
+```env
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/labguard_pro"
+
+# Authentication
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secure-secret-key-here"
+
+# Email (for production)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+SMTP_FROM="noreply@yourdomain.com"
+
+# API Configuration
+API_BASE_URL="http://localhost:3001/api"
+
+# AI Services
+OPENAI_API_KEY="your-openai-api-key"
+NEXT_PUBLIC_BIOMNI_API_KEY="your-biomni-api-key"
+
+# Payment Processing (Stripe)
+STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+```
+
+## Database Setup
+
+1. Create a PostgreSQL database:
+```sql
+CREATE DATABASE labguard_pro;
+```
+
+2. Run database migrations:
+```bash
+npm run db:push
+```
+
+3. Generate Prisma client:
+```bash
+npm run db:generate
+```
+
+4. Seed the database with initial data:
+```bash
+npm run db:seed
+```
+
+## Installation
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Set up the database (see Database Setup above)
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Production Deployment
+
+### Vercel Deployment
+
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+### Docker Deployment
+
+1. Build the Docker image:
+```bash
+docker build -t labguard-pro .
+```
+
+2. Run with environment variables:
+```bash
+docker run -p 3000:3000 --env-file .env.local labguard-pro
+```
+
+## Authentication System
+
+The application includes a complete authentication system:
+
+### User Registration
+- Email verification required
+- Password strength validation
+- Laboratory creation during registration
+- Role assignment (Lab Manager, Technician, etc.)
+
+### Login System
+- Secure password authentication
+- Account lockout protection
+- Session management
+- Remember me functionality
+
+### Password Management
+- Secure password reset via email
+- Password change tracking
+- Failed login attempt monitoring
+
+### Security Features
+- bcrypt password hashing
+- JWT token management
+- CSRF protection
+- Rate limiting on auth endpoints
+
+## API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
+- `POST /api/auth/login` - User login (handled by NextAuth)
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password with token
+- `POST /api/auth/verify-email` - Verify email address
 
-### Equipment Management
-- `GET /api/equipment` - List equipment
-- `POST /api/equipment` - Create equipment
-- `PUT /api/equipment/:id` - Update equipment
+### User Management
+- `GET /api/users/profile` - Get user profile
+- `PUT /api/users/profile` - Update user profile
+- `GET /api/users/laboratory` - Get laboratory information
 
-### Reports & Analytics
-- `GET /api/reports/compliance-summary` - Compliance overview
-- `GET /api/reports/equipment-status` - Equipment status report
-- `GET /api/reports/analytics` - Laboratory analytics
+## Database Schema
 
-### Team Management
-- `GET /api/team/members` - List team members
-- `POST /api/team/invite` - Invite team member
-- `PUT /api/team/members/:id/role` - Update member role
+The application uses Prisma with PostgreSQL and includes:
 
-### AI Assistant
-- `POST /api/biomni/query` - Execute AI query
-- `POST /api/biomni/generate-protocol` - Generate protocol
+- **Users** - User accounts with roles and permissions
+- **Laboratories** - Multi-tenant laboratory organizations
+- **Equipment** - Laboratory equipment tracking
+- **Calibrations** - Equipment calibration records
+- **Subscriptions** - Billing and subscription management
+- **Audit Logs** - Security and compliance logging
 
-## 🧪 Testing
+## Development
 
-```bash
-# Test API health
-curl http://localhost:3001/health
-
-# Test registration
-curl -X POST http://localhost:3001/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123","firstName":"Test","lastName":"User","laboratoryName":"Test Lab"}'
+### Code Structure
+```
+src/
+├── app/                 # Next.js 13+ app directory
+│   ├── api/            # API routes
+│   ├── auth/           # Authentication pages
+│   └── dashboard/      # Dashboard pages
+├── components/         # React components
+├── lib/               # Utility libraries
+└── types/             # TypeScript type definitions
 ```
 
-## 🚢 Deployment
+### Key Technologies
+- **Next.js 14** - React framework
+- **TypeScript** - Type safety
+- **Prisma** - Database ORM
+- **NextAuth.js** - Authentication
+- **Tailwind CSS** - Styling
+- **Zod** - Schema validation
 
-### Production Environment Setup
+## Testing
 
-1. **Environment Variables**
-   ```env
-   NODE_ENV=production
-   DATABASE_URL="your-production-database-url"
-   JWT_SECRET="your-production-jwt-secret"
-   ```
+Run the test suite:
+```bash
+npm test
+```
 
-2. **Database Migration**
-   ```bash
-   npx prisma migrate deploy
-   ```
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
 
-3. **Build Applications**
-   ```bash
-   npm run build
-   ```
+Generate coverage report:
+```bash
+npm run test:coverage
+```
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is proprietary software. All rights reserved.
 
-## 🙏 Acknowledgments
+## Support
 
-- Stanford Biomni AI for laboratory intelligence
-- Prisma for database management
-- Next.js team for the amazing framework
-- All contributors and supporters
-
----
-
-**Built with ❤️ for the scientific community**
+For support and questions:
+- Email: support@labguard.com
+- Documentation: [docs.labguard.com](https://docs.labguard.com)
+- Issues: GitHub Issues 
