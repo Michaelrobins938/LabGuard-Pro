@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         ...context,
         userId: session.user.id,
         userRole: session.user.role || 'researcher',
-        labId: session.user.labId || 'default-lab',
+        labId: session.user.laboratoryId || 'default-lab',
         timestamp: Date.now()
       };
 
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         session: {
           userId: session.user.id,
           userRole: session.user.role,
-          labId: session.user.labId
+          labId: session.user.laboratoryId
         }
       });
 
@@ -202,7 +202,7 @@ export async function GET(request: NextRequest) {
         session: {
           userId: session.user.id,
           userRole: session.user.role,
-          labId: session.user.labId
+          labId: session.user.laboratoryId
         }
       });
 
@@ -268,7 +268,7 @@ export async function PUT(request: NextRequest) {
         session: {
           userId: session.user.id,
           userRole: session.user.role,
-          labId: session.user.labId
+          labId: session.user.laboratoryId
         }
       });
 
