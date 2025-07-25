@@ -102,8 +102,8 @@ export const aiRateLimiter = new RateLimiter({
 export async function withRateLimit(
   req: NextRequest,
   limiter: RateLimiter,
-  handler: () => Promise<NextResponse>
-): Promise<NextResponse> {
+  handler: () => Promise<NextResponse | Response>
+): Promise<NextResponse | Response> {
   const result = await limiter.checkLimit(req)
 
   if (!result.allowed) {
@@ -128,9 +128,13 @@ export async function withRateLimit(
 
   // Add rate limit headers to response
   const response = await handler()
-  response.headers.set('X-RateLimit-Limit', limiter.config.maxRequests.toString())
-  response.headers.set('X-RateLimit-Remaining', result.remaining.toString())
-  response.headers.set('X-RateLimit-Reset', result.resetTime.toString())
+  
+  // Only add headers if it's a NextResponse
+  if (response instanceof NextResponse) {
+    response.headers.set('X-RateLimit-Limit', limiter.config.maxRequests.toString())
+    response.headers.set('X-RateLimit-Remaining', result.remaining.toString())
+    response.headers.set('X-RateLimit-Reset', result.resetTime.toString())
+  }
 
   return response
 }
