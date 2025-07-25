@@ -82,7 +82,7 @@ export function DemoWalkthrough() {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-b from-blue-900 to-slate-900 relative overflow-hidden">
+    <div className="py-20 bg-gradient-to-b from-blue-900 to-slate-900 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl"></div>
