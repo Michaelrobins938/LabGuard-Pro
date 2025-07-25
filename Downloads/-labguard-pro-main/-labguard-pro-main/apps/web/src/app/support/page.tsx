@@ -7,7 +7,7 @@ import { SupportResources } from '@/components/support/SupportResources'
 export const metadata: Metadata = {
   title: 'Support Center - LabGuard Pro Help & Documentation',
   description: 'Get help with LabGuard Pro. Find answers to common questions, contact support, and access comprehensive documentation.',
-  keywords: 'labguard pro support, help center, documentation, contact support, troubleshooting',
+  keywords: 'labguard pro support, help center, documentation, contact support, troubleshooting, deployment trigger',
 }
 
 export default function SupportPage() {
