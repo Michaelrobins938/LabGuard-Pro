@@ -78,12 +78,16 @@ export function LandingHeader() {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Button variant="ghost" className="text-gray-300 hover:text-white">
-              Sign In
-            </Button>
-            <Button className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white">
-              Start Trial
-            </Button>
+            <Link href="/auth/login">
+              <Button variant="ghost" className="text-gray-300 hover:text-white">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/auth/register">
+              <Button className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white">
+                Start Trial
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -116,12 +120,16 @@ export function LandingHeader() {
                   </Link>
                 ))}
                 <div className="pt-4 border-t border-white/10 space-y-2">
-                  <Button variant="ghost" className="w-full text-gray-300 hover:text-white">
-                    Sign In
-                  </Button>
-                  <Button className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white">
-                    Start Trial
-                  </Button>
+                  <Link href="/auth/login">
+                    <Button variant="ghost" className="w-full text-gray-300 hover:text-white">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register">
+                    <Button className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white">
+                      Start Trial
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </motion.div>

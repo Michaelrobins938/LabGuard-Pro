@@ -153,10 +153,10 @@ export function EnhancedNavbar() {
               className="mr-2"
             />
             
-            <Link href="/demo" className="text-gray-300 hover:text-white transition-colors">
+            <Link href="/auth/login" className="text-gray-300 hover:text-white transition-colors">
               Sign In
             </Link>
-            <Link href="/demo" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300">
+            <Link href="/auth/register" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300">
               Start Free Trial
             </Link>
             
@@ -223,10 +223,10 @@ export function EnhancedNavbar() {
                 ))}
                 
                 <div className="pt-4 border-t border-white/10 px-4 space-y-3">
-                  <Link href="/demo" className="w-full text-gray-300 hover:text-white transition-colors text-left py-2 block">
+                  <Link href="/auth/login" className="w-full text-gray-300 hover:text-white transition-colors text-left py-2 block">
                     Sign In
                   </Link>
-                  <Link href="/demo" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 block text-center">
+                  <Link href="/auth/register" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 block text-center">
                     Start Free Trial
                   </Link>
                 </div>
