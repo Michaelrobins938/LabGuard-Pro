@@ -1,21 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { enhancedBiomniAgent, MultiModalInput, AgenticTask, ResearchCapabilities, AgenticConfig } from '@/lib/ai/enhanced-biomni-agent';
-
-interface LabContext {
-  currentPage: string;
-  userRole: string;
-  equipmentCount: number;
-  pendingCalibrations: number;
-  complianceScore: number;
-  recentAlerts: string[];
-  activeExperiments: number;
-  dataAnalysisQueue: number;
-  qualityMetrics: {
-    accuracy: number;
-    precision: number;
-    recall: number;
-  };
-}
+import { enhancedBiomniAgent } from '@/lib/ai/enhanced-biomni-agent';
+import type { MultiModalInput, AgenticTask, ResearchCapabilities, AgenticConfig, LabContext } from '@/lib/ai/types';
 
 interface EnhancedAssistantState {
   isVisible: boolean;
@@ -107,14 +92,19 @@ export function useEnhancedBiomniAssistant(): UseEnhancedBiomniAssistantReturn {
     isProcessing: false,
     biomniAvailable: false,
     labContext: {
-      currentPage: 'dashboard',
+      userId: 'demo-user',
       userRole: 'lab_manager',
-      equipmentCount: 145,
-      pendingCalibrations: 3,
-      complianceScore: 98.5,
-      recentAlerts: [],
-      activeExperiments: 12,
-      dataAnalysisQueue: 5,
+      labId: 'demo-lab',
+      timestamp: Date.now(),
+      equipment: [],
+      protocols: [],
+      complianceStatus: {
+        status: 'compliant',
+        violations: [],
+        recommendations: [],
+        riskScore: 0,
+        nextAuditDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      },
       qualityMetrics: {
         accuracy: 0.98,
         precision: 0.97,
@@ -424,8 +414,9 @@ export function useEnhancedBiomniAssistant(): UseEnhancedBiomniAssistantReturn {
   }, []);
 
   const optimizeWorkflow = useCallback(async (workflow: any): Promise<any> => {
-    return await enhancedBiomniAgent.optimizeLabWorkflow(workflow);
-  }, []);
+    // Provide the required context parameter
+    return await enhancedBiomniAgent.optimizeLabWorkflow(workflow, state.labContext);
+  }, [state.labContext]);
 
   // Configuration Management
   const updateAgentConfig = useCallback((config: Partial<AgenticConfig>) => {

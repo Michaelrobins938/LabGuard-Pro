@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Handshake, ArrowRight, Users, Globe, TrendingUp } from 'lucide-react'
+import { ArrowRight, Users, Globe, TrendingUp } from 'lucide-react'
 
 export function PartnersHero() {
   return (

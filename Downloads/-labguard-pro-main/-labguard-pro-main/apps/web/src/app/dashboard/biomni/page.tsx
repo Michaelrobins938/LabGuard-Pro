@@ -65,7 +65,7 @@ export default function BiomniDashboardPage() {
       protocolsGenerated: prev.protocolsGenerated + 1,
       totalQueries: prev.totalQueries + 1,
       totalCost: prev.totalCost + protocol.cost,
-      modelsUsed: [...new Set([...prev.modelsUsed, protocol.model])]
+      modelsUsed: Array.from(new Set([...prev.modelsUsed, protocol.model]))
     }))
   }
 

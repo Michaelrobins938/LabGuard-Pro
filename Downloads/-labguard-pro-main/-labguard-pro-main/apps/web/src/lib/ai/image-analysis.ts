@@ -1,6 +1,8 @@
 // Enhanced Image Analysis Service for Laboratory AI Assistant
 // Supports microscopy, gel electrophoresis, equipment monitoring, and general computer vision
 
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+
 export interface ImageAnalysisConfig {
   apiKey?: string;
   baseUrl?: string;

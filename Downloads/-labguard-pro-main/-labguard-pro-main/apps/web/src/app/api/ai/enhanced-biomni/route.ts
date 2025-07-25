@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { enhancedBiomniAgent, MultiModalInput, AgenticTask } from '@/lib/ai/enhanced-biomni-agent';
+import { enhancedBiomniAgent } from '@/lib/ai/enhanced-biomni-agent';
+import type { MultiModalInput, AgenticTask } from '@/lib/ai/types';
 import { withRateLimit, aiRateLimiter } from '@/lib/rate-limit';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';

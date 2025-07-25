@@ -1,570 +1,465 @@
 // Enhanced Voice Processing Service for Laboratory AI Assistant
-// Supports speech-to-text, text-to-speech, and laboratory terminology recognition
+// Supports voice commands, dictation, and voice feedback
+
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 
 export interface VoiceProcessingConfig {
   language: string;
-  sampleRate: number;
-  enableNoiseSuppression: boolean;
-  enableEchoCancellation: boolean;
-  enableAutoGainControl: boolean;
-  laboratoryTerminologyEnabled: boolean;
-  continuousListening: boolean;
-  voiceCommands: boolean;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  confidence: number;
+  enableNoiseCancellation: boolean;
+  enableVoiceFeedback: boolean;
+  voiceType?: 'male' | 'female' | 'neutral';
+  speechRate?: number;
+  pitch?: number;
+  volume?: number;
 }
 
-export interface SpeechRecognitionResult {
+export interface VoiceProcessingResult {
   transcript: string;
   confidence: number;
   isFinal: boolean;
-  alternatives?: Array<{
-    transcript: string;
-    confidence: number;
-  }>;
-  laboratoryTerms?: Array<{
-    term: string;
-    definition: string;
-    category: string;
-  }>;
-  suggestedActions?: string[];
+  alternatives: TranscriptAlternative[];
+  timestamp: number;
+  duration?: number;
 }
 
-export interface VoiceSynthesisOptions {
-  voice?: string;
-  rate?: number;
-  pitch?: number;
-  volume?: number;
-  language?: string;
-  laboratoryMode?: boolean;
+export interface TranscriptAlternative {
+  transcript: string;
+  confidence: number;
 }
 
 export interface VoiceCommand {
   command: string;
-  aliases: string[];
-  action: string;
-  description: string;
-  category: 'analysis' | 'protocol' | 'equipment' | 'navigation' | 'general';
-  parameters?: string[];
+  parameters?: Record<string, any>;
+  confidence: number;
+  executed?: boolean;
 }
 
-class VoiceProcessingService {
-  private config: VoiceProcessingConfig;
+// Add proper type checking for browser APIs
+export class VoiceProcessingService {
   private recognition: SpeechRecognition | null = null;
   private synthesis: SpeechSynthesis | null = null;
-  private mediaStream: MediaStream | null = null;
+  private config: VoiceProcessingConfig;
+  private isListening: boolean = false;
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
-  private isListening: boolean = false;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
-  private eventListeners: Map<string, Set<Function>> = new Map();
+  private stream: MediaStream | null = null;
+  private commandHandlers: Map<string, (params?: any) => Promise<any>>;
   
-  // Laboratory terminology dictionary
-  private laboratoryTerms: Map<string, { definition: string; category: string; pronunciation?: string }> = new Map();
-  
-  // Voice commands for laboratory operations
-  private voiceCommands: VoiceCommand[] = [];
-
   constructor(config: Partial<VoiceProcessingConfig> = {}) {
     this.config = {
       language: 'en-US',
-      sampleRate: 16000,
-      enableNoiseSuppression: true,
-      enableEchoCancellation: true,
-      enableAutoGainControl: true,
-      laboratoryTerminologyEnabled: true,
-      continuousListening: false,
-      voiceCommands: true,
+      continuous: false,
+      interimResults: true,
+      maxAlternatives: 3,
+      confidence: 0.7,
+      enableNoiseCancellation: true,
+      enableVoiceFeedback: true,
+      voiceType: 'neutral',
+      speechRate: 1.0,
+      pitch: 1.0,
+      volume: 1.0,
       ...config
     };
-
-    this.initializeServices();
-    this.loadLaboratoryTerminology();
-    this.setupVoiceCommands();
+    
+    this.commandHandlers = new Map();
+    this.initializeRecognition();
+    this.initializeSynthesis();
+    this.registerDefaultCommands();
   }
 
-  // Initialize speech recognition and synthesis
-  private initializeServices() {
-    // Initialize Speech Recognition
-    if ('webkitSpeechRecognition' in window) {
-      this.recognition = new (window as any).webkitSpeechRecognition();
-    } else if ('SpeechRecognition' in window) {
-      this.recognition = new (window as any).SpeechRecognition();
-    }
-
-    if (this.recognition) {
-      this.recognition.continuous = this.config.continuousListening;
-      this.recognition.interimResults = true;
-      this.recognition.lang = this.config.language;
-      this.recognition.maxAlternatives = 3;
-
-      this.setupRecognitionHandlers();
-    }
-
-    // Initialize Speech Synthesis
-    if ('speechSynthesis' in window) {
-      this.synthesis = window.speechSynthesis;
+  private initializeRecognition() {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        this.recognition = new SpeechRecognition();
+        this.setupRecognition();
+      }
     }
   }
 
-  // Setup speech recognition event handlers
-  private setupRecognitionHandlers() {
+  private setupRecognition() {
     if (!this.recognition) return;
 
-    this.recognition.onstart = () => {
-      this.isListening = true;
-      this.emit('listening-start');
-    };
-
-    this.recognition.onend = () => {
-      this.isListening = false;
-      this.emit('listening-end');
-    };
+    this.recognition.continuous = this.config.continuous;
+    this.recognition.interimResults = this.config.interimResults;
+    this.recognition.lang = this.config.language;
+    this.recognition.maxAlternatives = this.config.maxAlternatives;
 
     this.recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const results = Array.from(event.results);
-      const latest = results[results.length - 1];
-      
-      if (latest) {
+      const latest = event.results[event.resultIndex];
+      if (latest && latest.length > 0) {
         const transcript = latest[0].transcript;
         const confidence = latest[0].confidence;
         const isFinal = latest.isFinal;
 
-        const result: SpeechRecognitionResult = {
+        const alternatives = Array.from(latest).slice(1).map((alt: any) => ({
+          transcript: alt.transcript,
+          confidence: alt.confidence
+        }));
+
+        const result: VoiceProcessingResult = {
           transcript,
           confidence,
           isFinal,
-          alternatives: Array.from(latest).slice(1).map(alt => ({
-            transcript: alt.transcript,
-            confidence: alt.confidence
-          }))
+          alternatives,
+          timestamp: Date.now()
         };
 
-        // Process laboratory terminology
-        if (this.config.laboratoryTerminologyEnabled) {
-          result.laboratoryTerms = this.identifyLaboratoryTerms(transcript);
-        }
-
-        // Process voice commands
-        if (this.config.voiceCommands) {
-          const command = this.recognizeVoiceCommand(transcript);
-          if (command) {
-            this.emit('voice-command', { command, transcript });
-            return;
-          }
-        }
-
-        this.emit('speech-result', result);
-        
-        if (isFinal) {
-          this.emit('speech-final', result);
-        }
+        this.handleRecognitionResult(result);
       }
     };
 
     this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      this.emit('speech-error', { 
-        error: event.error, 
-        message: event.message 
-      });
+      console.error('Speech recognition error:', event.error);
+      this.handleRecognitionError(event);
+    };
+
+    this.recognition.onstart = () => {
+      console.log('🎤 Voice recognition started');
+      this.isListening = true;
+    };
+
+    this.recognition.onend = () => {
+      console.log('🎤 Voice recognition ended');
+      this.isListening = false;
     };
   }
 
-  // Start speech recognition
-  async startListening(): Promise<void> {
-    if (!this.recognition) {
-      throw new Error('Speech recognition not supported');
+  private initializeSynthesis() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      this.synthesis = window.speechSynthesis;
     }
+  }
 
-    if (this.isListening) {
+  private registerDefaultCommands() {
+    // Equipment commands
+    this.registerCommand('start equipment', async (params) => {
+      return { action: 'start_equipment', params };
+    });
+    
+    this.registerCommand('stop equipment', async (params) => {
+      return { action: 'stop_equipment', params };
+    });
+    
+    this.registerCommand('check status', async (params) => {
+      return { action: 'check_status', params };
+    });
+    
+    // Protocol commands
+    this.registerCommand('start protocol', async (params) => {
+      return { action: 'start_protocol', params };
+    });
+    
+    this.registerCommand('next step', async () => {
+      return { action: 'next_step' };
+    });
+    
+    this.registerCommand('previous step', async () => {
+      return { action: 'previous_step' };
+    });
+    
+    // Data commands
+    this.registerCommand('record data', async (params) => {
+      return { action: 'record_data', params };
+    });
+    
+    this.registerCommand('analyze results', async () => {
+      return { action: 'analyze_results' };
+    });
+    
+    // Navigation commands
+    this.registerCommand('go to dashboard', async () => {
+      return { action: 'navigate', target: 'dashboard' };
+    });
+    
+    this.registerCommand('open settings', async () => {
+      return { action: 'navigate', target: 'settings' };
+    });
+  }
+
+  // Start voice recognition
+  async startListening(): Promise<void> {
+    if (this.isListening || !this.recognition) {
+      console.warn('Voice recognition is already active or not available');
       return;
     }
 
     try {
       // Request microphone permission
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          sampleRate: this.config.sampleRate,
-          noiseSuppression: this.config.enableNoiseSuppression,
-          echoCancellation: this.config.enableEchoCancellation,
-          autoGainControl: this.config.enableAutoGainControl
-        }
-      });
-
-      // Setup audio analysis for visual feedback
-      this.setupAudioAnalysis();
-
+      await this.requestMicrophoneAccess();
+      
+      // Start recognition
       this.recognition.start();
+      
+      // Start audio level monitoring
+      await this.startAudioLevelMonitoring();
     } catch (error) {
-      throw new Error(`Failed to start listening: ${error}`);
+      console.error('Failed to start voice recognition:', error);
+      throw error;
     }
   }
 
-  // Stop speech recognition
+  // Stop voice recognition
   stopListening(): void {
-    if (this.recognition && this.isListening) {
-      this.recognition.stop();
-    }
+    if (!this.isListening || !this.recognition) return;
     
-    if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(track => track.stop());
-      this.mediaStream = null;
-    }
-    
-    if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = null;
-    }
+    this.recognition.stop();
+    this.stopAudioLevelMonitoring();
   }
 
-  // Speak text using text-to-speech
-  async speak(text: string, options: VoiceSynthesisOptions = {}): Promise<void> {
-    if (!this.synthesis) {
-      throw new Error('Speech synthesis not supported');
-    }
+  // Text-to-speech
+  async speak(text: string, options?: Partial<SpeechSynthesisUtterance>): Promise<void> {
+    if (!this.synthesis || !this.config.enableVoiceFeedback) return;
 
     return new Promise((resolve, reject) => {
-      // Cancel any current speech
-      this.synthesis!.cancel();
-
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Configure voice options
-      const voices = this.synthesis!.getVoices();
-      const selectedVoice = voices.find(voice => 
-        voice.name === options.voice || 
-        voice.lang === (options.language || this.config.language)
-      ) || voices[0];
-
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
+      // Configure voice
+      utterance.lang = this.config.language;
+      utterance.rate = options?.rate || this.config.speechRate || 1.0;
+      utterance.pitch = options?.pitch || this.config.pitch || 1.0;
+      utterance.volume = options?.volume || this.config.volume || 1.0;
+      
+      // Select voice
+      const voices = this.synthesis.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.lang.includes(this.config.language.split('-')[0])
+      );
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
       }
-
-      utterance.rate = options.rate || 1.0;
-      utterance.pitch = options.pitch || 1.0;
-      utterance.volume = options.volume || 1.0;
-      utterance.lang = options.language || this.config.language;
-
-      // Process laboratory terminology for better pronunciation
-      if (options.laboratoryMode && this.config.laboratoryTerminologyEnabled) {
-        utterance.text = this.enhanceTextForLaboratory(text);
-      }
-
-      utterance.onstart = () => {
-        this.currentUtterance = utterance;
-        this.emit('speech-start', { text });
-      };
-
-      utterance.onend = () => {
-        this.currentUtterance = null;
-        this.emit('speech-end', { text });
-        resolve();
-      };
-
-      utterance.onerror = (event) => {
-        this.currentUtterance = null;
-        this.emit('speech-error', { error: event.error, text });
-        reject(new Error(`Speech synthesis error: ${event.error}`));
-      };
-
-      this.synthesis!.speak(utterance);
+      
+      utterance.onend = () => resolve();
+      utterance.onerror = (event) => reject(event);
+      
+      this.synthesis.speak(utterance);
     });
   }
 
-  // Stop current speech synthesis
+  // Stop speech
   stopSpeaking(): void {
     if (this.synthesis) {
       this.synthesis.cancel();
     }
-    this.currentUtterance = null;
   }
 
-  // Setup audio analysis for visual feedback
-  private setupAudioAnalysis(): void {
-    if (!this.mediaStream) return;
+  // Register voice command
+  registerCommand(trigger: string, handler: (params?: any) => Promise<any>): void {
+    this.commandHandlers.set(trigger.toLowerCase(), handler);
+  }
 
-    this.audioContext = new AudioContext();
-    const source = this.audioContext.createMediaStreamSource(this.mediaStream);
-    this.analyser = this.audioContext.createAnalyser();
+  // Process voice input
+  private async handleRecognitionResult(result: VoiceProcessingResult): Promise<void> {
+    console.log('🎤 Recognition result:', result);
     
-    this.analyser.fftSize = 256;
-    source.connect(this.analyser);
-
-    // Start audio level monitoring
-    this.monitorAudioLevel();
-  }
-
-  // Monitor audio input level for visual feedback
-  private monitorAudioLevel(): void {
-    if (!this.analyser) return;
-
-    const bufferLength = this.analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const updateLevel = () => {
-      if (!this.analyser || !this.isListening) return;
-
-      this.analyser.getByteFrequencyData(dataArray);
-      
-      // Calculate average audio level
-      const average = dataArray.reduce((a, b) => a + b) / bufferLength;
-      const normalizedLevel = average / 255;
-
-      this.emit('audio-level', { level: normalizedLevel });
-
-      requestAnimationFrame(updateLevel);
-    };
-
-    updateLevel();
-  }
-
-  // Load laboratory terminology dictionary
-  private loadLaboratoryTerminology(): void {
-    const terms = [
-      // Molecular Biology
-      { term: 'PCR', definition: 'Polymerase Chain Reaction', category: 'molecular_biology', pronunciation: 'P-C-R' },
-      { term: 'DNA', definition: 'Deoxyribonucleic Acid', category: 'molecular_biology' },
-      { term: 'RNA', definition: 'Ribonucleic Acid', category: 'molecular_biology' },
-      { term: 'CRISPR', definition: 'Clustered Regularly Interspaced Short Palindromic Repeats', category: 'molecular_biology' },
-      { term: 'FASTA', definition: 'Fast Adaptive Shrinkage/Thresholding Algorithm', category: 'bioinformatics' },
-      { term: 'FASTQ', definition: 'FASTA with Quality scores', category: 'bioinformatics' },
-      
-      // Equipment
-      { term: 'centrifuge', definition: 'Device for separating components by spinning', category: 'equipment' },
-      { term: 'spectrophotometer', definition: 'Instrument for measuring light absorption', category: 'equipment' },
-      { term: 'microscope', definition: 'Instrument for magnifying small objects', category: 'equipment' },
-      { term: 'incubator', definition: 'Temperature-controlled chamber for cell culture', category: 'equipment' },
-      
-      // Techniques
-      { term: 'electrophoresis', definition: 'Separation technique using electric field', category: 'technique' },
-      { term: 'chromatography', definition: 'Separation technique using differential migration', category: 'technique' },
-      { term: 'cell culture', definition: 'Growing cells outside their natural environment', category: 'technique' },
-      { term: 'protein purification', definition: 'Isolation of specific proteins', category: 'technique' },
-      
-      // Units and Measurements
-      { term: 'microliter', definition: 'One millionth of a liter', category: 'measurement', pronunciation: 'micro-liter' },
-      { term: 'nanometer', definition: 'One billionth of a meter', category: 'measurement', pronunciation: 'nano-meter' },
-      { term: 'molarity', definition: 'Concentration measure in moles per liter', category: 'measurement' },
-      { term: 'pH', definition: 'Measure of acidity or alkalinity', category: 'measurement', pronunciation: 'P-H' }
-    ];
-
-    terms.forEach(term => {
-      this.laboratoryTerms.set(term.term.toLowerCase(), {
-        definition: term.definition,
-        category: term.category,
-        pronunciation: term.pronunciation
-      });
-    });
-  }
-
-  // Setup voice commands for laboratory operations
-  private setupVoiceCommands(): void {
-    this.voiceCommands = [
-      // Analysis Commands
-      {
-        command: 'analyze sample',
-        aliases: ['analyze this sample', 'run analysis', 'start analysis'],
-        action: 'start_analysis',
-        description: 'Start sample analysis',
-        category: 'analysis'
-      },
-      {
-        command: 'show results',
-        aliases: ['display results', 'view results', 'get results'],
-        action: 'show_results',
-        description: 'Display analysis results',
-        category: 'analysis'
-      },
-      
-      // Protocol Commands
-      {
-        command: 'create protocol',
-        aliases: ['new protocol', 'generate protocol', 'design protocol'],
-        action: 'create_protocol',
-        description: 'Create new experimental protocol',
-        category: 'protocol'
-      },
-      {
-        command: 'load protocol',
-        aliases: ['open protocol', 'get protocol'],
-        action: 'load_protocol',
-        description: 'Load existing protocol',
-        category: 'protocol',
-        parameters: ['protocol_name']
-      },
-      
-      // Equipment Commands
-      {
-        command: 'check equipment',
-        aliases: ['equipment status', 'machine status'],
-        action: 'check_equipment',
-        description: 'Check equipment status',
-        category: 'equipment'
-      },
-      {
-        command: 'calibrate equipment',
-        aliases: ['start calibration', 'calibrate machine'],
-        action: 'calibrate_equipment',
-        description: 'Start equipment calibration',
-        category: 'equipment',
-        parameters: ['equipment_name']
-      },
-      
-      // Navigation Commands
-      {
-        command: 'go to dashboard',
-        aliases: ['open dashboard', 'show dashboard'],
-        action: 'navigate_dashboard',
-        description: 'Navigate to dashboard',
-        category: 'navigation'
-      },
-      {
-        command: 'open settings',
-        aliases: ['go to settings', 'show settings'],
-        action: 'navigate_settings',
-        description: 'Navigate to settings',
-        category: 'navigation'
-      },
-      
-      // General Commands
-      {
-        command: 'help',
-        aliases: ['show help', 'what can you do', 'commands'],
-        action: 'show_help',
-        description: 'Show available voice commands',
-        category: 'general'
-      },
-      {
-        command: 'stop listening',
-        aliases: ['stop', 'cancel', 'nevermind'],
-        action: 'stop_listening',
-        description: 'Stop voice recognition',
-        category: 'general'
-      }
-    ];
-  }
-
-  // Identify laboratory terms in speech
-  private identifyLaboratoryTerms(transcript: string): Array<{ term: string; definition: string; category: string }> {
-    const words = transcript.toLowerCase().split(/\s+/);
-    const foundTerms: Array<{ term: string; definition: string; category: string }> = [];
-
-    for (const word of words) {
-      const termInfo = this.laboratoryTerms.get(word);
-      if (termInfo) {
-        foundTerms.push({
-          term: word,
-          definition: termInfo.definition,
-          category: termInfo.category
-        });
-      }
+    if (result.confidence < this.config.confidence) {
+      console.log('Low confidence, ignoring result');
+      return;
     }
-
-    return foundTerms;
+    
+    // Check for commands
+    const command = await this.parseCommand(result.transcript);
+    if (command) {
+      await this.executeCommand(command);
+    }
+    
+    // Emit result event
+    this.emitEvent('voiceResult', result);
   }
 
-  // Recognize voice commands
-  private recognizeVoiceCommand(transcript: string): VoiceCommand | null {
+  // Parse command from transcript
+  private async parseCommand(transcript: string): Promise<VoiceCommand | null> {
     const lowerTranscript = transcript.toLowerCase().trim();
-
-    for (const command of this.voiceCommands) {
-      // Check exact command match
-      if (lowerTranscript === command.command) {
-        return command;
-      }
-
-      // Check aliases
-      for (const alias of command.aliases) {
-        if (lowerTranscript === alias || lowerTranscript.includes(alias)) {
-          return command;
-        }
+    
+    // Check for exact matches
+    for (const [trigger, handler] of this.commandHandlers) {
+      if (lowerTranscript.includes(trigger)) {
+        // Extract parameters
+        const params = this.extractCommandParameters(lowerTranscript, trigger);
+        
+        return {
+          command: trigger,
+          parameters: params,
+          confidence: 1.0
+        };
       }
     }
-
+    
+    // Use NLP for fuzzy matching (mock implementation)
+    const nlpResult = await this.analyzeWithNLP(transcript);
+    if (nlpResult && nlpResult.intent && this.commandHandlers.has(nlpResult.intent)) {
+      return {
+        command: nlpResult.intent,
+        parameters: nlpResult.entities,
+        confidence: nlpResult.confidence
+      };
+    }
+    
     return null;
   }
 
-  // Enhance text for better laboratory pronunciation
-  private enhanceTextForLaboratory(text: string): string {
-    let enhancedText = text;
-
-    this.laboratoryTerms.forEach((termInfo, term) => {
-      if (termInfo.pronunciation) {
-        const regex = new RegExp(`\\b${term}\\b`, 'gi');
-        enhancedText = enhancedText.replace(regex, termInfo.pronunciation);
+  // Execute command
+  private async executeCommand(command: VoiceCommand): Promise<void> {
+    const handler = this.commandHandlers.get(command.command);
+    if (!handler) return;
+    
+    try {
+      const result = await handler(command.parameters);
+      command.executed = true;
+      
+      // Provide voice feedback
+      if (this.config.enableVoiceFeedback) {
+        await this.speak(`Command ${command.command} executed successfully`);
       }
-    });
-
-    return enhancedText;
-  }
-
-  // Event system
-  on(event: string, callback: Function): void {
-    if (!this.eventListeners.has(event)) {
-      this.eventListeners.set(event, new Set());
-    }
-    this.eventListeners.get(event)!.add(callback);
-  }
-
-  off(event: string, callback: Function): void {
-    const listeners = this.eventListeners.get(event);
-    if (listeners) {
-      listeners.delete(callback);
+      
+      this.emitEvent('commandExecuted', { command, result });
+    } catch (error) {
+      console.error('Failed to execute command:', error);
+      
+      if (this.config.enableVoiceFeedback) {
+        await this.speak(`Failed to execute command ${command.command}`);
+      }
     }
   }
 
-  private emit(event: string, data?: any): void {
-    const listeners = this.eventListeners.get(event);
-    if (listeners) {
-      listeners.forEach(callback => callback(data));
+  // Extract command parameters
+  private extractCommandParameters(transcript: string, trigger: string): Record<string, any> {
+    const afterTrigger = transcript.split(trigger)[1]?.trim();
+    if (!afterTrigger) return {};
+    
+    // Simple parameter extraction (can be enhanced with NLP)
+    const params: Record<string, any> = {};
+    
+    // Extract numbers
+    const numbers = afterTrigger.match(/\d+/g);
+    if (numbers) {
+      params.values = numbers.map(n => parseInt(n));
+    }
+    
+    // Extract quoted strings
+    const quoted = afterTrigger.match(/"([^"]+)"/g);
+    if (quoted) {
+      params.strings = quoted.map(q => q.replace(/"/g, ''));
+    }
+    
+    // Extract remaining text
+    params.text = afterTrigger;
+    
+    return params;
+  }
+
+  // NLP analysis (mock implementation)
+  private async analyzeWithNLP(transcript: string): Promise<any> {
+    // In a real implementation, this would use a proper NLP service
+    return null;
+  }
+
+  // Handle recognition errors
+  private handleRecognitionError(event: SpeechRecognitionErrorEvent): void {
+    const errorMessages: Record<string, string> = {
+      'no-speech': 'No speech detected',
+      'audio-capture': 'Audio capture failed',
+      'not-allowed': 'Microphone access denied',
+      'network': 'Network error occurred'
+    };
+    
+    const message = errorMessages[event.error] || 'Unknown error occurred';
+    this.emitEvent('error', { message, error: event.error });
+  }
+
+  // Request microphone access
+  private async requestMicrophoneAccess(): Promise<MediaStream> {
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      return this.stream;
+    } catch (error) {
+      throw new Error('Microphone access denied');
     }
   }
 
-  // Utility methods
-  isSupported(): boolean {
-    return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+  // Audio level monitoring
+  private async startAudioLevelMonitoring(): Promise<void> {
+    if (!this.stream) return;
+    
+    this.audioContext = new AudioContext();
+    this.analyser = this.audioContext.createAnalyser();
+    
+    const source = this.audioContext.createMediaStreamSource(this.stream);
+    source.connect(this.analyser);
+    
+    this.analyser.fftSize = 256;
+    const bufferLength = this.analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    const checkLevel = () => {
+      if (!this.isListening) return;
+      
+      this.analyser!.getByteFrequencyData(dataArray);
+      const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+      const normalizedLevel = average / 255;
+      
+      this.emitEvent('audioLevel', { level: normalizedLevel });
+      
+      requestAnimationFrame(checkLevel);
+    };
+    
+    checkLevel();
   }
 
-  isSpeechSynthesisSupported(): boolean {
-    return 'speechSynthesis' in window;
+  // Stop audio level monitoring
+  private stopAudioLevelMonitoring(): void {
+    if (this.audioContext) {
+      this.audioContext.close();
+      this.audioContext = null;
+    }
+    
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
   }
 
-  getAvailableVoices(): SpeechSynthesisVoice[] {
-    return this.synthesis ? this.synthesis.getVoices() : [];
+  // Event emitter
+  private emitEvent(eventName: string, data: any): void {
+    // In a real implementation, this would use a proper event emitter
+    console.log(`Event: ${eventName}`, data);
   }
 
-  getCurrentConfig(): VoiceProcessingConfig {
-    return { ...this.config };
-  }
-
+  // Configuration
   updateConfig(newConfig: Partial<VoiceProcessingConfig>): void {
     this.config = { ...this.config, ...newConfig };
     
     if (this.recognition) {
-      this.recognition.continuous = this.config.continuousListening;
+      this.recognition.continuous = this.config.continuous;
+      this.recognition.interimResults = this.config.interimResults;
       this.recognition.lang = this.config.language;
+      this.recognition.maxAlternatives = this.config.maxAlternatives;
     }
   }
 
-  getVoiceCommands(): VoiceCommand[] {
-    return [...this.voiceCommands];
+  getConfig(): VoiceProcessingConfig {
+    return { ...this.config };
   }
 
-  getLaboratoryTerms(): Array<{ term: string; definition: string; category: string }> {
-    return Array.from(this.laboratoryTerms.entries()).map(([term, info]) => ({
-      term,
-      definition: info.definition,
-      category: info.category
-    }));
+  isRecognitionSupported(): boolean {
+    return typeof window !== 'undefined' && 
+           !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   }
 
-  // Cleanup
-  destroy(): void {
-    this.stopListening();
-    this.stopSpeaking();
-    this.eventListeners.clear();
+  isSynthesisSupported(): boolean {
+    return typeof window !== 'undefined' && !!window.speechSynthesis;
+  }
+
+  getIsListening(): boolean {
+    return this.isListening;
   }
 }
 
-// React hook for voice processing
+// Fix the hook with proper React imports
 export function useVoiceProcessing(config?: Partial<VoiceProcessingConfig>) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -576,56 +471,42 @@ export function useVoiceProcessing(config?: Partial<VoiceProcessingConfig>) {
   const voiceService = useMemo(() => new VoiceProcessingService(config), []);
 
   useEffect(() => {
-    setIsSupported(voiceService.isSupported() && voiceService.isSpeechSynthesisSupported());
-
-    const handleListeningStart = () => setIsListening(true);
-    const handleListeningEnd = () => setIsListening(false);
-    const handleSpeechStart = () => setIsSpeaking(true);
-    const handleSpeechEnd = () => setIsSpeaking(false);
-    const handleAudioLevel = (data: { level: number }) => setAudioLevel(data.level);
-    const handleSpeechResult = (result: SpeechRecognitionResult) => {
-      setLastTranscript(result.transcript);
-      setError(null);
-    };
-    const handleError = (error: any) => setError(error.message || 'Voice processing error');
-
-    voiceService.on('listening-start', handleListeningStart);
-    voiceService.on('listening-end', handleListeningEnd);
-    voiceService.on('speech-start', handleSpeechStart);
-    voiceService.on('speech-end', handleSpeechEnd);
-    voiceService.on('audio-level', handleAudioLevel);
-    voiceService.on('speech-result', handleSpeechResult);
-    voiceService.on('speech-error', handleError);
-
-    return () => {
-      voiceService.destroy();
-    };
-  }, [voiceService]);
+    // Check for speech recognition support
+    if (typeof window !== 'undefined') {
+      const hasSupport = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+      setIsSupported(hasSupport);
+    }
+  }, []);
 
   const startListening = useCallback(async () => {
     try {
+      setIsListening(true);
       await voiceService.startListening();
-      setError(null);
     } catch (err: any) {
       setError(err.message);
+      setIsListening(false);
     }
   }, [voiceService]);
 
   const stopListening = useCallback(() => {
     voiceService.stopListening();
+    setIsListening(false);
   }, [voiceService]);
 
-  const speak = useCallback(async (text: string, options?: VoiceSynthesisOptions) => {
+  const speak = useCallback(async (text: string, options?: any) => {
     try {
+      setIsSpeaking(true);
       await voiceService.speak(text, options);
-      setError(null);
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setIsSpeaking(false);
     }
   }, [voiceService]);
 
   const stopSpeaking = useCallback(() => {
     voiceService.stopSpeaking();
+    setIsSpeaking(false);
   }, [voiceService]);
 
   return {

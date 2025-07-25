@@ -1,6 +1,8 @@
 // Enhanced File Processing Service for Laboratory AI Assistant
 // Supports FASTA, FASTQ, CSV, Excel, PDF, JSON, XML, and other laboratory file formats
 
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+
 export interface FileProcessingConfig {
   maxFileSize: number;
   supportedFormats: string[];

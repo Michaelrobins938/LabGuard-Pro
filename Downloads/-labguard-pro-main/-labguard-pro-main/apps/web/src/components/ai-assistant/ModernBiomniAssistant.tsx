@@ -2,12 +2,79 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  useChat, 
-  useCompletion, 
-  Message, 
-  useAssistant 
-} from '@assistant-ui/react'
+// Custom chat implementation since @assistant-ui/react doesn't export these
+interface Message {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp?: Date
+}
+
+interface UseChatReturn {
+  messages: Message[]
+  input: string
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleSubmit: (e: React.FormEvent) => void
+  isLoading: boolean
+  error: string | null
+}
+
+const useChat = (config: { api: string; initialMessages: Message[] }): UseChatReturn => {
+  const [messages, setMessages] = useState<Message[]>(config.initialMessages)
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim()) return
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+      timestamp: new Date()
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setInput('')
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch(config.api, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input })
+      })
+
+      if (!response.ok) throw new Error('Failed to send message')
+
+      const data = await response.json()
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.response || 'I apologize, but I encountered an error processing your request.',
+        timestamp: new Date()
+      }
+
+      setMessages(prev => [...prev, assistantMessage])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return { messages, input, handleInputChange, handleSubmit, isLoading, error }
+}
+
+const useCompletion = () => ({ complete: async () => ({ completion: '' }) })
+const useAssistant = () => ({ messages: [], input: '', handleInputChange: () => {}, handleSubmit: () => {}, isLoading: false })
 import { 
   X, 
   Send, 

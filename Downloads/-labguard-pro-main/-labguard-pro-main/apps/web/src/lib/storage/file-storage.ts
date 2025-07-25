@@ -239,12 +239,22 @@ class FileStorageManager {
       processingStatus?: string;
     }
   ): Promise<UploadedFile[]> {
-    const params = new URLSearchParams({
-      q: query,
-      ...filters
-    });
+    // Fix the URLSearchParams type issue
+    const searchParams = new URLSearchParams();
+    searchParams.append('q', query);
+    
+    // Handle filters properly
+    if (filters?.fileType) searchParams.append('fileType', filters.fileType);
+    if (filters?.uploadedBy) searchParams.append('uploadedBy', filters.uploadedBy);
+    if (filters?.processingStatus) searchParams.append('processingStatus', filters.processingStatus);
+    
+    // Handle date range separately
+    if (filters?.dateRange) {
+      searchParams.append('startDate', filters.dateRange.start.toISOString());
+      searchParams.append('endDate', filters.dateRange.end.toISOString());
+    }
 
-    const response = await fetch(`${this.baseUrl}/files/search?${params}`, {
+    const response = await fetch(`${this.baseUrl}/files/search?${searchParams}`, {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`
       }
@@ -380,4 +390,24 @@ export function useFileStorage() {
     getFileTypeCategory,
     isAnalyzable
   };
+}
+
+// Export the searchFiles function for the user's prompt
+export function searchFiles(query: string, filters: any) {
+  // Fix the URLSearchParams type issue
+  const searchParams = new URLSearchParams();
+  searchParams.append('q', query);
+  
+  // Handle filters properly
+  if (filters.fileType) searchParams.append('fileType', filters.fileType);
+  if (filters.uploadedBy) searchParams.append('uploadedBy', filters.uploadedBy);
+  if (filters.processingStatus) searchParams.append('processingStatus', filters.processingStatus);
+  
+  // Handle date range separately
+  if (filters.dateRange) {
+    searchParams.append('startDate', filters.dateRange.start.toISOString());
+    searchParams.append('endDate', filters.dateRange.end.toISOString());
+  }
+  
+  return searchParams;
 } 

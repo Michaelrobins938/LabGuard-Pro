@@ -1,4 +1,11 @@
-import { LabContext, UserAction } from './biomni-client';
+import type { LabContext } from './types';
+
+interface UserAction {
+  type: string;
+  timestamp: number;
+  target: string;
+  metadata?: any;
+}
 
 class ContextAnalyzer {
   private actions: UserAction[] = [];
@@ -52,13 +59,24 @@ class ContextAnalyzer {
 
   async getCurrentContext(): Promise<LabContext> {
     return {
-      currentPage: this.currentPage,
-      timeOnPage: Date.now() - this.pageStartTime,
-      recentActions: this.actions.slice(-10), // Last 10 actions
-      equipmentData: await this.getEquipmentData(),
-      complianceMetrics: await this.getComplianceMetrics(),
+      userId: 'current-user',
       userRole: this.getUserRole(),
-      labType: this.getLabType()
+      labId: 'current-lab',
+      timestamp: Date.now(),
+      equipment: await this.getEquipmentData(),
+      protocols: [],
+      complianceStatus: {
+        status: 'compliant',
+        violations: [],
+        recommendations: [],
+        riskScore: 0,
+        nextAuditDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      qualityMetrics: {
+        accuracy: 0.98,
+        precision: 0.97,
+        recall: 0.96
+      }
     };
   }
 
@@ -66,16 +84,18 @@ class ContextAnalyzer {
     // In real implementation, fetch from your API
     return [
       {
-        id: 'spec-001',
         name: 'Spectrophotometer UV-2600',
-        status: 'operational',
-        lastCalibration: '2024-01-15',
-        nextCalibration: '2024-02-15'
+        status: 'operational' as const,
+        calibrationDue: false,
+        performanceIssues: false,
+        lastMaintenance: '2024-01-15',
+        nextMaintenance: '2024-02-15'
       },
       {
-        id: 'cent-002',
         name: 'Centrifuge Model X',
-        status: 'operational',
+        status: 'operational' as const,
+        calibrationDue: false,
+        performanceIssues: false,
         lastMaintenance: '2024-01-10',
         nextMaintenance: '2024-02-10'
       }

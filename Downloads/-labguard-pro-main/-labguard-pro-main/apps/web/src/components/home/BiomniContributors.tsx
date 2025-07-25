@@ -247,28 +247,37 @@ export function BiomniContributors() {
                     </p>
                     <div className="flex justify-center space-x-3">
                       {contributor.links.website && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={contributor.links.website} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            Website
-                          </a>
-                        </Button>
+                        <a 
+                          href={contributor.links.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Website
+                        </a>
                       )}
                       {contributor.links.scholar && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={contributor.links.scholar} target="_blank" rel="noopener noreferrer">
-                            <BookOpen className="w-3 h-3 mr-1" />
-                            Scholar
-                          </a>
-                        </Button>
+                        <a 
+                          href={contributor.links.scholar} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors"
+                        >
+                          <BookOpen className="w-3 h-3 mr-1" />
+                          Scholar
+                        </a>
                       )}
                       {contributor.links.github && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={contributor.links.github} target="_blank" rel="noopener noreferrer">
-                            <Github className="w-3 h-3 mr-1" />
-                            GitHub
-                          </a>
-                        </Button>
+                        <a 
+                          href={contributor.links.github} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors"
+                        >
+                          <Github className="w-3 h-3 mr-1" />
+                          GitHub
+                        </a>
                       )}
                     </div>
                   </CardContent>
@@ -303,12 +312,15 @@ export function BiomniContributors() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-700 mb-4">{institution.contribution}</p>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={institution.website} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="w-3 h-3 mr-1" />
-                        Visit Institution
-                      </a>
-                    </Button>
+                    <a 
+                      href={institution.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors"
+                    >
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      Visit Institution
+                    </a>
                   </CardContent>
                 </Card>
               ))}
@@ -333,12 +345,15 @@ export function BiomniContributors() {
                         <p className="text-gray-700 text-sm mb-3">{paper.impact}</p>
                       </div>
                       <div className="ml-4">
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={paper.link} target="_blank" rel="noopener noreferrer">
-                            <BookOpen className="w-3 h-3 mr-1" />
-                            Read Paper
-                          </a>
-                        </Button>
+                        <a 
+                          href={paper.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors"
+                        >
+                          <BookOpen className="w-3 h-3 mr-1" />
+                          Read Paper
+                        </a>
                       </div>
                     </div>
                   </CardContent>
@@ -377,12 +392,15 @@ export function BiomniContributors() {
             </div>
 
             <div className="text-center mt-8">
-              <Button asChild>
-                <a href="https://github.com/snap-stanford/Biomni" target="_blank" rel="noopener noreferrer">
-                  <Github className="w-4 h-4 mr-2" />
-                  Explore Biomni on GitHub
-                </a>
-              </Button>
+              <a 
+                href="https://github.com/snap-stanford/Biomni" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors"
+              >
+                <Github className="w-4 h-4 mr-2" />
+                Explore Biomni on GitHub
+              </a>
             </div>
           </TabsContent>
 
@@ -432,18 +450,22 @@ export function BiomniContributors() {
             By using our platform, you're supporting and benefiting from world-class biomedical AI research.
           </p>
           <div className="flex justify-center space-x-4">
-            <Button asChild>
-              <a href="https://biomni.stanford.edu/" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Learn More About Biomni
-              </a>
-            </Button>
-            <Button variant="outline" asChild>
-              <a href="/contact">
-                <Users className="w-4 h-4 mr-2" />
-                Contact Our Research Team
-              </a>
-            </Button>
+            <a 
+              href="https://biomni.stanford.edu/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Learn More About Biomni
+            </a>
+            <a 
+              href="/contact"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 bg-white hover:bg-gray-50 rounded-md transition-colors"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Contact Our Research Team
+            </a>
           </div>
         </div>
 
