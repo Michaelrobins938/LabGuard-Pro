@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       const validation = validateChatInput(body)
       if (!validation.success) {
         return NextResponse.json(
-          { error: 'Invalid input', details: validation.errors },
+          { error: 'Invalid input', details: (validation as { success: false; errors: string[] }).errors },
           { status: 400 }
         )
       }
