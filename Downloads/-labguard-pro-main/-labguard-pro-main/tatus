@@ -1,0 +1,5 @@
+[33m2c93a31[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix Prisma import issue and resolve build errors for Vercel deployment
+[33md9d2a7f[m Fix Prisma seed file: Update property names to match schema (maxUsers->teamMembersLimit, maxEquipment->equipmentLimit)
+[33mb2dd1ff[m Fix CSS compilation error - Add missing Tailwind color definitions for CSS variables
+[33m06c955d[m Fix JSX syntax error in login page - Simplify background pattern to avoid SVG data URL parsing issues
+[33mee16c77[m Fix build compilation errors - Add missing UI components and fix variable redefinition

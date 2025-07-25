@@ -99,110 +99,11 @@ const itemVariants = {
   }
 }
 
-export default function CareersPositions() {
+export function CareersPositions() {
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Open Positions
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Join our team and help revolutionize laboratory automation. We're looking for passionate individuals who want to make a difference in healthcare and research.
-          </p>
-        </motion.div>
-
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-        >
-          {positions.map((position) => (
-            <motion.div
-              key={position.id}
-              variants={itemVariants}
-              className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {position.title}
-                  </h3>
-                  <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                    {position.department}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-500">{position.posted}</span>
-              </div>
-
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                {position.description}
-              </p>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-gray-500">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  {position.location}
-                </div>
-                <div className="flex items-center text-sm text-gray-500">
-                  <Clock className="w-4 h-4 mr-2" />
-                  {position.type}
-                </div>
-                <div className="flex items-center text-sm text-gray-500">
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  {position.salary}
-                </div>
-                <div className="flex items-center text-sm text-gray-500">
-                  <Users className="w-4 h-4 mr-2" />
-                  {position.team}
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Requirements:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {position.requirements.map((req, index) => (
-                    <span
-                      key={index}
-                      className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
-                    >
-                      {req}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center group">
-                Apply Now
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-center mt-12"
-        >
-          <p className="text-gray-600 mb-6">
-            Don't see a position that fits? We're always looking for talented individuals.
-          </p>
-          <button className="bg-white border-2 border-blue-500 text-blue-500 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition-all duration-300">
-            Send Open Application
-          </button>
-        </motion.div>
-      </div>
-    </section>
+    <div>
+      <h2>Career Positions</h2>
+      <p>Available positions will be listed here</p>
+    </div>
   )
 } 

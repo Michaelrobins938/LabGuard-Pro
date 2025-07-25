@@ -5,7 +5,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider'
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/error-boundary/ErrorBoundary'
-import { AuthProvider } from '@/hooks/useAuth'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 const inter = Inter({ subsets: ['latin'] })
 

@@ -100,96 +100,11 @@ const itemVariants = {
   }
 }
 
-export default function PartnersProgram() {
+export function PartnersProgram() {
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Partnership Tiers
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Choose the partnership level that best fits your organization's goals and capabilities. 
-            Each tier offers increasing benefits and opportunities for growth.
-          </p>
-        </motion.div>
-
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid gap-8 md:grid-cols-2 lg:grid-cols-4"
-        >
-          {partnershipTiers.map((tier, index) => (
-            <motion.div
-              key={index}
-              variants={itemVariants}
-              className={`${tier.bgColor} ${tier.borderColor} border-2 rounded-xl p-6 hover:shadow-lg transition-all duration-300`}
-            >
-              <div className={`w-16 h-16 bg-gradient-to-r ${tier.color} rounded-xl flex items-center justify-center mx-auto mb-6`}>
-                <tier.icon className="w-8 h-8 text-white" />
-              </div>
-              
-              <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">
-                {tier.name}
-              </h3>
-              
-              <p className="text-gray-600 mb-4 text-center text-sm">
-                {tier.description}
-              </p>
-              
-              <div className="mb-6">
-                <div className="text-2xl font-bold text-gray-900 mb-1 text-center">
-                  {tier.commission}
-                </div>
-                <div className="text-sm text-gray-500 text-center">
-                  {tier.requirements}
-                </div>
-              </div>
-              
-              <ul className="space-y-3 mb-6">
-                {tier.features.map((feature, featureIndex) => (
-                  <li key={featureIndex} className="flex items-start">
-                    <Check className="w-4 h-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center group">
-                Apply Now
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 text-center"
-        >
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            Custom Partnership Opportunities
-          </h3>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Don't see a tier that fits your needs? We offer custom partnership arrangements for organizations 
-            with unique requirements or strategic value propositions.
-          </p>
-          <button className="bg-white border-2 border-blue-500 text-blue-500 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition-all duration-300">
-            Contact Partnership Team
-          </button>
-        </motion.div>
-      </div>
-    </section>
+    <div>
+      <h2>Partners Program</h2>
+      <p>Partners program information will be here</p>
+    </div>
   )
 } 
