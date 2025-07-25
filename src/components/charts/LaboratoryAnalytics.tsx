@@ -304,7 +304,7 @@ export function LaboratoryAnalytics() {
                   y="uptime"
                   colorScale={sampleData.equipmentStatus.map(d => getStatusColor(d.status))}
                   height={250}
-                  labelRadius={({ innerRadius }) => innerRadius + 25}
+                  labelRadius={({ innerRadius }: { innerRadius: number }) => innerRadius + 25}
                   style={{
                     labels: { fontSize: 8, fill: '#374151' }
                   }}

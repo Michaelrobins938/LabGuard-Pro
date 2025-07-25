@@ -49,7 +49,7 @@ export default function ComponentTestPage() {
           <CardContent className="space-y-4">
             <div className="flex space-x-2">
               <Button>Primary Button</Button>
-              <Button variant="secondary">Secondary</Button>
+              <Button variant="outline">Secondary</Button>
               <Button variant="outline">Outline</Button>
             </div>
             

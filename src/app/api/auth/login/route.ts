@@ -28,14 +28,7 @@ export async function POST(request: NextRequest) {
         isActive: true 
       },
       include: {
-        laboratory: {
-          select: {
-            id: true,
-            name: true,
-            planType: true,
-            subscriptionStatus: true
-          }
-        }
+        laboratory: true
       }
     });
 

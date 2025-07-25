@@ -246,7 +246,7 @@ export function VictoryCharts() {
             data={equipmentStatusData}
             colorScale={equipmentStatusData.map(d => d.fill)}
             height={300}
-            labelRadius={({ innerRadius }) => innerRadius + 35}
+            labelRadius={({ innerRadius }: { innerRadius: number }) => innerRadius + 35}
             style={{
               labels: { fontSize: 10, fill: '#374151' }
             }}

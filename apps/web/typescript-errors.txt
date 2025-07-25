@@ -1,0 +1,79 @@
+﻿src/__tests__/mocks/server.ts(2,10): error TS2305: Module '"msw"' has no exported member 'rest'.
+src/__tests__/mocks/server.ts(7,33): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(7,38): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(7,43): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(22,36): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(22,41): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(22,46): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(38,30): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(38,35): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(38,40): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(50,31): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(50,36): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(50,41): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(73,31): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(73,36): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(73,41): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(102,35): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(102,40): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(102,45): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(122,32): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(122,37): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(122,42): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(137,34): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(137,39): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(137,44): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(169,41): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(169,46): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(169,51): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(192,39): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(192,44): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(192,49): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(225,35): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(225,40): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(225,45): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(242,18): error TS7006: Parameter 'req' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(242,23): error TS7006: Parameter 'res' implicitly has an 'any' type.
+src/__tests__/mocks/server.ts(242,28): error TS7006: Parameter 'ctx' implicitly has an 'any' type.
+src/__tests__/setup.ts(3,10): error TS2305: Module '"msw"' has no exported member 'rest'.
+src/hooks/useAnalytics.ts(41,41): error TS2339: Property 'dashboard' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(56,20): error TS2339: Property 'analytics' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(57,20): error TS2339: Property 'analytics' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(58,20): error TS2339: Property 'analytics' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(59,20): error TS2339: Property 'analytics' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(77,41): error TS2339: Property 'dashboard' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(86,41): error TS2339: Property 'dashboard' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(96,41): error TS2339: Property 'dashboard' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(106,41): error TS2339: Property 'dashboard' does not exist on type 'ApiClient'.
+src/hooks/useAnalytics.ts(118,41): error TS2339: Property 'analytics' does not exist on type 'ApiClient'.
+src/hooks/useEquipment.ts(36,41): error TS2339: Property 'equipment' does not exist on type 'ApiClient'.
+src/hooks/useEquipment.ts(47,41): error TS2339: Property 'equipment' does not exist on type 'ApiClient'.
+src/hooks/useEquipment.ts(58,41): error TS2339: Property 'equipment' does not exist on type 'ApiClient'.
+src/hooks/useEquipment.ts(74,41): error TS2339: Property 'equipment' does not exist on type 'ApiClient'.
+src/hooks/useEquipment.ts(90,24): error TS2339: Property 'equipment' does not exist on type 'ApiClient'.
+src/hooks/useEquipment.ts(104,41): error TS2339: Property 'equipment' does not exist on type 'ApiClient'.
+src/hooks/useEquipment.ts(114,41): error TS2339: Property 'equipment' does not exist on type 'ApiClient'.
+src/lib/ai/biomni-integration.ts(291,11): error TS7034: Variable 'insights' implicitly has type 'any[]' in some locations where its type cannot be determined.
+src/lib/ai/biomni-integration.ts(304,34): error TS7005: Variable 'insights' implicitly has an 'any[]' type.
+src/lib/ai/file-processing.ts(833,33): error TS2802: Type 'Set<"unknown" | "dna" | "rna" | "protein">' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/lib/ai/openrouter-client.ts(150,7): error TS2322: Type '{ role: string; content: string; }[]' is not assignable to type '{ role: "assistant" | "user" | "system"; content: string; }[]'.
+  Type '{ role: string; content: string; }' is not assignable to type '{ role: "assistant" | "user" | "system"; content: string; }'.
+    Types of property 'role' are incompatible.
+      Type 'string' is not assignable to type '"assistant" | "user" | "system"'.
+src/lib/ai/openrouter-client.ts(246,18): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ 'anthropic/claude-3.5-sonnet': number; 'anthropic/claude-3-opus': number; 'openai/gpt-4o': number; 'google/gemini-pro': number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ 'anthropic/claude-3.5-sonnet': number; 'anthropic/claude-3-opus': number; 'openai/gpt-4o': number; 'google/gemini-pro': number; }'.
+src/lib/ai/openrouter-client.ts(279,12): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ 'anthropic/claude-3.5-sonnet': { maxTokens: number; modalities: string[]; strengths: string[]; bestFor: string[]; }; 'anthropic/claude-3-opus': { maxTokens: number; modalities: string[]; strengths: string[]; bestFor: string[]; }; 'openai/gpt-4o': { ...; }; 'google/gemini-pro': { ...; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ 'anthropic/claude-3.5-sonnet': { maxTokens: number; modalities: string[]; strengths: string[]; bestFor: string[]; }; 'anthropic/claude-3-opus': { maxTokens: number; modalities: string[]; strengths: string[]; bestFor: string[]; }; 'openai/gpt-4o': { ...; }; 'google/gemini-pro': { ...; }; }'.
+src/lib/ai/voice-processing.ts(228,22): error TS2531: Object is possibly 'null'.
+src/lib/ai/voice-processing.ts(239,7): error TS2531: Object is possibly 'null'.
+src/lib/ai/voice-processing.ts(279,38): error TS2802: Type 'Map<string, (params?: any) => Promise<any>>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+src/lib/auth.ts(64,13): error TS2322: Type '(credentials: Record<"email" | "password", string> | undefined) => Promise<{ id: string; email: string; name: string; role: UserRole; laboratoryId: string; } | null>' is not assignable to type '(credentials: Record<"email" | "password", string> | undefined, req: Pick<RequestInternal, "query" | "method" | "headers" | "body">) => Awaitable<...>'.
+  Type 'Promise<{ id: string; email: string; name: string; role: UserRole; laboratoryId: string; } | null>' is not assignable to type 'Awaitable<User | null>'.
+    Type 'Promise<{ id: string; email: string; name: string; role: UserRole; laboratoryId: string; } | null>' is not assignable to type 'PromiseLike<User | null>'.
+      Types of property 'then' are incompatible.
+        Type '<TResult1 = { id: string; email: string; name: string; role: UserRole; laboratoryId: string; } | null, TResult2 = never>(onfulfilled?: ((value: { id: string; email: string; name: string; role: UserRole; laboratoryId: string; } | null) => TResult1 | PromiseLike<...>) | null | undefined, onrejected?: ((reason: any) =>...' is not assignable to type '<TResult1 = User | null, TResult2 = never>(onfulfilled?: ((value: User | null) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<...>) | null | undefined) => PromiseLike<...>'.
+          Types of parameters 'onfulfilled' and 'onfulfilled' are incompatible.
+            Types of parameters 'value' and 'value' are incompatible.
+              Type '{ id: string; email: string; name: string; role: UserRole; laboratoryId: string; } | null' is not assignable to type 'User | null'.
+                Property 'laboratoryName' is missing in type '{ id: string; email: string; name: string; role: $Enums.UserRole; laboratoryId: string; }' but required in type 'User'.
+src/lib/auth.ts(79,83): error TS2339: Property 'password' does not exist on type '{ laboratory: { id: string; email: string; phone: string | null; name: string; isActive: boolean; createdAt: Date; updatedAt: Date; address: string | null; website: string | null; licenseNumber: string | null; settings: JsonValue; }; } & { ...; }'.

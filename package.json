@@ -21,5 +21,8 @@
     "apps/web",
     "apps/api",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "victory": "^37.3.6"
+  }
 }

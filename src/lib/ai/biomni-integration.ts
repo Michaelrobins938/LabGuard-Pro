@@ -288,7 +288,7 @@ export class BiomniIntegrationService {
 
   // Utility Functions
   private extractInsights(result: string): string[] {
-    const insights = [];
+    const insights: string[] = [];
     const insightPatterns = [
       /(?:insight|finding|discovery|observation):\s*(.+?)(?=\n|\.)/gi,
       /(?:key finding|important note|notable result):\s*(.+?)(?=\n|\.)/gi
@@ -321,7 +321,7 @@ export class BiomniIntegrationService {
   }
 
   private generateEquipmentRecommendations(equipmentData: any): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
     
     if (equipmentData.calibrationDue?.length > 0) {
       recommendations.push('Schedule immediate calibration for equipment due for service');
@@ -339,7 +339,7 @@ export class BiomniIntegrationService {
   }
 
   private generateWorkflowRecommendations(workflowData: any): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
     
     if (workflowData.bottlenecks?.length > 0) {
       recommendations.push('Address workflow bottlenecks to improve efficiency');
@@ -357,7 +357,7 @@ export class BiomniIntegrationService {
   }
 
   private generateNextSteps(type: string, results: string[]): string[] {
-    const nextSteps = [];
+    const nextSteps: string[] = [];
     
     switch (type) {
       case 'bioinformatics':

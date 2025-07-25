@@ -249,7 +249,12 @@ class OpenRouterClient {
 
   // Get model capabilities
   getModelCapabilities(model: string) {
-    const capabilities = {
+    const capabilities: Record<string, {
+      maxTokens: number;
+      modalities: string[];
+      strengths: string[];
+      bestFor: string[];
+    }> = {
       'anthropic/claude-3.5-sonnet': {
         maxTokens: 200000,
         modalities: ['text'],

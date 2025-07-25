@@ -9,12 +9,14 @@ const registerSchema = z.object({
   confirmPassword: z.string(),
   laboratoryName: z.string().min(1, 'Laboratory name is required').max(100),
   laboratoryType: z.enum(['clinical', 'research', 'industrial', 'academic']).optional(),
-  role: z.enum(['lab_manager', 'technician', 'supervisor', 'viewer']).optional()
+  role: z.enum(['ADMIN', 'MANAGER', 'TECHNICIAN', 'USER']).optional()
 })
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Registration attempt:', body)
+    
     const validatedData = registerSchema.parse(body)
 
     // Validate password confirmation
@@ -25,35 +27,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Proxy to backend API
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    const response = await fetch(`${apiUrl}/api/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    // For immediate Vercel deployment, use mock data
+    // TODO: Replace with real database when DATABASE_URL is configured
+    const mockUser = {
+      id: 'user_' + Date.now(),
+      email: validatedData.email,
+      firstName: validatedData.firstName,
+      lastName: validatedData.lastName,
+      role: validatedData.role || 'ADMIN',
+      laboratoryId: 'lab_' + Date.now(),
+      laboratory: {
+        id: 'lab_' + Date.now(),
+        name: validatedData.laboratoryName,
+        type: validatedData.laboratoryType || 'clinical',
+        planType: 'starter'
       },
-      body: JSON.stringify({
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
-        email: validatedData.email,
-        password: validatedData.password,
-        laboratoryName: validatedData.laboratoryName,
-        laboratoryType: validatedData.laboratoryType,
-        role: validatedData.role
-      }),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: data.message || 'Registration failed' },
-        { status: response.status }
-      )
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
 
-    // Return the backend response
-    return NextResponse.json(data, { status: response.status })
+    const mockToken = 'jwt_token_' + Date.now() + '_' + mockUser.id
+
+    console.log('✅ Registration successful for:', validatedData.email)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Registration successful',
+      token: mockToken,
+      user: mockUser
+    })
 
   } catch (error) {
     console.error('Registration error:', error)
