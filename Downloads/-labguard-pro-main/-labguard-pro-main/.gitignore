@@ -96,7 +96,7 @@ coverage/
 # TypeScript build info
 *.tsbuildinfo
 
-# Personal files and directories
+# Personal files and directories - more specific exclusions
 ../../../.cache/
 ../../../.claude.json
 ../../../.cursor/
@@ -120,6 +120,59 @@ coverage/
 ../../../elite-digital-product-builder/
 ../../../ntuser.dat.LOG*
 ../../../ntuser.ini
+
+# Exclude Downloads files but NOT the project files
+../../../Downloads/*.png
+../../../Downloads/*.jpg
+../../../Downloads/*.jpeg
+../../../Downloads/*.gif
+../../../Downloads/*.mp4
+../../../Downloads/*.mkv
+../../../Downloads/*.avi
+../../../Downloads/*.mov
+../../../Downloads/*.wmv
+../../../Downloads/*.flv
+../../../Downloads/*.webm
+../../../Downloads/*.mp3
+../../../Downloads/*.wav
+../../../Downloads/*.flac
+../../../Downloads/*.aac
+../../../Downloads/*.ogg
+../../../Downloads/*.exe
+../../../Downloads/*.msi
+../../../Downloads/*.dmg
+../../../Downloads/*.pkg
+../../../Downloads/*.deb
+../../../Downloads/*.rpm
+../../../Downloads/*.zip
+../../../Downloads/*.rar
+../../../Downloads/*.7z
+../../../Downloads/*.tar
+../../../Downloads/*.gz
+../../../Downloads/*.bz2
+../../../Downloads/*.docx
+../../../Downloads/*.doc
+../../../Downloads/*.pdf
+../../../Downloads/*.rtf
+../../../Downloads/*.txt
+../../../Downloads/*.md
+../../../Downloads/*.json
+../../../Downloads/*.xml
+../../../Downloads/*.yml
+../../../Downloads/*.yaml
+../../../Downloads/*.ini
+../../../Downloads/*.cfg
+../../../Downloads/*.conf
+../../../Downloads/*.bak
+../../../Downloads/*.backup
+../../../Downloads/*-backup-*
+../../../Downloads/*.tmp
+../../../Downloads/*.temp
+../../../Downloads/*.cache
+../../../Downloads/*.log
+../../../Downloads/*.pid
+../../../Downloads/*.seed
+../../../Downloads/*.pid.lock
 
 # Screenshots and media files
 *.png
