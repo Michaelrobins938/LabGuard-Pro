@@ -409,6 +409,14 @@ export const apiService = {
     },
   },
 
+  // Dashboard endpoints
+  dashboard: {
+    getStats: async () => {
+      const response = await apiClient.get('/api/dashboard/stats')
+      return response.data
+    },
+  },
+
   // Integrations endpoints
   integrations: {
     getLIMSConnections: async () => {
