@@ -415,6 +415,10 @@ export const apiService = {
       const response = await apiClient.get('/api/dashboard/stats')
       return response.data
     },
+    getRecentActivity: async (limit: number = 10) => {
+      const response = await apiClient.get(`/api/dashboard/activity`, { params: { limit } })
+      return response.data
+    },
   },
 
   // Integrations endpoints
