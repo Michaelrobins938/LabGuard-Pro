@@ -133,6 +133,10 @@ class ApiClient {
     return this.request('/api/dashboard/stats')
   }
 
+  async getRecentActivity(limit: number = 10): Promise<ApiResponse> {
+    return this.request(`/api/dashboard/activity?limit=${limit}`)
+  }
+
   // Token management
   setAuthToken(token: string): void {
     if (typeof window !== 'undefined') {
@@ -182,7 +186,8 @@ class ApiClient {
 
   get dashboard() {
     return {
-      getStats: this.getDashboardStats.bind(this)
+      getStats: this.getDashboardStats.bind(this),
+      getRecentActivity: this.getRecentActivity.bind(this)
     }
   }
 }
