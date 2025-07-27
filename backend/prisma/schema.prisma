@@ -40,6 +40,11 @@ model User {
   createdEquipment  Equipment[] @relation("EquipmentCreatedBy")
   reportsCreated    Report[] @relation("UserReports")
   vectorTests       VectorTest[] @relation("VectorTestTechnician")
+  biomniQueries     BiomniQuery[]
+  protocolsCreated  ExperimentalProtocol[]
+  protocolExecutions ProtocolExecution[]
+  researchProjects  ResearchProject[]
+  experimentalDataUploads ExperimentalData[]
 
   @@map("users")
 }
@@ -72,6 +77,11 @@ model Laboratory {
   reports           Report[]
   vectorTests       VectorTest[]
   vectorAlerts      VectorAlert[]
+  biomniQueries     BiomniQuery[]
+  experimentalProtocols ExperimentalProtocol[]
+  protocolExecutions ProtocolExecution[]
+  researchProjects ResearchProject[]
+  experimentalData ExperimentalData[]
 
   @@map("laboratories")
 }
@@ -113,6 +123,8 @@ model Equipment {
   maintenanceRecords MaintenanceRecord[]
   reports            Report[]
   vectorTests        VectorTest[] @relation("VectorTestEquipment")
+  biomniQueries     BiomniQuery[]
+  experimentalData ExperimentalData[]
 
   @@map("equipment")
 }
@@ -176,6 +188,7 @@ model CalibrationRecord {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   deletedAt         DateTime?
+  biomniQueries     BiomniQuery[]
 
   @@map("calibration_records")
 }
@@ -652,3 +665,425 @@ enum AlertPriority {
   MEDIUM
   LOW
 } 
+
+// ========================================
+// BIOMNI AI INTEGRATION MODELS
+// ========================================
+
+model BiomniQuery {
+  id                    String   @id @default(cuid())
+  query                 String   @db.Text
+  context               String?  @db.Text
+  result                String?  @db.Text
+  summary               String?  @db.Text
+  insights              Json?    // Array of insights
+  recommendations       Json?    // Array of recommendations
+  toolsUsed             String[]
+  databasesQueried      String[]
+  confidence            Float?
+  executionTime         Int?     // milliseconds
+  cost                  Float?   // API cost in dollars
+  warnings              Json?    // Array of warnings
+  nextSteps             Json?    // Array of next steps
+  dataQuality           Json?    // Data quality assessment
+  analysisType          BiomniAnalysisType
+  priority              BiomniPriority @default(MEDIUM)
+  status                BiomniQueryStatus @default(PENDING)
+  
+  // Relationships
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id])
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  
+  // Equipment context (optional)
+  equipmentId           String?
+  equipment             Equipment? @relation(fields: [equipmentId], references: [id])
+  
+  // Calibration context (optional)
+  calibrationRecordId   String?
+  calibrationRecord     CalibrationRecord? @relation(fields: [calibrationRecordId], references: [id])
+  
+  // Research project context (optional)
+  researchProjectId     String?
+  researchProject       ResearchProject? @relation(fields: [researchProjectId], references: [id])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("biomni_queries")
+}
+
+model ExperimentalProtocol {
+  id                    String   @id @default(cuid())
+  name                  String
+  description           String   @db.Text
+  category              ProtocolCategory
+  biomniGenerated       Boolean  @default(false)
+  biomniQueryId         String?
+  biomniQuery           BiomniQuery? @relation(fields: [biomniQueryId], references: [id])
+  
+  // Protocol details
+  objective             String   @db.Text
+  sampleType            String
+  techniques            Json     // Array of techniques
+  steps                 Json     // Array of protocol steps
+  reagents              Json     // Required reagents
+  equipment             Json     // Required equipment
+  safetyConsiderations  Json     // Safety requirements
+  expectedResults       Json     // Expected outcomes
+  qualityControls       Json     // QC measures
+  troubleshooting       Json     // Troubleshooting guide
+  
+  // Validation and testing
+  validated             Boolean  @default(false)
+  validatedBy           String?
+  validatedAt           DateTime?
+  validationNotes       String?  @db.Text
+  
+  // Usage and performance tracking
+  usageCount            Int      @default(0)
+  successRate           Float?
+  averageExecutionTime  Int?     // minutes
+  costPerExecution      Float?
+  
+  // Versioning
+  version               String   @default("1.0")
+  parentProtocolId      String?
+  parentProtocol        ExperimentalProtocol? @relation("ProtocolVersions", fields: [parentProtocolId], references: [id])
+  childProtocols        ExperimentalProtocol[] @relation("ProtocolVersions")
+  
+  // Relationships
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  createdBy             String
+  creator               User     @relation(fields: [createdBy], references: [id])
+  
+  // Protocol executions
+  executions            ProtocolExecution[]
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+  
+  @@map("experimental_protocols")
+}
+
+model ProtocolExecution {
+  id                    String   @id @default(cuid())
+  protocolId            String
+  protocol              ExperimentalProtocol @relation(fields: [protocolId], references: [id])
+  
+  // Execution details
+  executionDate         DateTime
+  operator              String
+  operatorUser          User     @relation(fields: [operator], references: [id])
+  batchNumber           String?
+  sampleId              String?
+  
+  // Results and metrics
+  status                ExecutionStatus
+  duration              Int?     // minutes
+  yield                 Float?   // percentage
+  purity                Float?   // percentage
+  notes                 String?  @db.Text
+  deviations            Json?    // Array of deviations from protocol
+  measurements          Json?    // Measurement data
+  images                Json?    // Array of image URLs/paths
+  
+  // Quality assessment
+  qualityScore          Float?
+  passedQC              Boolean?
+  qcComments            String?  @db.Text
+  
+  // Cost tracking
+  reagentCost           Float?
+  laborCost             Float?
+  equipmentCost         Float?
+  totalCost             Float?
+  
+  // Relationships
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("protocol_executions")
+}
+
+model ResearchProject {
+  id                    String   @id @default(cuid())
+  name                  String
+  description           String   @db.Text
+  hypothesis            String?  @db.Text
+  objectives            Json     // Research objectives
+  methodology           Json     // Research methodology
+  timeline              Json     // Project timeline
+  budget                Json     // Budget considerations
+  
+  // AI-generated content
+  biomniGenerated       Boolean  @default(false)
+  biomniInsights        Json?    // AI-generated insights
+  recommendedProtocols  Json?    // Suggested protocols
+  literatureReferences  Json?    // Relevant literature
+  riskAssessment        Json?    // Risk analysis
+  resourceRequirements  Json?    // Resource planning
+  
+  // Status and progress tracking
+  status                ProjectStatus @default(PLANNING)
+  progress              Float    @default(0)
+  milestones            Json     // Project milestones
+  deliverables          Json     // Expected deliverables
+  
+  // Collaboration and team
+  collaborators         Json?    // External collaborators
+  fundingSources        Json?    // Funding information
+  ethicsApproval        String?  // Ethics approval reference
+  
+  // Data and results
+  datasets              Json?    // Associated datasets
+  publications          Json?    // Related publications
+  intellectualProperty  Json?    // IP considerations
+  
+  // Relationships
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  principalInvestigator String
+  pi                    User     @relation(fields: [principalInvestigator], references: [id])
+  
+  // Associated queries and protocols
+  biomniQueries         BiomniQuery[]
+  protocols             ExperimentalProtocol[]
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  completedAt           DateTime?
+  deletedAt             DateTime?
+  
+  @@map("research_projects")
+}
+
+model ExperimentalData {
+  id                    String   @id @default(cuid())
+  name                  String
+  description           String?  @db.Text
+  dataType              ExperimentalDataType
+  fileFormat            String   // e.g., "csv", "json", "fasta", "fastq"
+  filePath              String?  // Path to stored file
+  fileSize              BigInt?  // File size in bytes
+  
+  // Data characteristics
+  sampleCount           Int?
+  variables             Json?    // Data variables/columns
+  metadata              Json     // Experimental metadata
+  qualityMetrics        Json?    // Data quality assessment
+  
+  // Processing and analysis
+  processed             Boolean  @default(false)
+  processingNotes       String?  @db.Text
+  analysisResults       Json?    // Analysis outcomes
+  statisticalSummary    Json?    // Statistical analysis
+  
+  // Provenance and traceability
+  sourceExperiment      String?  // Source experiment ID
+  instrumentId          String?
+  instrument            Equipment? @relation(fields: [instrumentId], references: [id])
+  protocolExecutionId   String?
+  protocolExecution     ProtocolExecution? @relation(fields: [protocolExecutionId], references: [id])
+  
+  // Data governance
+  accessLevel           DataAccessLevel @default(LABORATORY)
+  retentionPeriod       Int?     // Days to retain data
+  backupLocation        String?
+  checksumHash          String?  // Data integrity verification
+  
+  // Relationships
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  uploadedBy            String
+  uploader              User     @relation(fields: [uploadedBy], references: [id])
+  
+  // Research associations
+  researchProjectId     String?
+  researchProject       ResearchProject? @relation(fields: [researchProjectId], references: [id])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+  
+  @@map("experimental_data")
+}
+
+model BiomniCapability {
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  description           String   @db.Text
+  category              String   // e.g., "analysis", "prediction", "optimization"
+  capabilityType        BiomniCapabilityType
+  
+  // Technical details
+  toolsRequired         Json     // Required Biomni tools
+  databasesRequired     Json     // Required databases
+  inputFormat           Json     // Expected input format
+  outputFormat          Json     // Expected output format
+  
+  // Performance metrics
+  averageExecutionTime  Int?     // milliseconds
+  averageAccuracy       Float?   // percentage
+  averageCost           Float?   // dollars per execution
+  
+  // Usage and availability
+  enabled               Boolean  @default(true)
+  usageCount            Int      @default(0)
+  lastUsed              DateTime?
+  
+  // Documentation
+  documentation         String?  @db.Text
+  examples              Json?    // Usage examples
+  limitations           Json?    // Known limitations
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("biomni_capabilities")
+}
+
+// ========================================
+// BIOMNI ENUMS
+// ========================================
+
+enum BiomniQueryStatus {
+  PENDING
+  QUEUED
+  EXECUTING
+  COMPLETED
+  FAILED
+  CANCELLED
+  TIMEOUT
+}
+
+enum BiomniAnalysisType {
+  PROTEOMICS
+  GENOMICS
+  METABOLOMICS
+  IMAGING
+  MULTIMODAL
+  PROTOCOL_GENERATION
+  EQUIPMENT_OPTIMIZATION
+  RESEARCH_INSIGHTS
+  GENERAL
+}
+
+enum BiomniPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ProtocolCategory {
+  MOLECULAR_BIOLOGY
+  CELL_CULTURE
+  BIOCHEMISTRY
+  ANALYTICAL_CHEMISTRY
+  MICROBIOLOGY
+  IMMUNOLOGY
+  GENOMICS
+  PROTEOMICS
+  METABOLOMICS
+  IMAGING
+  QUALITY_CONTROL
+  SAFETY
+  GENERAL
+}
+
+enum ProjectStatus {
+  PLANNING
+  PROPOSAL_REVIEW
+  APPROVED
+  IN_PROGRESS
+  DATA_COLLECTION
+  DATA_ANALYSIS
+  MANUSCRIPT_PREPARATION
+  PEER_REVIEW
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum ExecutionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  ABORTED
+  REQUIRES_REVIEW
+}
+
+enum ExperimentalDataType {
+  GENOMICS
+  TRANSCRIPTOMICS
+  PROTEOMICS
+  METABOLOMICS
+  IMAGING
+  FLOW_CYTOMETRY
+  MASS_SPECTROMETRY
+  CHROMATOGRAPHY
+  SPECTROSCOPY
+  MICROSCOPY
+  SEQUENCING
+  ELECTROPHORESIS
+  ASSAY_DATA
+  CLINICAL_DATA
+  METADATA
+  OTHER
+}
+
+enum DataAccessLevel {
+  PUBLIC
+  LABORATORY
+  PROJECT_TEAM
+  PRINCIPAL_INVESTIGATOR
+  RESTRICTED
+  CONFIDENTIAL
+}
+
+enum BiomniCapabilityType {
+  ANALYSIS_TOOL
+  PREDICTION_MODEL
+  OPTIMIZATION_ENGINE
+  DATA_PROCESSOR
+  VISUALIZATION_TOOL
+  VALIDATION_SYSTEM
+  INTEGRATION_SERVICE
+}
+
+// ========================================
+// RELATION EXTENSIONS FOR EXISTING MODELS
+// ========================================
+
+// Add Biomni relations to existing models
+// (These relations need to be added to the existing model definitions above)
+
+// User model additions:
+// biomniQueries         BiomniQuery[]
+// protocolsCreated      ExperimentalProtocol[]
+// protocolExecutions    ProtocolExecution[]
+// researchProjects      ResearchProject[]
+// experimentalDataUploads ExperimentalData[]
+
+// Laboratory model additions:
+// biomniQueries         BiomniQuery[]
+// experimentalProtocols ExperimentalProtocol[]
+// protocolExecutions    ProtocolExecution[]
+// researchProjects      ResearchProject[]
+// experimentalData      ExperimentalData[]
+
+// Equipment model additions:
+// biomniQueries         BiomniQuery[]
+// experimentalData      ExperimentalData[]
+
+// CalibrationRecord model additions:
+// biomniQueries         BiomniQuery[] 
