@@ -114,36 +114,19 @@ router.post('/', authMiddleware, async (req, res) => {
 
     // Create report
     // Temporarily disabled
-    const report = { id: 'temp-report-id' }
-      data: {
-        title,
-        description,
-        type,
-        equipmentId,
-        findings,
-        recommendations,
-        status: 'DRAFT',
-        laboratoryId: user.laboratoryId,
-        createdById: userId,
-        attachments: attachments ? JSON.stringify(attachments) : null
-      },
-      include: {
-        equipment: {
-          select: {
-            id: true,
-            name: true,
-            serialNumber: true
-          }
-        },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    })
+    const report = {
+      id: 'temp-report-id',
+      title,
+      description,
+      type,
+      equipmentId,
+      findings,
+      recommendations,
+      status: 'DRAFT',
+      laboratoryId: user.laboratoryId,
+      createdById: userId,
+      attachments
+    }
 
     res.status(201).json({
       message: 'Report created successfully',
@@ -280,22 +263,7 @@ router.post('/:id/generate-pdf', authMiddleware, async (req, res) => {
     }
 
     // Get report - temporarily disabled
-    const report = null
-            name: true,
-            serialNumber: true,
-            type: true,
-            location: true
-          }
-        },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    })
+    const report = null // Placeholder - actual DB retrieval disabled
 
     if (!report) {
       return res.status(404).json({ error: 'Report not found' })
