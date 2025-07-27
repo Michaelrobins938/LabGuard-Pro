@@ -183,7 +183,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         findings,
         recommendations,
         status,
-        attachments: attachments ? JSON.stringify(attachments) : existingReport.attachments,
+        attachments: attachments ?? existingReport.attachments,
         updatedAt: new Date()
       },
       include: {
@@ -313,9 +313,9 @@ router.get('/stats/overview', authMiddleware, async (req, res) => {
         draft: draftReports,
         completed: completedReports,
         pending: pendingReports,
-        byType: reportsByType.map(item => ({
+        byType: (reportsByType as any).map((item: any) => ({
           type: item.type,
-          count: item._count.type
+          count: item._count?.type ?? 0
         }))
       }
     })

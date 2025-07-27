@@ -234,10 +234,11 @@ router.post('/violations', authMiddleware, async (req, res) => {
     await prisma.auditLog.create({
       data: {
         action: 'COMPLIANCE_VIOLATION_CREATED',
-        details: `Created compliance violation for equipment ${equipment.name}`,
+        entity: 'ComplianceViolation',
         userId,
         laboratoryId: user.laboratoryId,
-        metadata: {
+        details: {
+          message: `Created compliance violation for equipment ${equipment.name}`,
           violationId: violation.id,
           equipmentId,
           violationType,
@@ -299,10 +300,11 @@ router.put('/violations/:id', authMiddleware, async (req, res) => {
     await prisma.auditLog.create({
       data: {
         action: 'COMPLIANCE_VIOLATION_UPDATED',
-        details: `Updated compliance violation ${id}`,
+        entity: 'ComplianceViolation',
         userId,
         laboratoryId: user.laboratoryId,
-        metadata: {
+        details: {
+          message: `Updated compliance violation ${id}`,
           violationId: id,
           status,
           action: 'update'
@@ -469,10 +471,11 @@ router.post('/export', authMiddleware, async (req, res) => {
     await prisma.auditLog.create({
       data: {
         action: 'COMPLIANCE_DATA_EXPORTED',
-        details: `Exported compliance data in ${format.toUpperCase()} format`,
+        entity: 'Compliance',
         userId,
         laboratoryId: user.laboratoryId,
-        metadata: {
+        details: {
+          message: `Exported compliance data in ${format.toUpperCase()} format`,
           format,
           recordCount: complianceData.length,
           dateRange: { startDate, endDate }
