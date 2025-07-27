@@ -1,6 +1,7 @@
 import express from 'express'
 import { PrismaClient } from '@prisma/client'
 import { authMiddleware } from '../middleware/auth.middleware'
+import { AuditLogService } from '../services/AuditLogService'
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -230,20 +231,18 @@ router.post('/violations', authMiddleware, async (req, res) => {
     // Create violation - temporarily disabled
     const violation = { id: 'temp-violation-id' }
 
-    // Create audit log entry
-    await prisma.auditLog.create({
-      data: {
-        action: 'COMPLIANCE_VIOLATION_CREATED',
-        entity: 'ComplianceViolation',
-        userId,
-        laboratoryId: user.laboratoryId,
-        details: {
-          message: `Created compliance violation for equipment ${equipment.name}`,
-          violationId: violation.id,
-          equipmentId,
-          violationType,
-          severity
-        }
+    const auditLog = new AuditLogService(prisma)
+    await auditLog.log({
+      action: 'COMPLIANCE_VIOLATION_CREATED',
+      entity: 'ComplianceViolation',
+      laboratoryId: user.laboratoryId,
+      userId,
+      entityId: violation.id,
+      details: {
+        message: `Created compliance violation for equipment ${equipment.name}`,
+        equipmentId,
+        violationType,
+        severity
       }
     })
 
@@ -297,18 +296,17 @@ router.put('/violations/:id', authMiddleware, async (req, res) => {
     }
 
     // Create audit log entry
-    await prisma.auditLog.create({
-      data: {
-        action: 'COMPLIANCE_VIOLATION_UPDATED',
-        entity: 'ComplianceViolation',
-        userId,
-        laboratoryId: user.laboratoryId,
-        details: {
-          message: `Updated compliance violation ${id}`,
-          violationId: id,
-          status,
-          action: 'update'
-        }
+    const auditLog = new AuditLogService(prisma)
+    await auditLog.log({
+      action: 'COMPLIANCE_VIOLATION_UPDATED',
+      entity: 'ComplianceViolation',
+      laboratoryId: user.laboratoryId,
+      userId,
+      entityId: id,
+      details: {
+        message: `Updated compliance violation ${id}`,
+        status,
+        action: 'update'
       }
     })
 
@@ -468,18 +466,17 @@ router.post('/export', authMiddleware, async (req, res) => {
     }
 
     // Create audit log entry
-    await prisma.auditLog.create({
-      data: {
-        action: 'COMPLIANCE_DATA_EXPORTED',
-        entity: 'Compliance',
-        userId,
-        laboratoryId: user.laboratoryId,
-        details: {
-          message: `Exported compliance data in ${format.toUpperCase()} format`,
-          format,
-          recordCount: complianceData.length,
-          dateRange: { startDate, endDate }
-        }
+    const auditLog = new AuditLogService(prisma)
+    await auditLog.log({
+      action: 'COMPLIANCE_DATA_EXPORTED',
+      entity: 'Compliance',
+      laboratoryId: user.laboratoryId,
+      userId,
+      details: {
+        message: `Exported compliance data in ${format.toUpperCase()} format`,
+        format,
+        recordCount: complianceData.length,
+        dateRange: { startDate, endDate }
       }
     })
 
