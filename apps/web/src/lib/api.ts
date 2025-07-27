@@ -158,6 +158,28 @@ class ApiClient {
     return !!this.getAuthToken();
   }
 
+  async getEquipmentAnalytics(params: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/equipment', { method: 'POST', body: JSON.stringify(params) })
+  }
+  async getCalibrationAnalytics(params: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/calibration', { method: 'POST', body: JSON.stringify(params) })
+  }
+  async getComplianceAnalytics(params: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/compliance', { method: 'POST', body: JSON.stringify(params) })
+  }
+  async getUserAnalytics(params: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/users', { method: 'POST', body: JSON.stringify(params) })
+  }
+
+  get analytics() {
+    return {
+      getEquipmentAnalytics: this.getEquipmentAnalytics.bind(this),
+      getCalibrationAnalytics: this.getCalibrationAnalytics.bind(this),
+      getComplianceAnalytics: this.getComplianceAnalytics.bind(this),
+      getUserAnalytics: this.getUserAnalytics.bind(this),
+    }
+  }
+
   get dashboard() {
     return {
       getStats: this.getDashboardStats.bind(this)
