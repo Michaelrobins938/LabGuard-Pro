@@ -38,6 +38,7 @@ model User {
   usageLogs        UsageLog[]
   auditLogs         AuditLog[]
   createdEquipment  Equipment[] @relation("EquipmentCreatedBy")
+  reportsCreated    Report[] @relation("UserReports")
 
   @@map("users")
 }
@@ -67,6 +68,7 @@ model Laboratory {
   calibrations     CalibrationRecord[]
   notifications    Notification[]
   auditLogs        AuditLog[]
+  reports           Report[]
 
   @@map("laboratories")
 }
@@ -106,6 +108,7 @@ model Equipment {
   calibrationRecords CalibrationRecord[]
   complianceReports ComplianceReport[]
   maintenanceRecords MaintenanceRecord[]
+  reports            Report[]
 
   @@map("equipment")
 }
@@ -289,6 +292,33 @@ model ComplianceReport {
   @@map("compliance_reports")
 }
 
+// Add Report model after ComplianceReport
+model Report {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  type           String
+  findings       String?
+  recommendations String?
+  status         ReportStatus @default(DRAFT)
+
+  equipmentId    String?
+  equipment      Equipment? @relation(fields: [equipmentId], references: [id])
+
+  laboratoryId   String
+  laboratory     Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  createdById    String
+  createdBy      User @relation("UserReports", fields: [createdById], references: [id])
+
+  attachments    Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@map("reports")
+}
+
 // Subscription management
 model Subscription {
   id                String   @id @default(cuid())
@@ -444,6 +474,7 @@ enum MaintenanceStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+  OVERDUE
 }
 
 enum ReportType {
