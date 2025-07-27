@@ -1,49 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { backendFetch } from '../../../../lib/backend'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('Login attempt:', body)
-    
-    const { email, password } = body
-
-    // Basic validation
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      )
-    }
-
-    // For immediate Vercel deployment, use mock data
-    // TODO: Replace with real database when DATABASE_URL is configured
-    const mockUser = {
-      id: 'user_123',
-      email: email,
-      firstName: 'Michael',
-      lastName: 'Robinson',
-      role: 'ADMIN',
-      laboratoryId: 'lab_123',
-      laboratory: {
-        id: 'lab_123',
-        name: 'Demo Laboratory',
-        type: 'clinical',
-        planType: 'starter'
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-
-    const mockToken = 'jwt_token_' + Date.now() + '_' + mockUser.id
-
-    console.log('✅ Login successful for:', email)
-
-    return NextResponse.json({
-      success: true,
-      message: 'Login successful',
-      token: mockToken,
-      user: mockUser
+    const res = await backendFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body)
     })
+
+    const data = await res.json()
+    return NextResponse.json(data, { status: res.status })
 
   } catch (error) {
     console.error('Login error:', error)
