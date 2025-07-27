@@ -4,373 +4,754 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Beaker, Database, Cpu, Zap, Brain, CheckCircle, AlertTriangle } from 'lucide-react'
-import { openRouterClient } from '@/lib/ai/openrouter-client'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Loader2, Beaker, Database, Cpu, Plus, X, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
 
 interface ProtocolGeneratorProps {
   onProtocolGenerated: (protocol: any) => void
+  onValidationComplete?: (validation: any) => void
 }
 
 interface GeneratedProtocol {
   id: string
-  title: string
+  name: string
+  description: string
   objective: string
-  content: string
+  sampleType: string
+  techniques: string[]
+  steps: ProtocolStep[]
+  reagents: Reagent[]
+  equipment: Equipment[]
+  safetyConsiderations: SafetyConsideration[]
+  expectedResults: ExpectedResult[]
+  qualityControls: QualityControl[]
+  troubleshooting: TroubleshootingItem[]
+  estimatedTime: string
+  estimatedCost: string
+  confidence: number
   toolsUsed: string[]
   databasesQueried: string[]
-  model: string
-  confidence: number
-  cost: number
-  generatedAt: string
+  warnings: string[]
+  recommendations: string[]
 }
 
-export function ProtocolGenerator({ onProtocolGenerated }: ProtocolGeneratorProps) {
-  const [query, setQuery] = useState('')
-  const [loading, setLoading] = useState(false)
+interface ProtocolStep {
+  id: number
+  title: string
+  description: string
+  duration: string
+  temperature?: string
+  notes?: string
+  criticalPoints?: string[]
+  materials?: string[]
+}
+
+interface Reagent {
+  name: string
+  description: string
+  amount: string
+  concentration: string
+  supplier?: string
+  catalogNumber?: string
+  storageConditions: string
+  hazards?: string[]
+}
+
+interface Equipment {
+  name: string
+  model?: string
+  specifications: string
+  purpose: string
+  calibrationRequired?: boolean
+}
+
+interface SafetyConsideration {
+  category: string
+  description: string
+  ppe: string
+  precautions: string[]
+  emergencyProcedures?: string
+}
+
+interface ExpectedResult {
+  parameter: string
+  expectedValue: string
+  acceptanceRange: string
+  interpretation: string
+}
+
+interface QualityControl {
+  type: string
+  description: string
+  frequency: string
+  acceptanceCriteria: string
+}
+
+interface TroubleshootingItem {
+  problem: string
+  possibleCauses: string[]
+  solutions: string[]
+}
+
+export function ProtocolGenerator({ onProtocolGenerated, onValidationComplete }: ProtocolGeneratorProps) {
+  const [objective, setObjective] = useState('')
+  const [sampleType, setSampleType] = useState('')
+  const [selectedTechniques, setSelectedTechniques] = useState<string[]>([])
+  const [customTechnique, setCustomTechnique] = useState('')
+  const [constraints, setConstraints] = useState<string[]>([])
+  const [newConstraint, setNewConstraint] = useState('')
+  const [safetyRequirements, setSafetyRequirements] = useState<string[]>([])
+  const [newSafetyReq, setNewSafetyReq] = useState('')
+  const [availableEquipment, setAvailableEquipment] = useState<string[]>([])
+  const [newEquipment, setNewEquipment] = useState('')
   const [selectedTools, setSelectedTools] = useState<string[]>([])
   const [selectedDatabases, setSelectedDatabases] = useState<string[]>([])
-  const [selectedModel, setSelectedModel] = useState('anthropic/claude-3.5-sonnet')
-  const [context, setContext] = useState('')
-  const [generatedProtocol, setGeneratedProtocol] = useState<GeneratedProtocol | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium')
+  const [loading, setLoading] = useState(false)
+  const [validating, setValidating] = useState(false)
+
+  const availableTechniques = [
+    'PCR Amplification',
+    'DNA Extraction',
+    'RNA Extraction',
+    'Protein Purification',
+    'Cell Culture',
+    'Western Blot',
+    'ELISA',
+    'Flow Cytometry',
+    'Microscopy',
+    'Chromatography',
+    'Mass Spectrometry',
+    'Spectrophotometry',
+    'Electrophoresis',
+    'Immunofluorescence',
+    'qPCR',
+    'Northern Blot',
+    'Southern Blot',
+    'In Situ Hybridization',
+    'Cell Transfection',
+    'Protein Crystallization'
+  ]
 
   const availableTools = [
-    'DNA/RNA sequence analysis',
-    'Protein structure prediction',
-    'CRISPR guide design',
-    'Cell type annotation',
-    'Drug-target interaction',
-    'Pharmacokinetic modeling',
-    'Primer design',
-    'Plasmid design',
-    'Western blot optimization',
-    'qPCR assay design',
-    'Flow cytometry analysis',
-    'Microscopy image processing',
-    'Statistical analysis',
-    'Quality control validation'
+    'protocol_design',
+    'method_validation',
+    'safety_assessment',
+    'equipment_optimization',
+    'quality_control',
+    'reagent_optimization',
+    'troubleshooting_guide',
+    'cost_analysis',
+    'time_optimization',
+    'literature_review'
   ]
 
   const availableDatabases = [
-    'GenBank',
-    'UniProt', 
-    'PDB',
-    'KEGG',
-    'Gene Ontology',
-    'ChEMBL',
+    'Protocols.io',
+    'Nature Protocols',
+    'JoVE',
+    'Cold Spring Harbor Protocols',
     'PubMed',
-    'Reactome',
-    'STRING',
-    'ClinVar',
-    'COSMIC',
-    'TCGA',
-    'GEO',
-    'ArrayExpress'
+    'Springer Protocols',
+    'Bio-protocol',
+    'Protocol Exchange',
+    'MethodsX',
+    'Current Protocols'
   ]
 
-  const availableModels = [
-    {
-      id: 'anthropic/claude-3.5-sonnet',
-      name: 'Claude 3.5 Sonnet',
-      description: 'Best for complex protocols and analysis',
-      cost: '$3/1M tokens'
-    },
-    {
-      id: 'anthropic/claude-3-opus',
-      name: 'Claude 3 Opus',
-      description: 'Most capable for advanced research',
-      cost: '$15/1M tokens'
-    },
-    {
-      id: 'openai/gpt-4o',
-      name: 'GPT-4o',
-      description: 'Good for general laboratory tasks',
-      cost: '$5/1M tokens'
-    },
-    {
-      id: 'google/gemini-pro',
-      name: 'Gemini Pro',
-      description: 'Cost-effective for technical tasks',
-      cost: '$3.5/1M tokens'
-    }
+  const sampleTypes = [
+    'Bacterial Culture',
+    'Cell Line',
+    'Primary Cells',
+    'Tissue Sample',
+    'Blood Sample',
+    'Plasma/Serum',
+    'Urine Sample',
+    'Plant Material',
+    'Soil Sample',
+    'Water Sample',
+    'Food Sample',
+    'Environmental Sample'
   ]
+
+  const handleAddTechnique = () => {
+    if (customTechnique.trim() && !selectedTechniques.includes(customTechnique.trim())) {
+      setSelectedTechniques([...selectedTechniques, customTechnique.trim()])
+      setCustomTechnique('')
+    }
+  }
+
+  const handleRemoveTechnique = (technique: string) => {
+    setSelectedTechniques(selectedTechniques.filter(t => t !== technique))
+  }
+
+  const handleAddConstraint = () => {
+    if (newConstraint.trim() && !constraints.includes(newConstraint.trim())) {
+      setConstraints([...constraints, newConstraint.trim()])
+      setNewConstraint('')
+    }
+  }
+
+  const handleRemoveConstraint = (constraint: string) => {
+    setConstraints(constraints.filter(c => c !== constraint))
+  }
+
+  const handleAddSafetyReq = () => {
+    if (newSafetyReq.trim() && !safetyRequirements.includes(newSafetyReq.trim())) {
+      setSafetyRequirements([...safetyRequirements, newSafetyReq.trim()])
+      setNewSafetyReq('')
+    }
+  }
+
+  const handleRemoveSafetyReq = (req: string) => {
+    setSafetyRequirements(safetyRequirements.filter(r => r !== req))
+  }
+
+  const handleAddEquipment = () => {
+    if (newEquipment.trim() && !availableEquipment.includes(newEquipment.trim())) {
+      setAvailableEquipment([...availableEquipment, newEquipment.trim()])
+      setNewEquipment('')
+    }
+  }
+
+  const handleRemoveEquipment = (equipment: string) => {
+    setAvailableEquipment(availableEquipment.filter(e => e !== equipment))
+  }
+
+  const validateInputs = (): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = []
+
+    if (!objective.trim()) {
+      errors.push('Objective is required')
+    }
+
+    if (!sampleType) {
+      errors.push('Sample type must be selected')
+    }
+
+    if (selectedTechniques.length === 0) {
+      errors.push('At least one technique must be selected')
+    }
+
+    if (objective.trim().length < 20) {
+      errors.push('Objective should be more detailed (at least 20 characters)')
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    }
+  }
 
   const handleGenerateProtocol = async () => {
-    if (!query.trim()) return
+    const validation = validateInputs()
+    
+    if (!validation.isValid) {
+      toast({
+        title: "Validation Error",
+        description: validation.errors.join(', '),
+        variant: "destructive"
+      })
+      return
+    }
 
     setLoading(true)
-    setError(null)
     
     try {
-      // Check OpenRouter availability
-      const isAvailable = await openRouterClient.checkAvailability()
-      if (!isAvailable) {
-        throw new Error('OpenRouter is not available. Please check your API key configuration.')
+      const response = await fetch('/api/biomni/generate-protocol', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          objective,
+          sampleType,
+          techniques: selectedTechniques,
+          constraints,
+          safetyRequirements,
+          equipmentAvailable: availableEquipment,
+          tools: selectedTools,
+          databases: selectedDatabases,
+          priority,
+          context: 'laboratory_protocol_generation'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Protocol generation failed: ${response.statusText}`)
       }
 
-      // Generate protocol using OpenRouter
-      const response = await openRouterClient.generateProtocol(
-        query,
-        context || 'General laboratory context',
-        selectedTools,
-        selectedDatabases
-      )
-
-      // Calculate cost
-      const cost = openRouterClient.calculateCost(
-        response.usage.total_tokens,
-        selectedModel
-      )
-
-      // Create protocol object
+      const result = await response.json()
+      
+      // Transform the response into our protocol format
       const protocol: GeneratedProtocol = {
-        id: response.id,
-        title: `Protocol: ${query.substring(0, 50)}...`,
-        objective: query,
-        content: response.choices[0].message.content,
-        toolsUsed: selectedTools,
-        databasesQueried: selectedDatabases,
-        model: selectedModel,
-        confidence: 0.95, // High confidence for protocol generation
-        cost: cost,
-        generatedAt: new Date().toISOString()
+        id: result.id || `protocol_${Date.now()}`,
+        name: result.protocol?.name || 'AI-Generated Protocol',
+        description: result.protocol?.description || result.summary || 'Generated experimental protocol',
+        objective,
+        sampleType,
+        techniques: selectedTechniques,
+        steps: result.protocol?.steps || [],
+        reagents: result.protocol?.reagents || [],
+        equipment: result.protocol?.equipment || [],
+        safetyConsiderations: result.protocol?.safetyConsiderations || [],
+        expectedResults: result.protocol?.expectedResults || [],
+        qualityControls: result.protocol?.qualityControls || [],
+        troubleshooting: result.protocol?.troubleshooting || [],
+        estimatedTime: result.protocol?.estimatedTime || 'Not specified',
+        estimatedCost: result.protocol?.estimatedCost || 'Not specified',
+        confidence: result.confidence || 0.8,
+        toolsUsed: result.toolsUsed || [],
+        databasesQueried: result.databasesQueried || [],
+        warnings: result.warnings || [],
+        recommendations: result.recommendations || []
       }
 
-      setGeneratedProtocol(protocol)
       onProtocolGenerated(protocol)
+      
+      toast({
+        title: "Protocol Generated Successfully",
+        description: `Generated protocol with ${protocol.confidence * 100}% confidence`,
+        variant: "default"
+      })
 
     } catch (error) {
       console.error('Protocol generation failed:', error)
-      setError(error instanceof Error ? error.message : 'Protocol generation failed')
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : 'Failed to generate protocol',
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleToolToggle = (tool: string) => {
-    setSelectedTools(prev => 
-      prev.includes(tool) 
-        ? prev.filter(t => t !== tool)
-        : [...prev, tool]
-    )
-  }
+  const handleValidateProtocol = async () => {
+    const validation = validateInputs()
+    
+    if (!validation.isValid) {
+      toast({
+        title: "Validation Error",
+        description: validation.errors.join(', '),
+        variant: "destructive"
+      })
+      return
+    }
 
-  const handleDatabaseToggle = (db: string) => {
-    setSelectedDatabases(prev => 
-      prev.includes(db) 
-        ? prev.filter(d => d !== db)
-        : [...prev, db]
-    )
-  }
+    setValidating(true)
+    
+    try {
+      const response = await fetch('/api/biomni/validate-protocol', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          objective,
+          sampleType,
+          techniques: selectedTechniques,
+          constraints,
+          safetyRequirements,
+          equipmentAvailable: availableEquipment
+        })
+      })
 
-  const getModelCapabilities = (modelId: string) => {
-    return openRouterClient.getModelCapabilities(modelId)
+      if (!response.ok) {
+        throw new Error(`Protocol validation failed: ${response.statusText}`)
+      }
+
+      const validationResult = await response.json()
+      
+      if (onValidationComplete) {
+        onValidationComplete(validationResult)
+      }
+
+      toast({
+        title: "Validation Complete",
+        description: `Protocol feasibility: ${validationResult.feasibility || 'Unknown'}`,
+        variant: "default"
+      })
+
+    } catch (error) {
+      console.error('Protocol validation failed:', error)
+      toast({
+        title: "Validation Failed",
+        description: error instanceof Error ? error.message : 'Failed to validate protocol',
+        variant: "destructive"
+      })
+    } finally {
+      setValidating(false)
+    }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Protocol Generator Form */}
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Beaker className="w-5 h-5" />
-            <span>AI Protocol Generator</span>
-            <Badge variant="secondary" className="ml-2">
-              <Zap className="w-3 h-3 mr-1" />
-              Powered by OpenRouter
-            </Badge>
-          </CardTitle>
-          <p className="text-sm text-gray-600">
-            Describe your experimental goal and let AI generate a detailed protocol using Stanford's research methodologies
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Beaker className="w-6 h-6 text-blue-600" />
+          <span>AI Protocol Generator</span>
+        </CardTitle>
+        <p className="text-sm text-gray-600">
+          Generate detailed experimental protocols using Stanford's Biomni AI system
+        </p>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {/* Objective */}
+        <div className="space-y-2">
+          <Label htmlFor="objective" className="text-sm font-medium">
+            Experimental Objective *
+          </Label>
+          <Textarea
+            id="objective"
+            value={objective}
+            onChange={(e) => setObjective(e.target.value)}
+            placeholder="Describe your experimental goal in detail. Example: Isolate and purify protein X from E. coli, including expression optimization and purification steps with >95% purity"
+            rows={4}
+            className="w-full"
+          />
+          <p className="text-xs text-gray-500">
+            Be specific about your goals, expected outcomes, and quality requirements
           </p>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          {/* Model Selection */}
-          <div>
-            <label className="text-sm font-medium flex items-center space-x-2 mb-2">
-              <Brain className="w-4 h-4" />
-              <span>AI Model Selection</span>
-            </label>
-            <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select AI model" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableModels.map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <div>
-                        <div className="font-medium">{model.name}</div>
-                        <div className="text-xs text-gray-500">{model.description}</div>
-                      </div>
-                      <Badge variant="outline" className="ml-2">
-                        {model.cost}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            {/* Model Capabilities */}
-            <div className="mt-2 p-3 bg-blue-50 rounded-lg">
-              <div className="text-xs text-blue-800">
-                <strong>Capabilities:</strong> {getModelCapabilities(selectedModel).strengths.join(', ')}
+        </div>
+
+        {/* Sample Type */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Sample Type *</Label>
+          <Select value={sampleType} onValueChange={setSampleType}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select sample type" />
+            </SelectTrigger>
+            <SelectContent>
+              {sampleTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Techniques */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">
+            Techniques Required *
+          </Label>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {availableTechniques.map((technique) => (
+              <div key={technique} className="flex items-center space-x-2">
+                <Checkbox
+                  id={technique}
+                  checked={selectedTechniques.includes(technique)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedTechniques([...selectedTechniques, technique])
+                    } else {
+                      handleRemoveTechnique(technique)
+                    }
+                  }}
+                />
+                <Label htmlFor={technique} className="text-sm">
+                  {technique}
+                </Label>
               </div>
-              <div className="text-xs text-blue-700 mt-1">
-                <strong>Best for:</strong> {getModelCapabilities(selectedModel).bestFor.join(', ')}
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Query Input */}
-          <div>
-            <label className="text-sm font-medium">Experimental Objective</label>
-            <Textarea
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Example: Design a protocol to isolate and purify protein X from E. coli, including expression optimization and purification steps"
-              rows={4}
-              className="mt-1"
+          {/* Custom Technique */}
+          <div className="flex space-x-2">
+            <Input
+              value={customTechnique}
+              onChange={(e) => setCustomTechnique(e.target.value)}
+              placeholder="Add custom technique"
+              className="flex-1"
             />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddTechnique}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
           </div>
 
-          {/* Laboratory Context */}
-          <div>
-            <label className="text-sm font-medium">Laboratory Context (Optional)</label>
-            <Textarea
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-              placeholder="Describe your laboratory setup, available equipment, safety requirements, or specific constraints"
-              rows={3}
-              className="mt-1"
-            />
-          </div>
-
-          {/* Tool Selection */}
-          <div>
-            <label className="text-sm font-medium flex items-center space-x-2 mb-2">
-              <Cpu className="w-4 h-4" />
-              <span>Preferred Tools (Optional)</span>
-            </label>
+          {/* Selected Techniques */}
+          {selectedTechniques.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {availableTools.map((tool) => (
-                <Badge
-                  key={tool}
-                  variant={selectedTools.includes(tool) ? "default" : "outline"}
-                  className="cursor-pointer hover:bg-blue-50"
-                  onClick={() => handleToolToggle(tool)}
+              {selectedTechniques.map((technique) => (
+                <Badge 
+                  key={technique} 
+                  variant="secondary" 
+                  className="flex items-center space-x-1"
                 >
-                  {tool}
+                  <span>{technique}</span>
+                  <X 
+                    className="w-3 h-3 cursor-pointer" 
+                    onClick={() => handleRemoveTechnique(technique)}
+                  />
                 </Badge>
               ))}
-            </div>
-          </div>
-
-          {/* Database Selection */}
-          <div>
-            <label className="text-sm font-medium flex items-center space-x-2 mb-2">
-              <Database className="w-4 h-4" />
-              <span>Databases to Query (Optional)</span>
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {availableDatabases.map((db) => (
-                <Badge
-                  key={db}
-                  variant={selectedDatabases.includes(db) ? "default" : "outline"}
-                  className="cursor-pointer hover:bg-green-50"
-                  onClick={() => handleDatabaseToggle(db)}
-                >
-                  {db}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Error Display */}
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <AlertTriangle className="w-4 h-4 text-red-600" />
-                <span className="text-sm text-red-800">{error}</span>
-              </div>
             </div>
           )}
+        </div>
 
-          {/* Generate Button */}
+        {/* Constraints */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Constraints & Limitations</Label>
+          
+          <div className="flex space-x-2">
+            <Input
+              value={newConstraint}
+              onChange={(e) => setNewConstraint(e.target.value)}
+              placeholder="Add constraint (e.g., no organic solvents, budget <$500)"
+              className="flex-1"
+              onKeyPress={(e) => e.key === 'Enter' && handleAddConstraint()}
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddConstraint}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {constraints.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {constraints.map((constraint) => (
+                <Badge 
+                  key={constraint} 
+                  variant="outline" 
+                  className="flex items-center space-x-1"
+                >
+                  <span>{constraint}</span>
+                  <X 
+                    className="w-3 h-3 cursor-pointer" 
+                    onClick={() => handleRemoveConstraint(constraint)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Safety Requirements */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Safety Requirements</Label>
+          
+          <div className="flex space-x-2">
+            <Input
+              value={newSafetyReq}
+              onChange={(e) => setNewSafetyReq(e.target.value)}
+              placeholder="Add safety requirement (e.g., BSL-2 facility required)"
+              className="flex-1"
+              onKeyPress={(e) => e.key === 'Enter' && handleAddSafetyReq()}
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddSafetyReq}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {safetyRequirements.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {safetyRequirements.map((req) => (
+                <Badge 
+                  key={req} 
+                  variant="outline" 
+                  className="flex items-center space-x-1 border-red-200 text-red-700"
+                >
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>{req}</span>
+                  <X 
+                    className="w-3 h-3 cursor-pointer" 
+                    onClick={() => handleRemoveSafetyReq(req)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Available Equipment */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Available Equipment</Label>
+          
+          <div className="flex space-x-2">
+            <Input
+              value={newEquipment}
+              onChange={(e) => setNewEquipment(e.target.value)}
+              placeholder="Add available equipment (e.g., HPLC, centrifuge)"
+              className="flex-1"
+              onKeyPress={(e) => e.key === 'Enter' && handleAddEquipment()}
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddEquipment}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {availableEquipment.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {availableEquipment.map((equipment) => (
+                <Badge 
+                  key={equipment} 
+                  variant="outline" 
+                  className="flex items-center space-x-1 border-green-200 text-green-700"
+                >
+                  <span>{equipment}</span>
+                  <X 
+                    className="w-3 h-3 cursor-pointer" 
+                    onClick={() => handleRemoveEquipment(equipment)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* AI Tools Selection */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium flex items-center space-x-2">
+            <Cpu className="w-4 h-4" />
+            <span>AI Tools (Optional)</span>
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {availableTools.map((tool) => (
+              <div key={tool} className="flex items-center space-x-2">
+                <Checkbox
+                  id={tool}
+                  checked={selectedTools.includes(tool)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedTools([...selectedTools, tool])
+                    } else {
+                      setSelectedTools(selectedTools.filter(t => t !== tool))
+                    }
+                  }}
+                />
+                <Label htmlFor={tool} className="text-sm capitalize">
+                  {tool.replace(/_/g, ' ')}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Database Selection */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium flex items-center space-x-2">
+            <Database className="w-4 h-4" />
+            <span>Knowledge Databases (Optional)</span>
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {availableDatabases.map((db) => (
+              <div key={db} className="flex items-center space-x-2">
+                <Checkbox
+                  id={db}
+                  checked={selectedDatabases.includes(db)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedDatabases([...selectedDatabases, db])
+                    } else {
+                      setSelectedDatabases(selectedDatabases.filter(d => d !== db))
+                    }
+                  }}
+                />
+                <Label htmlFor={db} className="text-sm">
+                  {db}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Priority */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Priority Level</Label>
+          <Select value={priority} onValueChange={(value: any) => setPriority(value)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low - Standard processing</SelectItem>
+              <SelectItem value="medium">Medium - Priority processing</SelectItem>
+              <SelectItem value="high">High - Fast processing</SelectItem>
+              <SelectItem value="critical">Critical - Immediate processing</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex space-x-3 pt-4">
+          <Button 
+            onClick={handleValidateProtocol}
+            variant="outline"
+            disabled={loading || validating || !objective.trim() || !sampleType}
+            className="flex-1"
+          >
+            {validating ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Validating...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Validate Feasibility
+              </>
+            )}
+          </Button>
+
           <Button 
             onClick={handleGenerateProtocol}
-            disabled={!query.trim() || loading}
-            className="w-full"
+            disabled={loading || validating || !objective.trim() || !sampleType || selectedTechniques.length === 0}
+            className="flex-1"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating Protocol with {selectedModel}...
+                Generating Protocol...
               </>
             ) : (
               <>
-                <Zap className="w-4 h-4 mr-2" />
-                Generate Protocol with OpenRouter AI
+                <Beaker className="w-4 h-4 mr-2" />
+                Generate Protocol with AI
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Generated Protocol Display */}
-      {generatedProtocol && (
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>Protocol Generated Successfully!</span>
-            </CardTitle>
-            <div className="flex items-center space-x-4 text-sm text-green-700">
-              <span>Model: {generatedProtocol.model}</span>
-              <span>Cost: ${generatedProtocol.cost.toFixed(4)}</span>
-              <span>Confidence: {(generatedProtocol.confidence * 100).toFixed(1)}%</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="prose prose-sm max-w-none">
-              <h3 className="text-lg font-semibold mb-2">{generatedProtocol.title}</h3>
-              <div className="whitespace-pre-wrap text-gray-800">
-                {generatedProtocol.content}
-              </div>
-            </div>
-            
-            {/* Tools and Databases Used */}
-            <div className="mt-4 pt-4 border-t border-green-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-green-800 mb-2">Tools Used:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {generatedProtocol.toolsUsed.map((tool) => (
-                      <Badge key={tool} variant="outline" className="text-xs">
-                        {tool}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-green-800 mb-2">Databases Queried:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {generatedProtocol.databasesQueried.map((db) => (
-                      <Badge key={db} variant="outline" className="text-xs">
-                        {db}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        {/* Help Text */}
+        <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+          <p className="font-medium mb-1">Tips for better protocols:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Be specific about your experimental objectives and quality requirements</li>
+            <li>Include any time or budget constraints that may affect the protocol design</li>
+            <li>Select relevant databases for domain-specific protocol recommendations</li>
+            <li>Use validation to check protocol feasibility before full generation</li>
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
   )
-} 
+}
+
+export default ProtocolGenerator 
