@@ -39,6 +39,7 @@ model User {
   auditLogs         AuditLog[]
   createdEquipment  Equipment[] @relation("EquipmentCreatedBy")
   reportsCreated    Report[] @relation("UserReports")
+  vectorTests       VectorTest[] @relation("VectorTestTechnician")
 
   @@map("users")
 }
@@ -69,6 +70,8 @@ model Laboratory {
   notifications    Notification[]
   auditLogs        AuditLog[]
   reports           Report[]
+  vectorTests       VectorTest[]
+  vectorAlerts      VectorAlert[]
 
   @@map("laboratories")
 }
@@ -109,6 +112,7 @@ model Equipment {
   complianceReports ComplianceReport[]
   maintenanceRecords MaintenanceRecord[]
   reports            Report[]
+  vectorTests        VectorTest[] @relation("VectorTestEquipment")
 
   @@map("equipment")
 }
@@ -535,4 +539,116 @@ enum QueryStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+// Vector Control Models
+model VectorTest {
+  id                String              @id @default(cuid())
+  type              VectorType
+  priority          VectorPriority
+  status            VectorTestStatus    @default(PENDING)
+  qcStatus          QCStatus            @default(PENDING)
+  sampleCount       Int
+  expectedCompletion DateTime
+  actualCompletion  DateTime?
+  location          String
+  notes             String?
+  
+  // Relations
+  laboratoryId      String
+  laboratory        Laboratory          @relation(fields: [laboratoryId], references: [id])
+  
+  technicianId      String?
+  technician        User?               @relation("VectorTestTechnician", fields: [technicianId], references: [id])
+  
+  equipmentId       String?
+  equipment         Equipment?          @relation("VectorTestEquipment", fields: [equipmentId], references: [id])
+  
+  // Stakeholders and alerts
+  stakeholders      VectorStakeholder[]
+  alerts            VectorAlert[]
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?
+
+  @@map("vector_tests")
+}
+
+model VectorStakeholder {
+  id                String              @id @default(cuid())
+  email             String
+  role              String?
+  organization      String?
+  
+  // Relations
+  testId            String
+  test              VectorTest          @relation(fields: [testId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime            @default(now())
+
+  @@map("vector_stakeholders")
+}
+
+model VectorAlert {
+  id                String              @id @default(cuid())
+  type              VectorAlertType
+  priority          AlertPriority
+  message           String
+  actions           String[]            // Array of action descriptions
+  resolved          Boolean             @default(false)
+  resolvedAt        DateTime?
+  
+  // Relations
+  testId            String
+  test              VectorTest          @relation(fields: [testId], references: [id], onDelete: Cascade)
+  
+  laboratoryId      String
+  laboratory        Laboratory          @relation(fields: [laboratoryId], references: [id])
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@map("vector_alerts")
+}
+
+// Vector Control Enums
+enum VectorType {
+  MOSQUITO
+  TICK
+  RODENT
+  WATERBORNE
+}
+
+enum VectorPriority {
+  OUTBREAK
+  ROUTINE
+  RESEARCH
+}
+
+enum VectorTestStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum QCStatus {
+  PASS
+  FAIL
+  PENDING
+}
+
+enum VectorAlertType {
+  QC_FAILURE
+  DELAY
+  OUTBREAK
+  EQUIPMENT
+}
+
+enum AlertPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
 } 
