@@ -85,3 +85,4 @@ prisma/migrations/
 !turbo.json
 !.gitignore
 !README.md 
+.vercel
