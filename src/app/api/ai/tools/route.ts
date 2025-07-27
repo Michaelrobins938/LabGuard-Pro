@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { biomniClient } from '@/lib/ai/biomni-client'
-import { biomniIntegration } from '@/lib/ai/biomni-integration'
+import BiomniService from '@/lib/ai/biomni-integration'
 import { contextAnalyzer } from '@/lib/ai/context-analyzer'
+
+// Initialize BiomniService instance
+const biomniIntegration = new BiomniService()
 
 // Tools API route for handling tool calls
 export async function POST(req: NextRequest) {

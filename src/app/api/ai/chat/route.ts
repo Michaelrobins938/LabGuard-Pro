@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { biomniClient } from '@/lib/ai/biomni-client'
-import { biomniIntegration } from '@/lib/ai/biomni-integration'
+import BiomniService from '@/lib/ai/biomni-integration'
 import { contextAnalyzer } from '@/lib/ai/context-analyzer'
 import { withRateLimit, aiRateLimiter } from '@/lib/rate-limit'
+
+// Initialize BiomniService instance
+const biomniIntegration = new BiomniService()
 import { validateChatInput } from '@/lib/validation'
 
 // Enhanced chat API route for assistant-ui integration

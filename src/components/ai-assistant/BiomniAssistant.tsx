@@ -5,9 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Mic, MicOff, Volume2, VolumeX, Lightbulb, Beaker, Microscope, Dna, TestTube, Brain, Sparkles, AlertTriangle, CheckCircle, Clock, TrendingUp, FileText, Search, Zap } from 'lucide-react';
 import { Avatar3D } from './Avatar3D';
 import { biomniClient } from '@/lib/ai/biomni-client';
-import { biomniIntegration } from '@/lib/ai/biomni-integration';
+import BiomniService from '@/lib/ai/biomni-integration';
 import { contextAnalyzer } from '@/lib/ai/context-analyzer';
 import { Button } from '@/components/ui/button';
+
+// Initialize BiomniService instance
+const biomniIntegration = new BiomniService();
 
 interface Message {
   id: string;
