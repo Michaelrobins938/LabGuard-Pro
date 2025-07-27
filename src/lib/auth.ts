@@ -254,5 +254,5 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/login',
     error: '/auth/error'
   },
-  secret: process.env.NEXTAUTH_SECRET || (process.env.NODE_ENV === 'production' ? undefined : 'labguard-pro-secret-key-2024-development')
+  secret: process.env.NEXTAUTH_SECRET || 'labguard-pro-secret-key-2024-development'
 } 
