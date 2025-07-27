@@ -53,29 +53,7 @@ export const apiService = {
     },
   },
 
-  // Equipment endpoints
-  equipment: {
-    getAll: async (params?: any) => {
-      const response = await apiClient.get('/api/equipment', { params })
-      return response.data
-    },
-    getById: async (id: string) => {
-      const response = await apiClient.get(`/api/equipment/${id}`)
-      return response.data
-    },
-    create: async (data: any) => {
-      const response = await apiClient.post('/api/equipment', data)
-      return response.data
-    },
-    update: async (id: string, data: any) => {
-      const response = await apiClient.put(`/api/equipment/${id}`, data)
-      return response.data
-    },
-    delete: async (id: string) => {
-      const response = await apiClient.delete(`/api/equipment/${id}`)
-      return response.data
-    },
-  },
+  // Equipment endpoints moved to later section with more comprehensive implementation
 
   // Calibration endpoints
   calibration: {
@@ -389,25 +367,7 @@ export const apiService = {
     },
   },
 
-  // Analytics endpoints
-  analytics: {
-    getEnterpriseMetrics: async () => {
-      const response = await apiClient.get('/api/analytics/enterprise')
-      return response.data
-    },
-    getRevenueData: async (period: string) => {
-      const response = await apiClient.get(`/api/analytics/revenue?period=${period}`)
-      return response.data
-    },
-    getUserEngagement: async () => {
-      const response = await apiClient.get('/api/analytics/user-engagement')
-      return response.data
-    },
-    getSystemPerformance: async () => {
-      const response = await apiClient.get('/api/analytics/system-performance')
-      return response.data
-    },
-  },
+  // Analytics endpoints moved to later section with more comprehensive implementation
 
   // Dashboard endpoints
   dashboard: {
@@ -465,7 +425,7 @@ export const apiService = {
     },
   },
 
-  // Analytics endpoints with missing method
+  // Analytics endpoints - comprehensive implementation
   analytics: {
     getEquipmentAnalytics: async (params: any) => {
       const response = await apiClient.get('/api/analytics/equipment', { params })
@@ -485,6 +445,23 @@ export const apiService = {
     },
     getCustomReport: async (reportData: any) => {
       const response = await apiClient.post('/api/analytics/custom-report', reportData)
+      return response.data
+    },
+    // Enterprise analytics methods
+    getEnterpriseMetrics: async () => {
+      const response = await apiClient.get('/api/analytics/enterprise')
+      return response.data
+    },
+    getRevenueData: async (period: string) => {
+      const response = await apiClient.get(`/api/analytics/revenue?period=${period}`)
+      return response.data
+    },
+    getUserEngagement: async () => {
+      const response = await apiClient.get('/api/analytics/user-engagement')
+      return response.data
+    },
+    getSystemPerformance: async () => {
+      const response = await apiClient.get('/api/analytics/system-performance')
       return response.data
     },
   },

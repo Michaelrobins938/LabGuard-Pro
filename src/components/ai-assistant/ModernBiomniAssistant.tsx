@@ -104,8 +104,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { biomniClient } from '@/lib/ai/biomni-client'
-import { biomniIntegration } from '@/lib/ai/biomni-integration'
+import BiomniService from '@/lib/ai/biomni-integration'
 import { contextAnalyzer } from '@/lib/ai/context-analyzer'
+
+// Initialize BiomniService instance
+const biomniIntegration = new BiomniService()
 
 interface LabContext {
   currentPage: string
