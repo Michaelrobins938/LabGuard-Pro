@@ -1,9 +1,12 @@
 import express from 'express'
 import { PrismaClient } from '@prisma/client'
 import { authMiddleware } from '../middleware/auth.middleware'
+import PDFDocument from 'pdfkit'
+import { AuditLogService } from '../services/AuditLogService'
 
 const router = express.Router()
 const prisma = new PrismaClient()
+const auditLog = new AuditLogService(prisma)
 
 // Get all reports
 router.get('/', authMiddleware, async (req, res) => {
@@ -112,21 +115,29 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'No laboratory access' })
     }
 
-    // Create report
-    // Temporarily disabled
-    const report = {
-      id: 'temp-report-id',
-      title,
-      description,
-      type,
-      equipmentId,
-      findings,
-      recommendations,
-      status: 'DRAFT',
+    const report = await prisma.report.create({
+      data: {
+        title,
+        description,
+        type,
+        equipmentId,
+        findings,
+        recommendations,
+        status: 'DRAFT',
+        laboratoryId: user.laboratoryId,
+        createdById: userId,
+        attachments
+      }
+    })
+
+    await auditLog.log({
+      action: 'REPORT_CREATED',
+      entity: 'Report',
       laboratoryId: user.laboratoryId,
-      createdById: userId,
-      attachments
-    }
+      userId,
+      entityId: report.id,
+      details: { title }
+    })
 
     res.status(201).json({
       message: 'Report created successfully',
@@ -204,6 +215,15 @@ router.put('/:id', authMiddleware, async (req, res) => {
       }
     })
 
+    await auditLog.log({
+      action: 'REPORT_UPDATED',
+      entity: 'Report',
+      laboratoryId: user.laboratoryId,
+      userId,
+      entityId: updatedReport.id,
+      details: { status }
+    })
+
     res.json({
       message: 'Report updated successfully',
       report: updatedReport
@@ -230,14 +250,20 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'No laboratory access' })
     }
 
-    // Check if report exists and belongs to user's laboratory - temporarily disabled
-    const existingReport = null
+    const existingReport = await prisma.report.findFirst({
+      where: { id, laboratoryId: user.laboratoryId }
+    })
+    if (!existingReport) return res.status(404).json({ error: 'Report not found' })
 
-    if (!existingReport) {
-      return res.status(404).json({ error: 'Report not found' })
-    }
+    await prisma.report.update({ where: { id }, data: { deletedAt: new Date(), status: 'DELETED' as any } })
 
-    // Delete report - temporarily disabled
+    await auditLog.log({
+      action: 'REPORT_DELETED',
+      entity: 'Report',
+      laboratoryId: user.laboratoryId,
+      userId,
+      entityId: id
+    })
 
     res.json({ message: 'Report deleted successfully' })
   } catch (error) {
@@ -262,20 +288,47 @@ router.post('/:id/generate-pdf', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'No laboratory access' })
     }
 
-    // Get report - temporarily disabled
-    const report = null // Placeholder - actual DB retrieval disabled
+    const report = await prisma.report.findFirst({
+      where: { id, laboratoryId: user.laboratoryId },
+      include: { equipment: true, laboratory: true, createdBy: true }
+    })
 
-    if (!report) {
-      return res.status(404).json({ error: 'Report not found' })
-    }
+    if (!report) return res.status(404).json({ error: 'Report not found' })
 
-    // TODO: Implement PDF generation logic
-    // For now, return a mock PDF URL
-    const pdfUrl = `/api/reports/${id}/pdf`
+    // Generate PDF in-memory
+    const doc = new PDFDocument()
+    const buffers: Buffer[] = []
+    doc.on('data', buffers.push.bind(buffers))
+    doc.on('end', async () => {
+      const pdfBuffer = Buffer.concat(buffers)
+      res.set({ 'Content-Type': 'application/pdf', 'Content-Length': pdfBuffer.length })
+      res.send(pdfBuffer)
+    })
 
-    res.json({
-      message: 'PDF generated successfully',
-      pdfUrl
+    doc.fontSize(20).text(report.title, { align: 'center' })
+    doc.moveDown()
+    doc.fontSize(12).text(`Report ID: ${report.id}`)
+    doc.text(`Type: ${report.type}`)
+    doc.text(`Status: ${report.status}`)
+    doc.text(`Laboratory: ${report.laboratory.name}`)
+    if (report.equipment) doc.text(`Equipment: ${report.equipment.name} (${report.equipment.serialNumber})`)
+    doc.moveDown()
+    doc.text('Description:', { underline: true })
+    doc.text(report.description || '—')
+    doc.moveDown()
+    doc.text('Findings:', { underline: true })
+    doc.text(report.findings || '—')
+    doc.moveDown()
+    doc.text('Recommendations:', { underline: true })
+    doc.text(report.recommendations || '—')
+    doc.end()
+
+    await auditLog.log({
+      action: 'REPORT_PDF_GENERATED',
+      entity: 'Report',
+      laboratoryId: user.laboratoryId,
+      userId,
+      entityId: id
     })
   } catch (error) {
     console.error('PDF generation error:', error)
