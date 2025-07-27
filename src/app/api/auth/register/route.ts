@@ -50,8 +50,7 @@ export async function POST(request: NextRequest) {
         data: {
           name: laboratoryName,
           email: email.toLowerCase(),
-          planType: 'starter',
-          subscriptionStatus: 'trial',
+          planType: 'STARTER',
         }
       });
 

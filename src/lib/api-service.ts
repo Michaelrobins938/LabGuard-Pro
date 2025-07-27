@@ -409,6 +409,86 @@ export const apiService = {
     },
   },
 
+  // Dashboard endpoints
+  dashboard: {
+    getStats: async () => {
+      const response = await apiClient.get('/api/dashboard/stats')
+      return response.data
+    },
+    getRecentActivity: async (limit: number = 10) => {
+      const response = await apiClient.get(`/api/dashboard/activity?limit=${limit}`)
+      return response.data
+    },
+    getComplianceOverview: async () => {
+      const response = await apiClient.get('/api/dashboard/compliance-overview')
+      return response.data
+    },
+    getEquipmentStatus: async () => {
+      const response = await apiClient.get('/api/dashboard/equipment-status')
+      return response.data
+    },
+    getCalibrationSchedule: async () => {
+      const response = await apiClient.get('/api/dashboard/calibration-schedule')
+      return response.data
+    },
+  },
+
+  // Equipment endpoints
+  equipment: {
+    getAll: async (params?: any) => {
+      const response = await apiClient.get('/api/equipment', { params })
+      return response.data
+    },
+    getById: async (id: string) => {
+      const response = await apiClient.get(`/api/equipment/${id}`)
+      return response.data
+    },
+    create: async (data: any) => {
+      const response = await apiClient.post('/api/equipment', data)
+      return response.data
+    },
+    update: async (id: string, data: any) => {
+      const response = await apiClient.put(`/api/equipment/${id}`, data)
+      return response.data
+    },
+    delete: async (id: string) => {
+      const response = await apiClient.delete(`/api/equipment/${id}`)
+      return response.data
+    },
+    getStats: async () => {
+      const response = await apiClient.get('/api/equipment/stats')
+      return response.data
+    },
+    getCalibrationHistory: async (id: string) => {
+      const response = await apiClient.get(`/api/equipment/${id}/calibration-history`)
+      return response.data
+    },
+  },
+
+  // Analytics endpoints with missing method
+  analytics: {
+    getEquipmentAnalytics: async (params: any) => {
+      const response = await apiClient.get('/api/analytics/equipment', { params })
+      return response.data
+    },
+    getCalibrationAnalytics: async (params: any) => {
+      const response = await apiClient.get('/api/analytics/calibration', { params })
+      return response.data
+    },
+    getComplianceAnalytics: async (params: any) => {
+      const response = await apiClient.get('/api/analytics/compliance', { params })
+      return response.data
+    },
+    getUserAnalytics: async (params: any) => {
+      const response = await apiClient.get('/api/analytics/users', { params })
+      return response.data
+    },
+    getCustomReport: async (reportData: any) => {
+      const response = await apiClient.post('/api/analytics/custom-report', reportData)
+      return response.data
+    },
+  },
+
   // Integrations endpoints
   integrations: {
     getLIMSConnections: async () => {

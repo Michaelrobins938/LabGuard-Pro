@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { NextRequest } from 'next/server';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-
+import { prisma } from './db';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-fallback-secret-key';
 
 export interface JWTPayload {
@@ -49,7 +50,130 @@ export async function getAuthUser(request: NextRequest): Promise<{
   }
 }
 
-// NextAuth configuration
+// Database user authentication functions
+export async function authenticateUser(email: string, password: string): Promise<{
+  success: boolean;
+  user?: any;
+  error?: string;
+}> {
+  try {
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        laboratory: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return { success: false, error: 'Invalid credentials' };
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return { success: false, error: 'Account is deactivated' };
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordValid) {
+      return { success: false, error: 'Invalid credentials' };
+    }
+
+    // Update last login time
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() }
+    });
+
+    // Return user data (excluding password)
+    const { password: _, ...userData } = user;
+    
+    return {
+      success: true,
+      user: {
+        ...userData,
+        laboratoryName: user.laboratory.name
+      }
+    };
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return { success: false, error: 'Authentication failed' };
+  }
+}
+
+export async function createUser(userData: {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  laboratoryId: string;
+  role?: string;
+  phone?: string;
+}): Promise<{
+  success: boolean;
+  user?: any;
+  error?: string;
+}> {
+  try {
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: userData.email }
+    });
+
+    if (existingUser) {
+      return { success: false, error: 'User already exists' };
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(userData.password, 12);
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        email: userData.email,
+        password: hashedPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        name: `${userData.firstName} ${userData.lastName}`,
+        laboratoryId: userData.laboratoryId,
+        role: userData.role as any || 'TECHNICIAN',
+        phone: userData.phone,
+        emailVerified: false
+      },
+      include: {
+        laboratory: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+
+    // Return user data (excluding password)
+    const { password: _, ...newUser } = user;
+    
+    return {
+      success: true,
+      user: {
+        ...newUser,
+        laboratoryName: user.laboratory.name
+      }
+    };
+  } catch (error) {
+    console.error('User creation error:', error);
+    return { success: false, error: 'Failed to create user' };
+  }
+}
+
+// NextAuth configuration with real database integration
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -64,40 +188,30 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Mock user for now - in real implementation, this would query the database
-          const mockUser = {
-            id: 'user-1',
-            email: credentials.email,
-            name: 'Test User',
-            firstName: 'Test',
-            lastName: 'User',
-            role: 'USER',
-            laboratoryId: 'lab-1',
-            laboratoryName: 'Test Laboratory',
-            emailVerified: true,
-            hashedPassword: '$2b$10$mock.hash.for.testing'
+          // Use real authentication function
+          const authResult = await authenticateUser(credentials.email, credentials.password);
+          
+          if (!authResult.success || !authResult.user) {
+            throw new Error(authResult.error || 'Authentication failed');
           }
 
-          // For now, accept any email/password combination
-          // In real implementation, verify against database
-          if (credentials.email && credentials.password) {
-            return {
-              id: mockUser.id,
-              email: mockUser.email,
-              name: mockUser.name,
-              firstName: mockUser.firstName,
-              lastName: mockUser.lastName,
-              role: mockUser.role,
-              laboratoryId: mockUser.laboratoryId,
-              laboratoryName: mockUser.laboratoryName,
-              emailVerified: mockUser.emailVerified
-            }
-          }
+          const user = authResult.user;
 
-          throw new Error('Invalid credentials')
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            laboratoryId: user.laboratoryId,
+            laboratoryName: user.laboratoryName,
+            emailVerified: user.emailVerified,
+            phone: user.phone
+          };
         } catch (error) {
-          console.error('Authentication error:', error)
-          throw error
+          console.error('Authentication error:', error);
+          throw error;
         }
       }
     })
@@ -118,6 +232,7 @@ export const authOptions: NextAuthOptions = {
         token.emailVerified = (user as any).emailVerified
         token.firstName = (user as any).firstName
         token.lastName = (user as any).lastName
+        token.phone = (user as any).phone
       }
       return token
     },
@@ -130,6 +245,7 @@ export const authOptions: NextAuthOptions = {
         ;(session.user as any).emailVerified = token.emailVerified as boolean
         ;(session.user as any).firstName = token.firstName as string
         ;(session.user as any).lastName = token.lastName as string
+        ;(session.user as any).phone = token.phone as string
       }
       return session
     }
