@@ -237,7 +237,7 @@ router.post('/violations', authMiddleware, async (req, res) => {
         details: `Created compliance violation for equipment ${equipment.name}`,
         userId,
         laboratoryId: user.laboratoryId,
-        details: {
+        metadata: {
           violationId: violation.id,
           equipmentId,
           violationType,
@@ -286,31 +286,14 @@ router.put('/violations/:id', authMiddleware, async (req, res) => {
     }
 
     // Update violation - temporarily disabled
-    const updatedViolation = { id }
-        status,
-        correctiveAction,
-        resolutionNotes,
-        resolvedAt: resolvedAt ? new Date(resolvedAt) : null,
-        updatedAt: new Date()
-      },
-      include: {
-        equipment: {
-          select: {
-            id: true,
-            name: true,
-            serialNumber: true,
-            type: true
-          }
-        },
-        reportedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    })
+    const updatedViolation = {
+      id,
+      status,
+      correctiveAction,
+      resolutionNotes,
+      resolvedAt: resolvedAt ? new Date(resolvedAt) : null,
+      updatedAt: new Date()
+    }
 
     // Create audit log entry
     await prisma.auditLog.create({
@@ -319,7 +302,7 @@ router.put('/violations/:id', authMiddleware, async (req, res) => {
         details: `Updated compliance violation ${id}`,
         userId,
         laboratoryId: user.laboratoryId,
-        details: {
+        metadata: {
           violationId: id,
           status,
           action: 'update'
@@ -472,29 +455,6 @@ router.post('/export', authMiddleware, async (req, res) => {
 
     // Get compliance data for export - temporarily disabled
     const complianceData: any[] = []
-      where: {
-        equipment: { laboratoryId: user.laboratoryId },
-        createdAt: Object.keys(dateFilter).length > 0 ? dateFilter : undefined
-      },
-      include: {
-        equipment: {
-          select: {
-            id: true,
-            name: true,
-            serialNumber: true,
-            type: true
-          }
-        },
-        reportedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    })
 
     // TODO: Implement actual export logic based on format
     // For now, return the data structure
@@ -512,7 +472,7 @@ router.post('/export', authMiddleware, async (req, res) => {
         details: `Exported compliance data in ${format.toUpperCase()} format`,
         userId,
         laboratoryId: user.laboratoryId,
-        details: {
+        metadata: {
           format,
           recordCount: complianceData.length,
           dateRange: { startDate, endDate }
