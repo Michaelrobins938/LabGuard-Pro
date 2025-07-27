@@ -14,7 +14,8 @@
     "clean": "turbo run clean"
   },
   "devDependencies": {
-    "turbo": "latest"
+    "turbo": "latest",
+    "typescript": "^5.8.3"
   },
   "packageManager": "npm@8.0.0",
   "workspaces": [
