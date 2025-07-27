@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { backendFetch } from '../../../../lib/backend'
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50),
@@ -27,35 +28,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // For immediate Vercel deployment, use mock data
-    // TODO: Replace with real database when DATABASE_URL is configured
-    const mockUser = {
-      id: 'user_' + Date.now(),
-      email: validatedData.email,
-      firstName: validatedData.firstName,
-      lastName: validatedData.lastName,
-      role: validatedData.role || 'ADMIN',
-      laboratoryId: 'lab_' + Date.now(),
-      laboratory: {
-        id: 'lab_' + Date.now(),
-        name: validatedData.laboratoryName,
-        type: validatedData.laboratoryType || 'clinical',
-        planType: 'starter'
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-
-    const mockToken = 'jwt_token_' + Date.now() + '_' + mockUser.id
-
-    console.log('✅ Registration successful for:', validatedData.email)
-
-    return NextResponse.json({
-      success: true,
-      message: 'Registration successful',
-      token: mockToken,
-      user: mockUser
+    const res = await backendFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(validatedData)
     })
+
+    const data = await res.json()
+    return NextResponse.json(data, { status: res.status })
 
   } catch (error) {
     console.error('Registration error:', error)

@@ -1,33 +1,17 @@
 // src/app/api/auth/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { backendFetch } from '../../../../lib/backend';
 
 export async function GET(request: NextRequest) {
   try {
-    // For immediate Vercel deployment, use mock data
-    // TODO: Replace with real database when DATABASE_URL is configured
-    const mockUser = {
-      id: 'user_123',
-      email: 'demo@labguard.com',
-      firstName: 'Michael',
-      lastName: 'Robinson',
-      role: 'ADMIN',
-      laboratoryId: 'lab_123',
-      laboratory: {
-        id: 'lab_123',
-        name: 'Demo Laboratory',
-        type: 'clinical',
-        planType: 'starter'
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    const authHeader = request.headers.get('authorization') || ''
+    const res = await backendFetch('/auth/profile', {
+      method: 'GET',
+      headers: { Authorization: authHeader }
+    })
 
-    console.log('✅ Profile fetched successfully for:', mockUser.email);
-
-    return NextResponse.json({
-      success: true,
-      user: mockUser
-    });
+    const data = await res.json()
+    return NextResponse.json(data, { status: res.status })
 
   } catch (error) {
     console.error('❌ Profile error:', error);
