@@ -128,6 +128,11 @@ class ApiClient {
     return this.request('/api/health');
   }
 
+  // Dashboard
+  async getDashboardStats(): Promise<ApiResponse> {
+    return this.request('/api/dashboard/stats')
+  }
+
   // Token management
   setAuthToken(token: string): void {
     if (typeof window !== 'undefined') {
@@ -151,6 +156,12 @@ class ApiClient {
 
   isAuthenticated(): boolean {
     return !!this.getAuthToken();
+  }
+
+  get dashboard() {
+    return {
+      getStats: this.getDashboardStats.bind(this)
+    }
   }
 }
 
