@@ -28,9 +28,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Transform data format to match backend expectations
+    const backendPayload = {
+      name: `${validatedData.firstName} ${validatedData.lastName}`,
+      email: validatedData.email,
+      password: validatedData.password,
+      role: validatedData.role || 'USER'
+    }
+
+    console.log('Backend payload:', backendPayload)
+
     const res = await backendFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify(validatedData)
+      body: JSON.stringify(backendPayload)
     })
 
     const data = await res.json()
