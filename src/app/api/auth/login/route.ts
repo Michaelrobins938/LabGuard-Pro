@@ -1,108 +1,119 @@
 // src/app/api/auth/login/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
-import { z } from 'zod';
-import { generateToken } from '@/lib/auth';
-
-const prisma = new PrismaClient();
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(1, 'Password is required')
-});
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
+  const requestId = Math.random().toString(36).substr(2, 9)
+  const startTime = Date.now()
+  
+  console.log(`🚀 [${requestId}] Login request started`)
+  
   try {
-    const body = await request.json();
-    console.log('🔄 Login attempt for:', body.email);
-
-    // Validate input
-    const validatedData = loginSchema.parse(body);
-    const { email, password } = validatedData;
-
-    // Find user with laboratory info
-    const user = await prisma.user.findUnique({
-      where: { 
-        email: email.toLowerCase(),
-        isActive: true 
-      },
-      include: {
-        laboratory: true
-      }
-    });
-
-    if (!user) {
-      console.log('❌ User not found:', email);
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      console.log('❌ Invalid password for:', email);
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
-
-    // Update last login time
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() }
-    });
-
-    // Generate JWT token
-    const token = generateToken({
-      userId: user.id,
-      laboratoryId: user.laboratoryId,
-      role: user.role,
-      email: user.email
-    });
-
-    console.log('✅ User logged in successfully:', user.email);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        laboratoryId: user.laboratoryId,
-        lastLoginAt: user.lastLoginAt,
-        laboratory: user.laboratory
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ Login error:', error);
+    // Get backend URL from environment
+    const backendUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL
     
-    if (error instanceof z.ZodError) {
+    if (!backendUrl) {
+      console.error(`❌ [${requestId}] Backend URL not configured`)
       return NextResponse.json(
         { 
-          error: 'Validation failed', 
-          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+          error: 'Backend configuration error',
+          requestId,
+          timestamp: new Date().toISOString()
         },
-        { status: 400 }
-      );
+        { status: 500 }
+      )
     }
+
+    console.log(`📤 [${requestId}] Proxying to backend: ${backendUrl}/api/auth/login`)
+
+    // Get the request body
+    const body = await request.json()
+    console.log(`📝 [${requestId}] Login data:`, {
+      email: body.email,
+      hasPassword: !!body.password
+    })
+
+    // Forward request to backend
+    const backendResponse = await fetch(`${backendUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'LabGuard-Pro-Frontend/1.0',
+        'X-Request-ID': requestId,
+        'X-Forwarded-For': request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        'X-Forwarded-Host': request.headers.get('host') || 'unknown'
+      },
+      body: JSON.stringify(body)
+    })
+
+    const responseTime = Date.now() - startTime
+    console.log(`⏱️ [${requestId}] Backend response time: ${responseTime}ms`)
+
+    // Get response data
+    const responseData = await backendResponse.json()
+    
+    console.log(`📥 [${requestId}] Backend response:`, {
+      status: backendResponse.status,
+      statusText: backendResponse.statusText,
+      hasData: !!responseData,
+      success: backendResponse.ok
+    })
+
+    // Return the backend response with appropriate status
+    return NextResponse.json(
+      responseData,
+      { 
+        status: backendResponse.status,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'X-Request-ID': requestId,
+          'X-Response-Time': `${responseTime}ms`,
+          'X-Backend-Status': backendResponse.status.toString()
+        }
+      }
+    )
+
+  } catch (error) {
+    const responseTime = Date.now() - startTime
+    
+    console.error(`❌ [${requestId}] Login proxy error:`, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      responseTime: `${responseTime}ms`
+    })
 
     return NextResponse.json(
       { 
-        error: 'Login failed',
-        message: 'An unexpected error occurred. Please try again.'
+        error: 'Failed to connect to backend service',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        requestId,
+        timestamp: new Date().toISOString()
       },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'X-Request-ID': requestId
+        }
+      }
+    )
   }
+}
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400'
+    }
+  })
 } 

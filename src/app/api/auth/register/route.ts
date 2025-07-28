@@ -1,125 +1,120 @@
 // src/app/api/auth/register/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
-import { z } from 'zod';
-import { generateToken } from '@/lib/auth';
-
-const prisma = new PrismaClient();
-
-const registerSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  laboratoryName: z.string().min(1, 'Laboratory name is required'),
-  role: z.enum(['ADMIN', 'MANAGER', 'TECHNICIAN', 'USER']).default('ADMIN')
-});
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
+  const requestId = Math.random().toString(36).substr(2, 9)
+  const startTime = Date.now()
+  
+  console.log(`🚀 [${requestId}] Registration request started`)
+  
   try {
-    const body = await request.json();
-    console.log('🔄 Registration attempt for:', body.email);
+    // Get backend URL from environment
+    const backendUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL
     
-    // Validate input
-    const validatedData = registerSchema.parse(body);
-    const { email, password, firstName, lastName, laboratoryName, role } = validatedData;
-
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
-    });
-
-    if (existingUser) {
-      console.log('❌ User already exists:', email);
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
-      );
-    }
-
-    // Hash password
-    const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Create laboratory and user in transaction
-    console.log('🏗️ Creating laboratory and user...');
-    const result = await prisma.$transaction(async (tx) => {
-      // Create laboratory
-      const laboratory = await tx.laboratory.create({
-        data: {
-          name: laboratoryName,
-          email: email.toLowerCase(),
-          planType: 'STARTER',
-        }
-      });
-
-      // Create user
-      const user = await tx.user.create({
-        data: {
-          email: email.toLowerCase(),
-          password: hashedPassword,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          role: role as any,
-          laboratoryId: laboratory.id,
-        }
-      });
-
-      return { user, laboratory };
-    });
-
-    // Generate JWT token
-    const token = generateToken({
-      userId: result.user.id,
-      laboratoryId: result.laboratory.id,
-      role: result.user.role,
-      email: result.user.email
-    });
-
-    console.log('✅ User registered successfully:', result.user.email);
-
-    // Return success response
-    return NextResponse.json({
-      success: true,
-      message: 'Registration successful',
-      token,
-      user: {
-        id: result.user.id,
-        email: result.user.email,
-        firstName: result.user.firstName,
-        lastName: result.user.lastName,
-        role: result.user.role,
-        laboratoryId: result.user.laboratoryId,
-        laboratory: {
-          id: result.laboratory.id,
-          name: result.laboratory.name,
-          planType: result.laboratory.planType
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ Registration error:', error);
-    
-    if (error instanceof z.ZodError) {
+    if (!backendUrl) {
+      console.error(`❌ [${requestId}] Backend URL not configured`)
       return NextResponse.json(
         { 
-          error: 'Validation failed', 
-          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+          error: 'Backend configuration error',
+          requestId,
+          timestamp: new Date().toISOString()
         },
-        { status: 400 }
-      );
+        { status: 500 }
+      )
     }
+
+    console.log(`📤 [${requestId}] Proxying to backend: ${backendUrl}/api/auth/register`)
+
+    // Get the request body
+    const body = await request.json()
+    console.log(`📝 [${requestId}] Registration data:`, {
+      email: body.email,
+      name: body.name,
+      hasPassword: !!body.password
+    })
+
+    // Forward request to backend
+    const backendResponse = await fetch(`${backendUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'LabGuard-Pro-Frontend/1.0',
+        'X-Request-ID': requestId,
+        'X-Forwarded-For': request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        'X-Forwarded-Host': request.headers.get('host') || 'unknown'
+      },
+      body: JSON.stringify(body)
+    })
+
+    const responseTime = Date.now() - startTime
+    console.log(`⏱️ [${requestId}] Backend response time: ${responseTime}ms`)
+
+    // Get response data
+    const responseData = await backendResponse.json()
+    
+    console.log(`📥 [${requestId}] Backend response:`, {
+      status: backendResponse.status,
+      statusText: backendResponse.statusText,
+      hasData: !!responseData,
+      success: backendResponse.ok
+    })
+
+    // Return the backend response with appropriate status
+    return NextResponse.json(
+      responseData,
+      { 
+        status: backendResponse.status,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'X-Request-ID': requestId,
+          'X-Response-Time': `${responseTime}ms`,
+          'X-Backend-Status': backendResponse.status.toString()
+        }
+      }
+    )
+
+  } catch (error) {
+    const responseTime = Date.now() - startTime
+    
+    console.error(`❌ [${requestId}] Registration proxy error:`, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      responseTime: `${responseTime}ms`
+    })
 
     return NextResponse.json(
       { 
-        error: 'Registration failed',
-        message: 'An unexpected error occurred. Please try again.'
+        error: 'Failed to connect to backend service',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        requestId,
+        timestamp: new Date().toISOString()
       },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'X-Request-ID': requestId
+        }
+      }
+    )
   }
+}
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400'
+    }
+  })
 } 
