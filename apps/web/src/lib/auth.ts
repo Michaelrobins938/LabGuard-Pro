@@ -5,7 +5,13 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+// Only create Prisma client in runtime, not during build
+const getPrisma = () => {
+  if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+    return null;
+  }
+  return new PrismaClient();
+};
 const JWT_SECRET = process.env.JWT_SECRET || 'your-fallback-secret-key';
 
 export interface JWTPayload {
@@ -67,6 +73,12 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          const prisma = getPrisma();
+          if (!prisma) {
+            console.error('Prisma client not available');
+            return null;
+          }
+
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
             include: { laboratory: true }
