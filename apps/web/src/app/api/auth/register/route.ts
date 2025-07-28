@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Backend payload:', backendPayload)
 
-    const res = await backendFetch('/auth/register', {
+    const res = await backendFetch('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(backendPayload)
     })
