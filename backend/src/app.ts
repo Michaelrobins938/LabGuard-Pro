@@ -15,6 +15,15 @@ import reportsRoutes from './routes/reports.routes'
 import billingRoutes from './routes/billing.routes'
 import vectorControlRoutes from './routes/vector-control.routes'
 
+// Extend Express Request interface
+declare global {
+  namespace Express {
+    interface Request {
+      id?: string
+    }
+  }
+}
+
 const app = express()
 
 // Enterprise-level CORS configuration
@@ -34,7 +43,7 @@ const corsOptions = {
     
     // Check if origin matches any allowed pattern
     const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (allowedOrigin.includes('*')) {
+      if (allowedOrigin && allowedOrigin.includes('*')) {
         const pattern = allowedOrigin.replace('*', '.*')
         return new RegExp(pattern).test(origin)
       }
@@ -94,7 +103,7 @@ app.use(express.json({
   limit: '10mb',
   verify: (req, res, buf) => {
     try {
-      JSON.parse(buf)
+      JSON.parse(buf.toString())
     } catch (e) {
       res.status(400).json({ error: 'Invalid JSON' })
       throw new Error('Invalid JSON')
@@ -104,9 +113,7 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // Enhanced logging with request ID
-app.use(morgan('combined', {
-  format: ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms'
-}))
+app.use(morgan('combined'))
 
 // Request ID middleware for tracking
 app.use((req, res, next) => {
