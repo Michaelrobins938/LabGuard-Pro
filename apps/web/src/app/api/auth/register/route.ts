@@ -7,7 +7,7 @@ const registerSchema = z.object({
   lastName: z.string().min(1, 'Last name is required').max(50),
   email: z.string().email('Invalid email format'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
+  confirmPassword: z.string().optional(), // Make optional since AuthContext doesn't send it
   laboratoryName: z.string().min(1, 'Laboratory name is required').max(100),
   laboratoryType: z.enum(['clinical', 'research', 'industrial', 'academic']).optional(),
   role: z.enum(['ADMIN', 'MANAGER', 'TECHNICIAN', 'USER']).optional()
@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     
     const validatedData = registerSchema.parse(body)
 
-    // Validate password confirmation
-    if (validatedData.password !== validatedData.confirmPassword) {
+    // Only validate password confirmation if confirmPassword is provided
+    if (validatedData.confirmPassword && validatedData.password !== validatedData.confirmPassword) {
       return NextResponse.json(
         { error: 'Passwords do not match' },
         { status: 400 }
