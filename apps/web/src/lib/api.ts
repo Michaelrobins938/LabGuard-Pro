@@ -78,6 +78,7 @@ class ApiClient {
     lastName: string;
     laboratoryName: string;
     role?: string;
+    confirmPassword: string;
   }): Promise<ApiResponse> {
     const response = await this.request('/api/auth/register', {
       method: 'POST',
