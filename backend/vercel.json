@@ -2,22 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/server.ts",
+      "src": "api/**/*.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/health",
-      "dest": "src/server.ts"
+      "dest": "/api/health"
+    },
+    {
+      "src": "/api/auth/register",
+      "dest": "/api/auth/register"
     },
     {
       "src": "/api/(.*)",
-      "dest": "src/server.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "src/server.ts"
+      "dest": "/api/$1"
     }
   ],
   "env": {
