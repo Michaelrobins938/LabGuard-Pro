@@ -3,158 +3,103 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import rateLimit from 'express-rate-limit'
-import { errorHandler } from './middleware/error.middleware'
-import { authMiddleware } from './middleware/auth.middleware'
+import { logger } from './utils/logger'
 
 // Import routes
 import authRoutes from './routes/auth.routes'
 import equipmentRoutes from './routes/equipment.routes'
 import calibrationRoutes from './routes/calibration.routes'
+import maintenanceRoutes from './routes/maintenance.routes'
 import complianceRoutes from './routes/compliance.routes'
-import reportsRoutes from './routes/reports.routes'
-import billingRoutes from './routes/billing.routes'
-import vectorControlRoutes from './routes/vector-control.routes'
-
-// Extend Express Request interface
-declare global {
-  namespace Express {
-    interface Request {
-      id?: string
-    }
-  }
-}
+import subscriptionRoutes from './routes/subscription.routes'
+import notificationRoutes from './routes/notification.routes'
+import auditRoutes from './routes/audit.routes'
+import vectorRoutes from './routes/vector.routes'
+import biomniRoutes from './routes/biomni.routes'
+import protocolRoutes from './routes/protocol.routes'
+import projectRoutes from './routes/project.routes'
+import dataRoutes from './routes/data.routes'
 
 const app = express()
 
-// Enterprise-level CORS configuration
-const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true)
-    
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://lab-guard-pro-w6dt.vercel.app',
-      'https://lab-guard-pro-w6dt-*.vercel.app',
-      'https://web-*.vercel.app',
-      process.env.FRONTEND_URL
-    ].filter(Boolean)
-    
-    // Check if origin matches any allowed pattern
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (allowedOrigin && allowedOrigin.includes('*')) {
-        const pattern = allowedOrigin.replace('*', '.*')
-        return new RegExp(pattern).test(origin)
-      }
-      return allowedOrigin === origin
-    })
-    
-    if (isAllowed) {
-      callback(null, true)
-    } else {
-      console.log(`CORS blocked origin: ${origin}`)
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Content-Length', 'X-Total-Count'],
-  maxAge: 86400 // 24 hours
-}
+// Security middleware
+app.use(helmet())
 
-// Security middleware with enterprise configuration
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}))
+// CORS configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID']
+}
 
 app.use(cors(corsOptions))
 
-// Pre-flight requests
-app.options('*', cors(corsOptions))
-
-// Rate limiting with enterprise configuration
+// Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.',
-    retryAfter: Math.ceil(15 * 60 / 1000) // 15 minutes in seconds
-  },
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: false,
-  skipFailedRequests: false
 })
-app.use(limiter)
 
-// Body parsing middleware with enterprise limits
-app.use(express.json({ 
-  limit: '10mb',
-  verify: (req, res, buf) => {
-    try {
-      JSON.parse(buf.toString())
-    } catch (e) {
-      throw new Error('Invalid JSON')
-    }
+app.use('/api/', limiter)
+
+// Logging middleware
+app.use(morgan('combined', {
+  stream: {
+    write: (message: string) => logger.info(message.trim())
   }
 }))
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
-// Enhanced logging with request ID
-app.use(morgan('combined'))
-
-// Request ID middleware for tracking
-app.use((req, res, next) => {
-  req.id = Math.random().toString(36).substr(2, 9)
-  res.setHeader('X-Request-ID', req.id)
-  next()
-})
-
-// Health check endpoint with detailed status
+// Simple health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
-    status: 'healthy',
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0',
-    memory: process.memoryUsage(),
-    requestId: req.id
+    version: '1.0.0'
   })
 })
 
-// API routes with proper error handling
+// API routes
 app.use('/api/auth', authRoutes)
-app.use('/api/equipment', authMiddleware, equipmentRoutes)
-app.use('/api/calibration', authMiddleware, calibrationRoutes)
-app.use('/api/compliance', authMiddleware, complianceRoutes)
-app.use('/api/reports', authMiddleware, reportsRoutes)
-app.use('/api/billing', authMiddleware, billingRoutes)
-app.use('/api/vector-control', vectorControlRoutes)
+app.use('/api/equipment', equipmentRoutes)
+app.use('/api/calibration', calibrationRoutes)
+app.use('/api/maintenance', maintenanceRoutes)
+app.use('/api/compliance', complianceRoutes)
+app.use('/api/subscription', subscriptionRoutes)
+app.use('/api/notifications', notificationRoutes)
+app.use('/api/audit', auditRoutes)
+app.use('/api/vector', vectorRoutes)
+app.use('/api/biomni', biomniRoutes)
+app.use('/api/protocols', protocolRoutes)
+app.use('/api/projects', projectRoutes)
+app.use('/api/data', dataRoutes)
 
-// Enhanced 404 handler
+// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Route not found',
     path: req.originalUrl,
-    method: req.method,
-    requestId: req.id,
-    timestamp: new Date().toISOString()
+    method: req.method
   })
 })
 
-// Error handling middleware
-app.use(errorHandler)
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  logger.error('Unhandled error:', err)
+  
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+  })
+})
 
 export default app 
