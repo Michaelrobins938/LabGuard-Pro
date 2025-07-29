@@ -33,6 +33,22 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'User already exists' })
     }
 
+    // Get or create default laboratory
+    let defaultLaboratory = await req.prisma.laboratory.findFirst({
+      where: { name: 'Default Laboratory' }
+    })
+
+    if (!defaultLaboratory) {
+      defaultLaboratory = await req.prisma.laboratory.create({
+        data: {
+          name: 'Default Laboratory',
+          description: 'Default laboratory for new users',
+          email: 'default@labguard.com',
+          isActive: true
+        }
+      })
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
@@ -44,7 +60,7 @@ router.post('/register', async (req, res) => {
         firstName,
         lastName,
         role,
-        laboratoryId: "default-lab", // Add required field
+        laboratoryId: defaultLaboratory.id, // Use the actual laboratory ID
         isActive: true,             // Add required field
         emailVerified: false        // Add required field
       },
