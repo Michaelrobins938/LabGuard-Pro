@@ -138,14 +138,16 @@ export async function POST(request: NextRequest) {
 
     // Transform data format to match backend expectations
     const backendPayload = {
-      name: `${validatedData.firstName} ${validatedData.lastName}`,
+      firstName: validatedData.firstName,
+      lastName: validatedData.lastName,
       email: validatedData.email,
       password: validatedData.password,
       role: validatedData.role || 'USER'
     }
 
     console.log(`📤 [${requestId}] Backend payload:`, {
-      name: backendPayload.name,
+      firstName: backendPayload.firstName,
+      lastName: backendPayload.lastName,
       email: backendPayload.email,
       role: backendPayload.role,
       hasPassword: !!backendPayload.password
