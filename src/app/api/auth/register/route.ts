@@ -29,8 +29,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log(`📝 [${requestId}] Registration data:`, {
       email: body.email,
-      name: body.name,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      laboratoryName: body.laboratoryName,
       hasPassword: !!body.password
+    })
+
+    // Transform frontend data to backend format
+    const backendData = {
+      email: body.email,
+      password: body.password,
+      name: `${body.firstName || ''} ${body.lastName || ''}`.trim() || body.name || 'User',
+      role: body.role || 'USER',
+      laboratoryId: body.laboratoryId || null
+    }
+
+    console.log(`🔄 [${requestId}] Transformed data for backend:`, {
+      email: backendData.email,
+      name: backendData.name,
+      role: backendData.role
     })
 
     // Forward request to backend
@@ -43,7 +60,7 @@ export async function POST(request: NextRequest) {
         'X-Forwarded-For': request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
         'X-Forwarded-Host': request.headers.get('host') || 'unknown'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(backendData)
     })
 
     const responseTime = Date.now() - startTime
