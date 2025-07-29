@@ -5,7 +5,6 @@ import { HeroUITestimonialsSection } from '@/components/landing/HeroUITestimonia
 import { HeroUIPricingSection } from '@/components/landing/HeroUIPricingSection'
 import { HeroUINavigation } from '@/components/landing/HeroUINavigation'
 import { HeroUIFooter } from '@/components/landing/HeroUIFooter'
-import { EnhancedBiomniAssistant } from '@/components/ai-assistant/EnhancedBiomniAssistant'
 
 export const metadata: Metadata = {
   title: 'LabGuard Pro - AI-Powered Laboratory Compliance Platform',
@@ -23,7 +22,6 @@ export default function LandingPage() {
         <HeroUIPricingSection />
       </main>
       <HeroUIFooter />
-      <EnhancedBiomniAssistant />
     </div>
   )
 } 
