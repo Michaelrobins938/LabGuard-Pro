@@ -98,6 +98,7 @@ export function HeroUIPricingSection() {
         teamMembers: -1, // Unlimited
         storage: 500
       }
+    }
   ]
 
   const features = [
