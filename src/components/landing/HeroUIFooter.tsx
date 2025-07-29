@@ -198,6 +198,26 @@ export function HeroUIFooter() {
                       TEST LINK (Anchor Tag)
                     </a>
                   </li>
+                  {/* Nuclear test link */}
+                  <li>
+                    <a 
+                      href="/about" 
+                      style={{
+                        color: 'yellow',
+                        backgroundColor: 'red',
+                        padding: '10px',
+                        display: 'block',
+                        textDecoration: 'underline',
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        zIndex: 9999,
+                        position: 'relative'
+                      }}
+                      onClick={() => alert('NUCLEAR TEST LINK CLICKED!')}
+                    >
+                      🚨 NUCLEAR TEST LINK 🚨
+                    </a>
+                  </li>
                 </ul>
               </div>
             ))}
