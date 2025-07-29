@@ -46,6 +46,17 @@ model User {
   protocolExecutions      ProtocolExecution[]
   researchProjects        ResearchProject[]
   experimentalDataUploads ExperimentalData[]
+  complianceDocuments     ComplianceDocument[]
+  complianceViolations    ComplianceViolation[]
+  complianceRecommendations ComplianceRecommendation[]
+  auditChecklistItems     AuditChecklistItem[]
+  complianceAuditReports  ComplianceAuditReport[]
+  dailyComplianceLogs     DailyComplianceLog[]
+  resolvedComplianceViolations ComplianceViolation[]
+  implementedComplianceRecommendations ComplianceRecommendation[]
+  resolvedAuditChecklistItems AuditChecklistItem[]
+  approvedComplianceAuditReports ComplianceAuditReport[]
+  reviewedDailyComplianceLogs DailyComplianceLog[]
 
   @@map("users")
 }
@@ -83,6 +94,10 @@ model Laboratory {
   protocolExecutions    ProtocolExecution[]
   researchProjects      ResearchProject[]
   experimentalData      ExperimentalData[]
+  complianceDocuments   ComplianceDocument[]
+  auditChecklistItems   AuditChecklistItem[]
+  complianceAuditReports ComplianceAuditReport[]
+  dailyComplianceLogs   DailyComplianceLog[]
 
   @@map("laboratories")
 }
@@ -1075,3 +1090,400 @@ enum BiomniCapabilityType {
 
 // CalibrationRecord model additions:
 // biomniQueries         BiomniQuery[] 
+
+// ========================================
+// COMPLIANCE ASSISTANT MODELS
+// ========================================
+
+model ComplianceDocument {
+  id                String   @id @default(cuid())
+  fileName          String
+  fileType          String
+  filePath          String
+  fileSize          Int
+  uploadedAt        DateTime @default(now())
+  
+  // AI Analysis Results
+  analysisStatus    DocumentAnalysisStatus @default(PENDING)
+  analysisStartedAt DateTime?
+  analysisCompletedAt DateTime?
+  
+  // Compliance Findings
+  overallScore      Float?
+  riskLevel         RiskLevel?
+  violationsFound   Int      @default(0)
+  
+  // Relationships
+  laboratoryId      String
+  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  uploadedById      String
+  uploadedBy        User     @relation(fields: [uploadedById], references: [id])
+  
+  // Analysis Results
+  violations        ComplianceViolation[]
+  recommendations   ComplianceRecommendation[]
+  auditChecklist    AuditChecklistItem[]
+  
+  @@map("compliance_documents")
+}
+
+model ComplianceViolation {
+  id               String   @id @default(cuid())
+  documentId       String
+  document         ComplianceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  // Violation Details
+  violationType    ViolationType
+  severity         ViolationSeverity
+  section          String
+  pageNumber       Int?
+  lineNumber       Int?
+  
+  // Description & Context
+  title            String
+  description      String   @db.Text
+  regulatoryCode   String?
+  standardReference String?
+  
+  // AI Confidence & Context
+  confidence       Float
+  context          String   @db.Text
+  suggestedAction  String   @db.Text
+  
+  // Status Tracking
+  status           ViolationStatus @default(OPEN)
+  resolvedAt       DateTime?
+  resolvedById     String?
+  resolvedBy       User?    @relation(fields: [resolvedById], references: [id])
+  resolutionNotes  String?  @db.Text
+  
+  // Impact Assessment
+  impactLevel      ImpactLevel
+  estimatedCost    Float?
+  timeToResolve    Int?     // hours
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@map("compliance_violations")
+}
+
+model ComplianceRecommendation {
+  id               String   @id @default(cuid())
+  documentId       String
+  document         ComplianceDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  // Recommendation Details
+  category         RecommendationCategory
+  priority         RecommendationPriority
+  title            String
+  description      String   @db.Text
+  implementation   String   @db.Text
+  
+  // Benefits & Impact
+  expectedBenefit  String   @db.Text
+  costEstimate     Float?
+  timeEstimate     Int?     // hours
+  riskReduction    Float?   // percentage
+  
+  // Implementation Tracking
+  status           RecommendationStatus @default(PENDING)
+  implementedAt    DateTime?
+  implementedById  String?
+  implementedBy    User?    @relation(fields: [implementedById], references: [id])
+  implementationNotes String? @db.Text
+  
+  // Validation
+  effectiveness    Float?   // post-implementation score
+  validatedAt      DateTime?
+  validationNotes  String?  @db.Text
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@map("compliance_recommendations")
+}
+
+model AuditChecklistItem {
+  id               String   @id @default(cuid())
+  documentId       String?
+  document         ComplianceDocument? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  // Generated from compliance analysis or manual creation
+  laboratoryId     String
+  laboratory       Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  
+  // Checklist Details
+  category         AuditCategory
+  subcategory      String?
+  item             String
+  description      String   @db.Text
+  regulatoryBasis  String?
+  
+  // Requirements
+  required         Boolean  @default(true)
+  frequency        CheckFrequency?
+  dueDate          DateTime?
+  
+  // Evidence & Completion
+  status           ChecklistStatus @default(PENDING)
+  completedAt      DateTime?
+  completedById    String?
+  completedBy      User?    @relation(fields: [completedById], references: [id])
+  evidenceProvided String?  @db.Text
+  evidenceFiles    String[] // JSON array of file paths
+  
+  // Validation
+  validatedAt      DateTime?
+  validatedById    String?
+  validatedBy      User?    @relation("AuditChecklistValidator", fields: [validatedById], references: [id])
+  validationNotes  String?  @db.Text
+  
+  // Scoring
+  complianceScore  Float?
+  riskLevel        RiskLevel?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@map("audit_checklist_items")
+}
+
+model ComplianceAuditReport {
+  id                 String   @id @default(cuid())
+  laboratoryId       String
+  laboratory         Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  
+  // Report Details
+  reportType         AuditReportType
+  title              String
+  description        String?  @db.Text
+  auditPeriodStart   DateTime
+  auditPeriodEnd     DateTime
+  
+  // AI-Generated Content
+  executiveSummary   String   @db.Text
+  keyFindings        String   @db.Text
+  riskAssessment     String   @db.Text
+  recommendedActions String   @db.Text
+  
+  // Metrics
+  overallScore       Float
+  totalViolations    Int
+  criticalViolations Int
+  majorViolations    Int
+  minorViolations    Int
+  resolvedViolations Int
+  
+  // Compliance Trends
+  scoreChange        Float?   // compared to previous audit
+  trendDirection     TrendDirection?
+  improvementAreas   String[] // JSON array
+  
+  // Status & Workflow
+  status             AuditReportStatus @default(DRAFT)
+  submittedAt        DateTime?
+  approvedAt         DateTime?
+  approvedById       String?
+  approvedBy         User?    @relation(fields: [approvedById], references: [id])
+  
+  // File Generation
+  reportFileUrl      String?
+  generatedAt        DateTime @default(now())
+  expiresAt          DateTime?
+  
+  // Related Data
+  documentsAnalyzed  ComplianceDocument[]
+  checklistItems     AuditChecklistItem[]
+  
+  generatedById      String
+  generatedBy        User     @relation("AuditReportGenerator", fields: [generatedById], references: [id])
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  @@map("compliance_audit_reports")
+}
+
+model DailyComplianceLog {
+  id                String   @id @default(cuid())
+  laboratoryId      String
+  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  
+  // Daily Operations
+  logDate           DateTime @db.Date
+  shift             WorkShift
+  technicianId      String
+  technician        User     @relation(fields: [technicianId], references: [id])
+  
+  // Test Types Performed
+  testTypes         String[] // JSON array of test types
+  totalTests        Int
+  qcTests           Int
+  
+  // Equipment Used
+  equipmentUsed     String[] // JSON array of equipment IDs
+  equipmentIssues   String?  @db.Text
+  
+  // Compliance Checks
+  temperatureLogs   Boolean  @default(false)
+  qualityControls   Boolean  @default(false)
+  reagentChecks     Boolean  @default(false)
+  instrumentMaintenance Boolean @default(false)
+  wasteDisposal     Boolean  @default(false)
+  
+  // Issues & Incidents
+  incidentsReported Int      @default(0)
+  correctiveActions String?  @db.Text
+  
+  // AI Validation
+  aiValidated       Boolean  @default(false)
+  aiValidatedAt     DateTime?
+  complianceScore   Float?
+  violations        String[] // JSON array of violation descriptions
+  
+  // Supervisor Review
+  supervisorReview  Boolean  @default(false)
+  reviewedAt        DateTime?
+  reviewedById      String?
+  reviewedBy        User?    @relation("DailyLogReviewer", fields: [reviewedById], references: [id])
+  reviewNotes       String?  @db.Text
+  
+  @@unique([laboratoryId, logDate, shift])
+  @@map("daily_compliance_logs")
+}
+
+// ========================================
+// COMPLIANCE ASSISTANT ENUMS
+// ========================================
+
+enum DocumentAnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum ViolationType {
+  CAP_COMPLIANCE
+  CLIA_COMPLIANCE
+  FDA_REGULATION
+  OSHA_SAFETY
+  LABORATORY_POLICY
+  EQUIPMENT_PROTOCOL
+  QUALITY_CONTROL
+  PERSONNEL_TRAINING
+  DOCUMENTATION
+  WASTE_MANAGEMENT
+}
+
+enum ViolationSeverity {
+  CRITICAL
+  MAJOR
+  MINOR
+  ADVISORY
+}
+
+enum ViolationStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  DEFERRED
+  ACCEPTED_RISK
+}
+
+enum ImpactLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RecommendationCategory {
+  PROCESS_IMPROVEMENT
+  TRAINING
+  EQUIPMENT_UPGRADE
+  POLICY_UPDATE
+  DOCUMENTATION
+  QUALITY_CONTROL
+  SAFETY_ENHANCEMENT
+  COST_REDUCTION
+}
+
+enum RecommendationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum RecommendationStatus {
+  PENDING
+  APPROVED
+  IN_PROGRESS
+  IMPLEMENTED
+  REJECTED
+  DEFERRED
+}
+
+enum AuditCategory {
+  QUALITY_MANAGEMENT
+  PERSONNEL
+  EQUIPMENT
+  FACILITIES
+  SAFETY
+  REAGENTS_SUPPLIES
+  QUALITY_CONTROL
+  PROFICIENCY_TESTING
+  RECORDS_REPORTS
+  INFORMATION_MANAGEMENT
+}
+
+enum CheckFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+  AS_NEEDED
+}
+
+enum ChecklistStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  NOT_APPLICABLE
+  FAILED
+}
+
+enum AuditReportType {
+  INTERNAL_AUDIT
+  EXTERNAL_AUDIT
+  COMPLIANCE_REVIEW
+  SELF_ASSESSMENT
+  MOCK_INSPECTION
+  CAP_PREPARATION
+  CLIA_PREPARATION
+}
+
+enum AuditReportStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  SUBMITTED
+  ARCHIVED
+}
+
+enum TrendDirection {
+  IMPROVING
+  STABLE
+  DECLINING
+}
+
+enum WorkShift {
+  DAY
+  EVENING
+  NIGHT
+  WEEKEND
+} 

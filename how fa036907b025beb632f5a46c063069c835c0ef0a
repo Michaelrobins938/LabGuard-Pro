@@ -1,0 +1,21 @@
+[33mcommit fa036907b025beb632f5a46c063069c835c0ef0a[m
+Author: Omnipreneur AI Suite <deploy@omnipreneur.ai>
+Date:   Tue Jul 29 16:31:07 2025 -0500
+
+    Fix Stripe checkout integration and pricing API routes - Updated pricing to match UI (, , ) - Added missing API routes for billing plans and Stripe checkout - Fixed webhook handler for subscription events - Updated environment variables configuration
+
+STRIPE_INTEGRATION_GUIDE.md
+apps/web/env.local.example
+apps/web/package.json
+apps/web/src/app/api/billing/plans/route.ts
+apps/web/src/app/api/stripe/create-checkout-session/route.ts
+apps/web/src/app/api/webhooks/stripe/route.ts
+apps/web/src/app/dashboard/billing/plans/page.tsx
+package-lock.json
+scripts/setup-stripe.js
+scripts/setup-vercel-env.js
+src/app/api/billing/plans/route.ts
+src/app/api/stripe/create-checkout-session/route.ts
+src/app/api/webhooks/stripe/route.ts
+src/app/pricing/layout.tsx
+src/app/pricing/page.tsx
