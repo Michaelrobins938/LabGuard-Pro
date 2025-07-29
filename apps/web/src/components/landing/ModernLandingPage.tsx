@@ -440,10 +440,23 @@ export function ModernLandingPage() {
         </div>
       </footer>
 
-      {/* AI Assistant */}
+      {/* AI Assistant - Desktop Only */}
       {showAIAssistant && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="hidden lg:block fixed bottom-6 right-6 z-50">
           <EnhancedBiomniAssistant />
+        </div>
+      )}
+
+      {/* Mobile AI Assistant Button */}
+      {showAIAssistant && (
+        <div className="lg:hidden fixed bottom-4 right-4 z-50">
+          <button
+            onClick={() => window.open('/dashboard/ai-assistant-demo', '_blank')}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
+            aria-label="Open AI Assistant Demo"
+          >
+            <Brain className="w-6 h-6" />
+          </button>
         </div>
       )}
     </div>
