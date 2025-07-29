@@ -402,7 +402,69 @@ export function ModernLandingPage() {
       </footer>
 
       {/* AI Assistant */}
-              {showAIAssistant && <EnhancedBiomniAssistant />}
+      {showAIAssistant && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+            <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-b border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Brain className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white text-sm">🧬 Stanford Biomni AI</h3>
+                    <p className="text-xs text-gray-400">Live Demo - Try it now!</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-green-400">Live</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 max-w-sm">
+              <div className="space-y-3">
+                <div className="bg-white/10 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Brain className="w-3 h-3 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-white">
+                        🧬 **Welcome to Stanford Biomni AI Demo!**
+                      </p>
+                      <p className="text-xs text-gray-300 mt-1">
+                        I can accelerate your research by 100x with access to 150+ tools and 59 databases.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <button 
+                    onClick={() => window.location.href = '/dashboard/ai-assistant-demo'}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    🚀 Try Interactive Demo
+                  </button>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-white/5 rounded-lg p-2 text-center">
+                      <div className="text-xs text-gray-400">Protocol Design</div>
+                      <div className="text-xs text-blue-400">PCR Analysis</div>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-2 text-center">
+                      <div className="text-xs text-gray-400">Genomic Analysis</div>
+                      <div className="text-xs text-purple-400">Cancer Biomarkers</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

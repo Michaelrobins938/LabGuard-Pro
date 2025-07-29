@@ -13,9 +13,10 @@ import { Loader2, Lock, Shield, CreditCard } from 'lucide-react'
 interface CheckoutFormProps {
   plan: any
   isYearly: boolean
+  isDemoMode?: boolean
 }
 
-export function CheckoutForm({ plan, isYearly }: CheckoutFormProps) {
+export function CheckoutForm({ plan, isYearly, isDemoMode = false }: CheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
@@ -38,6 +39,13 @@ export function CheckoutForm({ plan, isYearly }: CheckoutFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isDemoMode) {
+      // Demo mode - simulate successful payment
+      toast.success('Demo mode: Payment simulation successful!')
+      router.push('/checkout/success')
+      return
+    }
 
     if (!stripe || !elements) {
       toast.error('Stripe not initialized')

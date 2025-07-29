@@ -36,6 +36,22 @@ export default function CheckoutPage() {
           return
         }
 
+        // Check if Stripe is configured
+        if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+          // Demo mode - show checkout interface without payment processing
+          const plansResponse = await apiService.billing.getPlans()
+          const selectedPlan = plansResponse.plans.find((p: any) => p.id === planId)
+          
+          if (!selectedPlan) {
+            setError('Invalid plan selected')
+            return
+          }
+
+          setPlan(selectedPlan)
+          setClientSecret('demo_mode')
+          return
+        }
+
         // Get plan details
         const plansResponse = await apiService.billing.getPlans()
         const selectedPlan = plansResponse.plans.find((p: any) => p.id === planId)
@@ -55,10 +71,23 @@ export default function CheckoutPage() {
           cancelUrl: `${window.location.origin}/checkout/cancel`
         })
 
+        if (!response.clientSecret) {
+          throw new Error('Failed to create payment intent')
+        }
+
         setClientSecret(response.clientSecret)
       } catch (err: any) {
         console.error('Checkout initialization error:', err)
-        setError(err.message || 'Failed to initialize checkout')
+        
+        // Provide more specific error messages
+        if (err.message?.includes('Network Error') || err.message?.includes('fetch')) {
+          setError('Network error. Please check your connection and try again.')
+        } else if (err.message?.includes('500') || err.message?.includes('Internal Server Error')) {
+          setError('Server error. Please try again later or contact support.')
+        } else {
+          setError(err.message || 'Failed to initialize checkout')
+        }
+        
         toast.error('Failed to initialize checkout')
       } finally {
         setLoading(false)
@@ -118,7 +147,11 @@ export default function CheckoutPage() {
               
               {clientSecret && (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <CheckoutForm plan={plan} isYearly={isYearly} />
+                  <CheckoutForm 
+                    plan={plan} 
+                    isYearly={isYearly} 
+                    isDemoMode={clientSecret === 'demo_mode'}
+                  />
                 </Elements>
               )}
             </div>
