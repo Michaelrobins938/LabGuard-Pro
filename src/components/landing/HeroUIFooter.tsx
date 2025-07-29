@@ -188,6 +188,16 @@ export function HeroUIFooter() {
                       </Link>
                     </li>
                   ))}
+                  {/* Test link with anchor tag */}
+                  <li>
+                    <a 
+                      href="/test-link" 
+                      className="text-red-400 hover:text-red-300 transition-colors text-left block"
+                      onClick={() => console.log('Test anchor link clicked')}
+                    >
+                      TEST LINK (Anchor Tag)
+                    </a>
+                  </li>
                 </ul>
               </div>
             ))}
