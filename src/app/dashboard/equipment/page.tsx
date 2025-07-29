@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDashboardStore } from '@/stores/dashboardStore';
 import { useRouter } from 'next/navigation';
 import { 
@@ -34,7 +35,9 @@ import {
   Users,
   Zap,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 
 interface Equipment {
@@ -80,6 +83,7 @@ export default function EquipmentPage() {
   const [sortBy, setSortBy] = useState<string>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [isLoading, setIsLoading] = useState(false);
+  const [showAIBanner, setShowAIBanner] = useState(true);
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
     type: 'all',
@@ -357,6 +361,19 @@ export default function EquipmentPage() {
           </Button>
         </div>
       </div>
+
+      {/* AI Integration Banner */}
+      {showAIBanner && (
+        <Alert className="mb-4">
+          <Sparkles className="h-4 w-4 mr-2" />
+          <AlertDescription>
+            <strong>AI Integration Available!</strong> Try our new AI-powered features to optimize equipment management.
+            <Button variant="outline" size="sm" className="ml-2" onClick={() => setShowAIBanner(false)}>
+              Dismiss
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

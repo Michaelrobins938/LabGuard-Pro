@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDashboardStore } from '@/stores/dashboardStore';
 import { useRouter } from 'next/navigation';
 import { 
@@ -35,7 +36,9 @@ import {
   Shield,
   Target,
   Microscope,
-  CalendarDays
+  CalendarDays,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 
 interface Calibration {
@@ -85,6 +88,7 @@ export default function CalibrationsPage() {
   const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'timeline'>('list');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const [showAIBanner, setShowAIBanner] = useState(true);
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
     type: 'all',
@@ -407,6 +411,16 @@ export default function CalibrationsPage() {
           </Button>
         </div>
       </div>
+
+      {/* AI Integration Banner */}
+      {showAIBanner && (
+        <Alert variant="info" className="mb-4">
+          <Sparkles className="h-4 w-4 mr-2" />
+          <AlertDescription>
+            <strong>AI Integration Available!</strong> Our AI system can analyze calibration results, suggest improvements, and even generate new calibration procedures. <a href="#" className="underline">Learn more</a>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">

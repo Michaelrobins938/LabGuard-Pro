@@ -224,6 +224,17 @@ export default function DashboardPage() {
 
         {/* Main Dashboard Content */}
         <main className="p-6 space-y-8">
+          {/* AI Integration Banner */}
+          <Alert className="border-blue-200 bg-blue-50/10 backdrop-blur-sm">
+            <Sparkles className="h-4 w-4 mr-2" />
+            <AlertDescription>
+              <strong>AI Assistant Available!</strong> Your intelligent laboratory companion is ready to help with equipment analysis, compliance monitoring, and workflow optimization. 
+              <Button variant="outline" size="sm" className="ml-2">
+                Open AI Assistant
+              </Button>
+            </AlertDescription>
+          </Alert>
+
           {/* Welcome Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
