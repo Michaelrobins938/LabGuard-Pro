@@ -248,21 +248,25 @@ export function ModernLandingPage() {
                 <span>Product</span>
                 <ChevronDown className="w-4 h-4" />
               </Button>
-              {activeDropdown === 'product' && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
-                  <div className="p-4 space-y-2">
-                    {navigationItems.product.map((item) => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
-                      >
-                        {item.name}
-                      </a>
-                    ))}
-                  </div>
+              <div 
+                className={`absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-200 ${
+                  activeDropdown === 'product' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}
+                onMouseEnter={() => setActiveDropdown('product')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <div className="p-4 space-y-2">
+                  {navigationItems.product.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
+                    >
+                      {item.name}
+                    </a>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Solutions Dropdown */}
@@ -276,21 +280,25 @@ export function ModernLandingPage() {
                 <span>Solutions</span>
                 <ChevronDown className="w-4 h-4" />
               </Button>
-              {activeDropdown === 'solutions' && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
-                  <div className="p-4 space-y-2">
-                    {navigationItems.solutions.map((item) => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
-                      >
-                        {item.name}
-                      </a>
-                    ))}
-                  </div>
+              <div 
+                className={`absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-200 ${
+                  activeDropdown === 'solutions' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}
+                onMouseEnter={() => setActiveDropdown('solutions')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <div className="p-4 space-y-2">
+                  {navigationItems.solutions.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
+                    >
+                      {item.name}
+                    </a>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Resources Dropdown */}
@@ -304,21 +312,25 @@ export function ModernLandingPage() {
                 <span>Resources</span>
                 <ChevronDown className="w-4 h-4" />
               </Button>
-              {activeDropdown === 'resources' && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
-                  <div className="p-4 space-y-2">
-                    {navigationItems.resources.map((item) => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
-                      >
-                        {item.name}
-                      </a>
-                    ))}
-                  </div>
+              <div 
+                className={`absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-200 ${
+                  activeDropdown === 'resources' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}
+                onMouseEnter={() => setActiveDropdown('resources')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <div className="p-4 space-y-2">
+                  {navigationItems.resources.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
+                    >
+                      {item.name}
+                    </a>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Company Dropdown */}
@@ -332,21 +344,25 @@ export function ModernLandingPage() {
                 <span>Company</span>
                 <ChevronDown className="w-4 h-4" />
               </Button>
-              {activeDropdown === 'company' && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
-                  <div className="p-4 space-y-2">
-                    {navigationItems.company.map((item) => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
-                      >
-                        {item.name}
-                      </a>
-                    ))}
-                  </div>
+              <div 
+                className={`absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-200 ${
+                  activeDropdown === 'company' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}
+                onMouseEnter={() => setActiveDropdown('company')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <div className="p-4 space-y-2">
+                  {navigationItems.company.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
+                    >
+                      {item.name}
+                    </a>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
 
             <Button 
