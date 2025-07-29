@@ -1,0 +1,152 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production builds
+dist/
+build/
+.next/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+apps/api/prisma/dev.db
+packages/database/dev.db
+
+# Prisma
+prisma/migrations/
+.prisma/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Package manager lock files (keep one)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Testing
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Turbo
+.turbo
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Exclude all files outside the project directory
+../../
+../../../
+
+# Exclude specific external directories
+../../../.cache/
+../../../.claude.json
+../../../.cursor/
+../../../.gitconfig
+../../../.glass/
+../../../.lesshst
+../../../.wdm/
+../../../AppData/
+../../../Contacts/
+../../../Documents/
+../../../Favorites/
+../../../IntelGraphicsProfiles/
+../../../Links/
+../../../Muse Hub/
+../../../Music/
+../../../My Drive/
+../../../NTUSER.DAT*
+../../../Saved Games/
+../../../Searches/
+../../../Settings/
+../../../elite-digital-product-builder/
+../../../OneDrive/
+../../../ntuser.dat.LOG*
+../../../ntuser.ini
+
+# Exclude all files in parent directories
+../../*.jpg
+../../*.png
+../../*.mp4
+../../*.mkv
+../../*.mp3
+../../*.exe
+../../*.zip
+../../*.7z
+../../*.docx
+../../*.pdf
+../../*.md
+../../*.txt
+../../*.json
+../../*.rtf
+../../*.avif
+../../*.html
+../../*.url
+../../*.lnk
+../../*.msi
+../../*.dmg
+../../*.crdownload
+../../*.blf
+../../*.regtrans-ms 

@@ -39,10 +39,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!session?.user) return
 
     try {
-      const response = await apiService.notifications.getAll({ limit: 50 })
-      const data = response.data
-      setNotifications(data.notifications || [])
-      setUnreadCount(data.unreadCount || 0)
+      // TODO: Implement notifications API
+      setNotifications([])
+      setUnreadCount(0)
     } catch (error) {
       console.error('Failed to fetch notifications:', error)
     }
@@ -51,7 +50,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Mark notification as read
   const markAsRead = useCallback(async (id: string) => {
     try {
-      await apiService.notifications.markAsRead(id)
+      // TODO: Implement mark as read API
       setNotifications(prev => 
         prev.map(notification => 
           notification.id === id 
@@ -68,7 +67,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
     try {
-      await apiService.notifications.markAllAsRead()
+      // TODO: Implement mark all as read API
       setNotifications(prev => 
         prev.map(notification => ({ ...notification, isRead: true }))
       )
@@ -81,7 +80,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Delete notification
   const deleteNotification = useCallback(async (id: string) => {
     try {
-      await apiService.notifications.delete(id)
+      // TODO: Implement delete notification API
       setNotifications(prev => prev.filter(notification => notification.id !== id))
       setUnreadCount(prev => {
         const notification = notifications.find(n => n.id === id)

@@ -1,0 +1,269 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id                      String      @id @default(cuid())
+  email                   String      @unique
+  password                String
+  firstName               String
+  lastName                String
+  role                    String      @default("USER")
+  laboratoryId            String
+  organizationId          String?
+  permissions             String      @default("{}")
+  failedLoginAttempts     Int         @default(0)
+  deletedAt               DateTime?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  calibrationRecords      CalibrationRecord[]
+  notifications           Notification[]
+  reports                 Report[]
+  assignments             Assignment[]
+  teamActivities          TeamActivity[]
+  userProfile             UserProfile?
+  sentInvitations         UserInvitation[] @relation("InvitedBy")
+  receivedInvitation      UserInvitation? @relation("InvitedUser")
+  biomniQueries           BiomniQuery[]
+  complianceViolations    ComplianceViolation[]
+  
+  @@map("users")
+}
+
+model Laboratory {
+  id                      String      @id @default(cuid())
+  name                    String
+  email                   String      @unique
+  planType                String      @default("starter")
+  subscriptionStatus      String      @default("trial")
+  stripeCustomerId        String?
+  stripeSubscriptionId    String?
+  currentPlanId           String?
+  settings                String      @default("{}")
+  subscriptionEndsAt      DateTime?
+  lastPaymentAt           DateTime?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  users                   User[]
+  equipment               Equipment[]
+  notifications           Notification[]
+  reports                 Report[]
+  complianceViolations    ComplianceViolation[]
+  userInvitations         UserInvitation[]
+  
+  @@map("laboratories")
+}
+
+model Equipment {
+  id                      String              @id @default(cuid())
+  name                    String
+  model                   String
+  manufacturer            String
+  serialNumber            String
+  status                  String              @default("ACTIVE")
+  location                String?
+  specifications          String              @default("{}")
+  installDate             DateTime?
+  calibrationCost         Float?
+  maintenanceCost         Float?
+  laboratoryId            String
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  
+  laboratory              Laboratory          @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  calibrationRecords      CalibrationRecord[]
+  maintenanceRecords      MaintenanceRecord[]
+  complianceViolations    ComplianceViolation[]
+  
+  @@map("equipment")
+}
+
+model CalibrationRecord {
+  id                      String              @id @default(cuid())
+  equipmentId             String
+  userId                  String
+  status                  String              @default("PENDING")
+  result                  String?
+  measurements            String              @default("{}")
+  notes                   String?
+  dueDate                 DateTime
+  scheduledAt             DateTime?
+  performedAt             DateTime?
+  performedBy             String?
+  calibrationType         String              @default("PERIODIC")
+  complianceStatus        String              @default("PENDING")
+  template                String?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  
+  equipment               Equipment           @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  user                    User                @relation(fields: [userId], references: [id])
+  
+  @@map("calibration_records")
+}
+
+model MaintenanceRecord {
+  id                      String              @id @default(cuid())
+  equipmentId             String
+  type                    String              @default("PREVENTIVE")
+  description             String
+  performedAt             DateTime
+  performedBy             String
+  cost                    Float?
+  notes                   String?
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  
+  equipment               Equipment           @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  
+  @@map("maintenance_records")
+}
+
+// Reports System
+model Report {
+  id                      String      @id @default(cuid())
+  laboratoryId            String
+  userId                  String
+  type                    String      @default("CALIBRATION")
+  status                  String      @default("DRAFT")
+  title                   String
+  content                 String
+  metadata                String      @default("{}")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("reports")
+}
+
+// Compliance Management
+model ComplianceViolation {
+  id                      String      @id @default(cuid())
+  laboratoryId            String
+  userId                  String?
+  equipmentId             String?
+  severity                String      @default("MEDIUM")
+  status                  String      @default("OPEN")
+  description             String
+  resolution              String?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  user                    User?       @relation(fields: [userId], references: [id])
+  equipment               Equipment?  @relation(fields: [equipmentId], references: [id])
+  
+  @@map("compliance_violations")
+}
+
+// Team Management
+model Assignment {
+  id                      String      @id @default(cuid())
+  userId                  String
+  taskId                  String
+  status                  String      @default("PENDING")
+  assignedAt              DateTime    @default(now())
+  completedAt             DateTime?
+  
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("assignments")
+}
+
+model TeamActivity {
+  id                      String      @id @default(cuid())
+  userId                  String
+  activityType            String
+  description             String
+  metadata                String      @default("{}")
+  createdAt               DateTime    @default(now())
+  
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("team_activities")
+}
+
+model UserInvitation {
+  id                      String      @id @default(cuid())
+  email                   String
+  laboratoryId            String
+  role                    String      @default("USER")
+  status                  String      @default("PENDING")
+  token                   String      @unique
+  invitedById             String
+  invitedUserId           String?     @unique
+  expiresAt               DateTime
+  createdAt               DateTime    @default(now())
+  
+  laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  invitedBy               User        @relation("InvitedBy", fields: [invitedById], references: [id])
+  invitedUser             User?       @relation("InvitedUser", fields: [invitedUserId], references: [id])
+  
+  @@map("user_invitations")
+}
+
+model UserProfile {
+  id                      String      @id @default(cuid())
+  userId                  String      @unique
+  bio                     String?
+  avatar                  String?
+  preferences             String      @default("{}")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_profiles")
+}
+
+// Notifications
+model Notification {
+  id                      String      @id @default(cuid())
+  userId                  String
+  laboratoryId            String
+  type                    String      @default("SYSTEM_ALERT")
+  title                   String
+  message                 String
+  read                    Boolean     @default(false)
+  readAt                  DateTime?
+  metadata                String      @default("{}")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+// AI System Models
+model BiomniQuery {
+  id                      String      @id @default(cuid())
+  userId                  String
+  laboratoryId            String
+  query                   String
+  response                String?
+  status                  String      @default("EXECUTING")
+  metadata                String      @default("{}")
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("biomni_queries")
+}

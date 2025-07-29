@@ -1,0 +1,60 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+
+export const dynamic = 'force-dynamic'
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001'
+
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.headers.get('authorization')
+    
+    const response = await fetch(`${API_BASE_URL}/api/admin/system/backups`, {
+      headers: {
+        'Authorization': token || '',
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Backend responded with status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error('Error proxying system backups request:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch system backups' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const token = request.headers.get('authorization')
+    const body = await request.json()
+    
+    const response = await fetch(`${API_BASE_URL}/api/admin/system/backups`, {
+      method: 'POST',
+      headers: {
+        'Authorization': token || '',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
+
+    if (!response.ok) {
+      throw new Error(`Backend responded with status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error('Error proxying create backup request:', error)
+    return NextResponse.json(
+      { error: 'Failed to create backup' },
+      { status: 500 }
+    )
+  }
+} 

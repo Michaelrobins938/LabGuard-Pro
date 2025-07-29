@@ -1,73 +1,138 @@
+// src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-
-const registerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(50),
-  lastName: z.string().min(1, 'Last name is required').max(50),
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-  laboratoryName: z.string().min(1, 'Laboratory name is required').max(100),
-  laboratoryType: z.enum(['clinical', 'research', 'industrial', 'academic']).optional(),
-  role: z.enum(['lab_manager', 'technician', 'supervisor', 'viewer']).optional()
-})
 
 export async function POST(request: NextRequest) {
+  const requestId = Math.random().toString(36).substr(2, 9)
+  const startTime = Date.now()
+  
+  console.log(`🚀 [${requestId}] Registration request started`)
+  
   try {
-    const body = await request.json()
-    const validatedData = registerSchema.parse(body)
-
-    // Validate password confirmation
-    if (validatedData.password !== validatedData.confirmPassword) {
+    // Get backend URL from environment
+    const backendUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL
+    
+    if (!backendUrl) {
+      console.error(`❌ [${requestId}] Backend URL not configured`)
       return NextResponse.json(
-        { error: 'Passwords do not match' },
-        { status: 400 }
+        { 
+          error: 'Backend configuration error',
+          requestId,
+          timestamp: new Date().toISOString()
+        },
+        { status: 500 }
       )
     }
 
-    // Proxy to backend API
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    const response = await fetch(`${apiUrl}/api/auth/register`, {
+    console.log(`📤 [${requestId}] Proxying to backend: ${backendUrl}/api/auth/register`)
+
+    // Get the request body
+    const body = await request.json()
+    console.log(`📝 [${requestId}] Registration data:`, {
+      email: body.email,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      laboratoryName: body.laboratoryName,
+      hasPassword: !!body.password
+    })
+
+    // Transform frontend data to backend format - send firstName and lastName separately
+    const backendData = {
+      email: body.email,
+      password: body.password,
+      firstName: body.firstName || '',
+      lastName: body.lastName || '',
+      role: body.role || 'USER'
+    }
+
+    console.log(`🔄 [${requestId}] Transformed data for backend:`, {
+      email: backendData.email,
+      firstName: backendData.firstName,
+      lastName: backendData.lastName,
+      role: backendData.role
+    })
+
+    // Forward request to backend
+    const backendResponse = await fetch(`${backendUrl}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': 'LabGuard-Pro-Frontend/1.0',
+        'X-Request-ID': requestId,
+        'X-Forwarded-For': request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        'X-Forwarded-Host': request.headers.get('host') || 'unknown'
       },
-      body: JSON.stringify({
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
-        email: validatedData.email,
-        password: validatedData.password,
-        laboratoryName: validatedData.laboratoryName,
-        laboratoryType: validatedData.laboratoryType,
-        role: validatedData.role
-      }),
+      body: JSON.stringify(backendData)
     })
 
-    const data = await response.json()
+    const responseTime = Date.now() - startTime
+    console.log(`⏱️ [${requestId}] Backend response time: ${responseTime}ms`)
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: data.message || 'Registration failed' },
-        { status: response.status }
-      )
-    }
+    // Get response data
+    const responseData = await backendResponse.json()
+    
+    console.log(`📥 [${requestId}] Backend response:`, {
+      status: backendResponse.status,
+      statusText: backendResponse.statusText,
+      hasData: !!responseData,
+      success: backendResponse.ok
+    })
 
-    // Return the backend response
-    return NextResponse.json(data, { status: response.status })
+    // Return the backend response with appropriate status
+    return NextResponse.json(
+      responseData,
+      { 
+        status: backendResponse.status,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'X-Request-ID': requestId,
+          'X-Response-Time': `${responseTime}ms`,
+          'X-Backend-Status': backendResponse.status.toString()
+        }
+      }
+    )
 
   } catch (error) {
-    console.error('Registration error:', error)
+    const responseTime = Date.now() - startTime
     
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      )
-    }
+    console.error(`❌ [${requestId}] Registration proxy error:`, {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      responseTime: `${responseTime}ms`
+    })
 
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { 
+        error: 'Failed to connect to backend service',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        requestId,
+        timestamp: new Date().toISOString()
+      },
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'X-Request-ID': requestId
+        }
+      }
     )
   }
+}
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400'
+    }
+  })
 } 

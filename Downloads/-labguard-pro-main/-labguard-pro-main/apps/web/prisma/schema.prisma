@@ -68,6 +68,8 @@ model Laboratory {
   equipment   Equipment[]
   calibrations CalibrationRecord[]
   subscriptions Subscription[]
+  usageTracking UsageTracking[]
+  usageEvents UsageEvent[]
   notifications Notification[]
   auditLogs   AuditLog[]
 
@@ -275,6 +277,10 @@ model Subscription {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
+  // Relations
+  usageTracking     UsageTracking[]
+  invoices          Invoice[]
+
   // Indexes for performance
   @@index([planId])
   @@index([status])
@@ -308,6 +314,93 @@ model SubscriptionPlan {
   @@index([price])
   @@index([createdAt])
   @@map("subscription_plans")
+}
+
+// Usage Tracking
+model UsageTracking {
+  id                String   @id @default(cuid())
+  laboratoryId      String
+  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  subscriptionId    String
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  equipmentCount    Int      @default(0)
+  aiChecksUsed      Int      @default(0)
+  teamMembersCount  Int      @default(0)
+  storageUsed       Float    @default(0) // GB
+  periodStart       DateTime
+  periodEnd         DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  usageEvents       UsageEvent[]
+
+  // Indexes for performance
+  @@index([laboratoryId])
+  @@index([subscriptionId])
+  @@index([periodStart])
+  @@index([periodEnd])
+  @@map("usage_tracking")
+}
+
+// Usage Events
+model UsageEvent {
+  id                String   @id @default(cuid())
+  type              String   // Event type (equipment_added, ai_check_performed, etc.)
+  value             Float    // Numeric value associated with the event
+  metadata          Json     // Additional event metadata
+  timestamp         DateTime
+  laboratoryId      String
+  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  usageTrackingId   String?
+  usageTracking     UsageTracking? @relation(fields: [usageTrackingId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+
+  // Indexes for performance
+  @@index([laboratoryId])
+  @@index([type])
+  @@index([timestamp])
+  @@index([usageTrackingId])
+  @@map("usage_events")
+}
+
+// Invoice Management
+model Invoice {
+  id                String   @id @default(cuid())
+  stripeId          String   @unique
+  subscriptionId    String
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amount            Int      // Amount in cents
+  currency          String   @default("USD")
+  status            String   @default("pending") // pending, paid, failed, void
+  description       String?
+  paidAt            DateTime?
+  failedAt          DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Indexes for performance
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("invoices")
+}
+
+// Customer Management
+model Customer {
+  id                String   @id @default(cuid())
+  stripeId          String   @unique
+  email             String
+  name              String?
+  phone             String?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Indexes for performance
+  @@index([stripeId])
+  @@index([email])
+  @@map("customers")
 }
 
 // AI Compliance Templates

@@ -45,7 +45,7 @@ export class EquipmentController {
    */
   async getEquipment(req: Request, res: Response) {
     try {
-      const { laboratoryId } = req.user as any
+      const { laboratoryId } = req.user!
       const { page = 1, limit = 20, status, type, search } = req.query
 
       const where: any = {
@@ -112,7 +112,7 @@ export class EquipmentController {
   async getEquipmentById(req: Request, res: Response) {
     try {
       const { id } = req.params
-      const { laboratoryId } = req.user as any
+      const { laboratoryId } = req.user!
 
       const equipment = await prisma.equipment.findFirst({
         where: {
@@ -155,7 +155,7 @@ export class EquipmentController {
 
   async createEquipment(req: Request, res: Response) {
     try {
-      const { laboratoryId } = req.user as any
+      const { laboratoryId } = req.user!
       const validatedData = equipmentCreateSchema.parse(req.body)
 
       const equipment = await prisma.equipment.create({
@@ -207,7 +207,7 @@ export class EquipmentController {
   async updateEquipment(req: Request, res: Response) {
     try {
       const { id } = req.params
-      const { laboratoryId } = req.user as any
+      const { laboratoryId } = req.user!
       const validatedData = equipmentUpdateSchema.parse(req.body)
 
       const equipment = await prisma.equipment.findFirst({
@@ -284,7 +284,7 @@ export class EquipmentController {
   async deleteEquipment(req: Request, res: Response) {
     try {
       const { id } = req.params
-      const { laboratoryId } = req.user as any
+      const { laboratoryId } = req.user!
 
       const equipment = await prisma.equipment.findFirst({
         where: {
@@ -321,7 +321,7 @@ export class EquipmentController {
   async getEquipmentStatus(req: Request, res: Response) {
     try {
       const { id } = req.params
-      const { laboratoryId } = req.user as any
+      const { laboratoryId } = req.user!
 
       const equipment = await prisma.equipment.findFirst({
         where: {

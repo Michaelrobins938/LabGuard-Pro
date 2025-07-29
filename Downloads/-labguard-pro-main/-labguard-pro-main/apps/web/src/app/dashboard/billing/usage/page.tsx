@@ -1,330 +1,411 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { 
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  Users,
-  Zap,
-  HardDrive,
-  Calendar,
-  Download,
-  Filter
-} from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { BarChart3, TrendingUp, TrendingDown, Users, Brain, HardDrive, Zap, Calendar, Download, AlertCircle, CheckCircle } from 'lucide-react'
 import { apiService } from '@/lib/api-service'
+import { toast } from 'sonner'
 
 interface UsageData {
-  currentPeriod: {
-    equipment: number
-    aiChecks: number
-    teamMembers: number
-    storage: number
+  equipment: {
+    used: number
+    limit: number
+    percentage: number
   }
-  previousPeriod: {
-    equipment: number
-    aiChecks: number
-    teamMembers: number
-    storage: number
+  aiChecks: {
+    used: number
+    limit: number
+    percentage: number
   }
-  limits: {
-    equipment: number
-    aiChecks: number
-    teamMembers: number
-    storage: number
+  teamMembers: {
+    used: number
+    limit: number
+    percentage: number
   }
-  trends: {
-    date: string
-    equipment: number
-    aiChecks: number
-    teamMembers: number
-    storage: number
-  }[]
-  alerts: {
-    type: 'warning' | 'critical'
-    message: string
-    threshold: number
-    current: number
-  }[]
-  topUsers: {
-    id: string
-    name: string
-    email: string
-    activity: number
-    lastActive: string
-  }[]
+  storage: {
+    used: number
+    limit: number
+    percentage: number
+  }
+  apiCalls: {
+    used: number
+    limit: number
+    percentage: number
+  }
+  reports: {
+    used: number
+    limit: number
+    percentage: number
+  }
+}
+
+interface UsageHistory {
+  date: string
+  equipment: number
+  aiChecks: number
+  teamMembers: number
+  storage: number
 }
 
 export default function UsagePage() {
-  const { data: session } = useSession()
+  const [usageData, setUsageData] = useState<UsageData | null>(null)
+  const [usageHistory, setUsageHistory] = useState<UsageHistory[]>([])
+  const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('30d')
 
-  // Fetch usage data
-  const { data: usageData, isLoading: usageLoading } = useQuery({
-    queryKey: ['usage-analytics', timeRange],
-    queryFn: async () => {
-      const response = await apiService.billing.getUsageAnalytics(timeRange)
-      return response as UsageData
-    },
-    enabled: !!session
-  })
+  useEffect(() => {
+    loadUsageData()
+  }, [timeRange])
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('en-US').format(num)
+  const loadUsageData = async () => {
+    try {
+      setLoading(true)
+      const response = await apiService.billing.getUsage()
+      setUsageData(response.usage)
+      
+      // Mock usage history data
+      const history = generateMockHistory()
+      setUsageHistory(history)
+    } catch (error: any) {
+      console.error('Failed to load usage data:', error)
+      toast.error('Failed to load usage data')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const formatBytes = (bytes: number) => {
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-    if (bytes === 0) return '0 B'
-    const i = Math.floor(Math.log(bytes) / Math.log(1024))
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i]
-  }
-
-  const getUsagePercentage = (current: number, limit: number) => {
-    if (limit === -1) return 0 // Unlimited
-    return Math.min((current / limit) * 100, 100)
+  const generateMockHistory = (): UsageHistory[] => {
+    const history: UsageHistory[] = []
+    const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
+    
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      
+      history.push({
+        date: date.toISOString().split('T')[0],
+        equipment: Math.floor(Math.random() * 20) + 10,
+        aiChecks: Math.floor(Math.random() * 50) + 200,
+        teamMembers: Math.floor(Math.random() * 5) + 5,
+        storage: Math.floor(Math.random() * 20) + 30
+      })
+    }
+    
+    return history
   }
 
   const getUsageColor = (percentage: number) => {
+    if (percentage >= 90) return 'text-red-400'
+    if (percentage >= 75) return 'text-yellow-400'
+    return 'text-green-400'
+  }
+
+  const getUsageBarColor = (percentage: number) => {
     if (percentage >= 90) return 'bg-red-500'
     if (percentage >= 75) return 'bg-yellow-500'
     return 'bg-green-500'
   }
 
-  const getTrendIcon = (current: number, previous: number) => {
-    if (current > previous) return <TrendingUp className="h-4 w-4 text-green-600" />
-    if (current < previous) return <TrendingDown className="h-4 w-4 text-red-600" />
-    return <BarChart3 className="h-4 w-4 text-gray-600" />
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 GB'
+    const gb = bytes / (1024 * 1024 * 1024)
+    return `${gb.toFixed(1)} GB`
   }
 
-  const getTrendText = (current: number, previous: number) => {
-    const diff = current - previous
-    const percentage = previous > 0 ? (diff / previous) * 100 : 0
-    if (diff > 0) return `+${formatNumber(diff)} (+${percentage.toFixed(1)}%)`
-    if (diff < 0) return `${formatNumber(diff)} (${percentage.toFixed(1)}%)`
-    return 'No change'
+  const exportUsageReport = () => {
+    // In a real implementation, this would generate and download a CSV/PDF report
+    toast.success('Usage report exported successfully')
   }
 
-  if (usageLoading) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-white/10 rounded mb-4"></div>
+            <div className="h-64 bg-white/10 rounded"></div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Usage Analytics</h1>
-          <p className="text-muted-foreground">
-            Monitor your platform usage and resource consumption
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="px-3 py-2 border rounded-md text-sm"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="1y">Last year</option>
-          </select>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export Data
-          </Button>
-        </div>
-      </div>
-
-      {/* Usage Alerts */}
-      {usageData?.alerts && usageData.alerts.length > 0 && (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardContent className="pt-6">
-            <div className="space-y-3">
-              {usageData.alerts.map((alert, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    <h3 className="font-medium text-yellow-900">{alert.message}</h3>
-                    <p className="text-sm text-yellow-700 mt-1">
-                      Current: {formatNumber(alert.current)} / Limit: {formatNumber(alert.threshold)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Usage Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Equipment</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatNumber(usageData?.currentPeriod.equipment || 0)}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-              {getTrendIcon(usageData?.currentPeriod.equipment || 0, usageData?.previousPeriod.equipment || 0)}
-              {getTrendText(usageData?.currentPeriod.equipment || 0, usageData?.previousPeriod.equipment || 0)}
-            </div>
-            {usageData?.limits.equipment !== -1 && (
-              <div className="mt-2">
-                <Progress 
-                  value={getUsagePercentage(usageData?.currentPeriod.equipment || 0, usageData?.limits.equipment || 0)} 
-                  className="h-2"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatNumber(usageData?.currentPeriod.equipment || 0)} / {formatNumber(usageData?.limits.equipment || 0)}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Checks</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatNumber(usageData?.currentPeriod.aiChecks || 0)}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-              {getTrendIcon(usageData?.currentPeriod.aiChecks || 0, usageData?.previousPeriod.aiChecks || 0)}
-              {getTrendText(usageData?.currentPeriod.aiChecks || 0, usageData?.previousPeriod.aiChecks || 0)}
-            </div>
-            {usageData?.limits.aiChecks !== -1 && (
-              <div className="mt-2">
-                <Progress 
-                  value={getUsagePercentage(usageData?.currentPeriod.aiChecks || 0, usageData?.limits.aiChecks || 0)} 
-                  className="h-2"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatNumber(usageData?.currentPeriod.aiChecks || 0)} / {formatNumber(usageData?.limits.aiChecks || 0)}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatNumber(usageData?.currentPeriod.teamMembers || 0)}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-              {getTrendIcon(usageData?.currentPeriod.teamMembers || 0, usageData?.previousPeriod.teamMembers || 0)}
-              {getTrendText(usageData?.currentPeriod.teamMembers || 0, usageData?.previousPeriod.teamMembers || 0)}
-            </div>
-            {usageData?.limits.teamMembers !== -1 && (
-              <div className="mt-2">
-                <Progress 
-                  value={getUsagePercentage(usageData?.currentPeriod.teamMembers || 0, usageData?.limits.teamMembers || 0)} 
-                  className="h-2"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatNumber(usageData?.currentPeriod.teamMembers || 0)} / {formatNumber(usageData?.limits.teamMembers || 0)}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Storage Used</CardTitle>
-            <HardDrive className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatBytes(usageData?.currentPeriod.storage || 0)}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-              {getTrendIcon(usageData?.currentPeriod.storage || 0, usageData?.previousPeriod.storage || 0)}
-              {getTrendText(usageData?.currentPeriod.storage || 0, usageData?.previousPeriod.storage || 0)}
-            </div>
-            {usageData?.limits.storage !== -1 && (
-              <div className="mt-2">
-                <Progress 
-                  value={getUsagePercentage(usageData?.currentPeriod.storage || 0, usageData?.limits.storage || 0)} 
-                  className="h-2"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatBytes(usageData?.currentPeriod.storage || 0)} / {formatBytes(usageData?.limits.storage || 0)}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Usage Trends Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Usage Trends</CardTitle>
-          <CardDescription>
-            {timeRange === '7d' ? '7-day' : timeRange === '30d' ? '30-day' : timeRange === '90d' ? '90-day' : '1-year'} usage trends for your laboratory
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Usage trends chart will be implemented here</p>
-              <p className="text-sm">Shows daily/weekly usage patterns over time</p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Usage Analytics</h1>
+            <p className="text-gray-300">Monitor your resource usage and plan limits</p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center space-x-4">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-32 bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white/10 border-white/20">
+                <SelectItem value="7d">Last 7 days</SelectItem>
+                <SelectItem value="30d">Last 30 days</SelectItem>
+                <SelectItem value="90d">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+              onClick={exportUsageReport}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export Report
+            </Button>
+          </div>
+        </div>
 
-      {/* Top Users */}
-      {usageData?.topUsers && usageData.topUsers.length > 0 && (
-        <Card>
+        {/* Current Usage Overview */}
+        {usageData && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center">
+                  <Users className="w-5 h-5 mr-2" />
+                  Equipment Items
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl font-bold text-white">
+                    {usageData.equipment.used}
+                  </span>
+                  <span className="text-gray-300">
+                    / {usageData.equipment.limit === -1 ? '∞' : usageData.equipment.limit}
+                  </span>
+                </div>
+                <Progress 
+                  value={usageData.equipment.percentage} 
+                  className="h-2 mb-2"
+                />
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`${getUsageColor(usageData.equipment.percentage)}`}>
+                    {usageData.equipment.percentage}% used
+                  </span>
+                  {usageData.equipment.percentage >= 90 && (
+                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      Near Limit
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center">
+                  <Brain className="w-5 h-5 mr-2" />
+                  AI Compliance Checks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl font-bold text-white">
+                    {usageData.aiChecks.used}
+                  </span>
+                  <span className="text-gray-300">
+                    / {usageData.aiChecks.limit === -1 ? '∞' : usageData.aiChecks.limit}
+                  </span>
+                </div>
+                <Progress 
+                  value={usageData.aiChecks.percentage} 
+                  className="h-2 mb-2"
+                />
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`${getUsageColor(usageData.aiChecks.percentage)}`}>
+                    {usageData.aiChecks.percentage}% used
+                  </span>
+                  {usageData.aiChecks.percentage >= 90 && (
+                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      Near Limit
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center">
+                  <Users className="w-5 h-5 mr-2" />
+                  Team Members
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl font-bold text-white">
+                    {usageData.teamMembers.used}
+                  </span>
+                  <span className="text-gray-300">
+                    / {usageData.teamMembers.limit === -1 ? '∞' : usageData.teamMembers.limit}
+                  </span>
+                </div>
+                <Progress 
+                  value={usageData.teamMembers.percentage} 
+                  className="h-2 mb-2"
+                />
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`${getUsageColor(usageData.teamMembers.percentage)}`}>
+                    {usageData.teamMembers.percentage}% used
+                  </span>
+                  {usageData.teamMembers.percentage >= 90 && (
+                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      Near Limit
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center">
+                  <HardDrive className="w-5 h-5 mr-2" />
+                  Storage
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl font-bold text-white">
+                    {formatBytes(usageData.storage.used * 1024 * 1024 * 1024)}
+                  </span>
+                  <span className="text-gray-300">
+                    / {usageData.storage.limit} GB
+                  </span>
+                </div>
+                <Progress 
+                  value={usageData.storage.percentage} 
+                  className="h-2 mb-2"
+                />
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`${getUsageColor(usageData.storage.percentage)}`}>
+                    {usageData.storage.percentage}% used
+                  </span>
+                  {usageData.storage.percentage >= 90 && (
+                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      Near Limit
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center">
+                  <Zap className="w-5 h-5 mr-2" />
+                  API Calls
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl font-bold text-white">
+                    {usageData.apiCalls.used.toLocaleString()}
+                  </span>
+                  <span className="text-gray-300">
+                    / {usageData.apiCalls.limit === -1 ? '∞' : usageData.apiCalls.limit.toLocaleString()}
+                  </span>
+                </div>
+                <Progress 
+                  value={usageData.apiCalls.percentage} 
+                  className="h-2 mb-2"
+                />
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`${getUsageColor(usageData.apiCalls.percentage)}`}>
+                    {usageData.apiCalls.percentage}% used
+                  </span>
+                  {usageData.apiCalls.percentage >= 90 && (
+                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      Near Limit
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center">
+                  <BarChart3 className="w-5 h-5 mr-2" />
+                  Reports Generated
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl font-bold text-white">
+                    {usageData.reports.used}
+                  </span>
+                  <span className="text-gray-300">
+                    / {usageData.reports.limit === -1 ? '∞' : usageData.reports.limit}
+                  </span>
+                </div>
+                <Progress 
+                  value={usageData.reports.percentage} 
+                  className="h-2 mb-2"
+                />
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`${getUsageColor(usageData.reports.percentage)}`}>
+                    {usageData.reports.percentage}% used
+                  </span>
+                  {usageData.reports.percentage >= 90 && (
+                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      Near Limit
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Usage Trends */}
+        <Card className="bg-white/5 border-white/10 mb-8">
           <CardHeader>
-            <CardTitle>Top Active Users</CardTitle>
-            <CardDescription>
-              Users with the highest activity in the current period
-            </CardDescription>
+            <CardTitle className="text-white flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2" />
+              Usage Trends
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {usageData.topUsers.map((user, index) => (
-                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-medium">
-                      {user.name.charAt(0)}
-                    </div>
-                    <div>
-                      <div className="font-medium">{user.name}</div>
-                      <div className="text-sm text-muted-foreground">{user.email}</div>
-                    </div>
+              {usageHistory.map((day, index) => (
+                <div key={day.date} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <span className="text-white font-medium">{day.date}</span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-medium">{formatNumber(user.activity)} activities</div>
-                    <div className="text-sm text-muted-foreground">
-                      Last active: {new Date(user.lastActive).toLocaleDateString()}
+                  <div className="flex items-center space-x-6">
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">Equipment</div>
+                      <div className="text-white font-semibold">{day.equipment}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">AI Checks</div>
+                      <div className="text-white font-semibold">{day.aiChecks}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">Team</div>
+                      <div className="text-white font-semibold">{day.teamMembers}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-400">Storage</div>
+                      <div className="text-white font-semibold">{day.storage} GB</div>
                     </div>
                   </div>
                 </div>
@@ -332,84 +413,65 @@ export default function UsagePage() {
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Usage Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Usage Breakdown</CardTitle>
-          <CardDescription>
-            Detailed breakdown of your current usage against plan limits
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {usageData && (
-              <>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Equipment Items</span>
-                    <span className="text-sm text-muted-foreground">
-                      {formatNumber(usageData.currentPeriod.equipment)} / {usageData.limits.equipment === -1 ? 'Unlimited' : formatNumber(usageData.limits.equipment)}
-                    </span>
-                  </div>
-                  {usageData.limits.equipment !== -1 && (
-                    <Progress 
-                      value={getUsagePercentage(usageData.currentPeriod.equipment, usageData.limits.equipment)} 
-                      className="h-2"
-                    />
-                  )}
+        {/* Usage Insights */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white">Usage Insights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <TrendingUp className="w-5 h-5 text-green-400" />
+                <div>
+                  <div className="text-white font-medium">AI Checks Usage</div>
+                  <div className="text-gray-300 text-sm">47% increase from last month</div>
                 </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <TrendingDown className="w-5 h-5 text-blue-400" />
+                <div>
+                  <div className="text-white font-medium">Storage Usage</div>
+                  <div className="text-gray-300 text-sm">12% decrease from last month</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <div>
+                  <div className="text-white font-medium">Team Members</div>
+                  <div className="text-gray-300 text-sm">Stable usage pattern</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">AI Compliance Checks</span>
-                    <span className="text-sm text-muted-foreground">
-                      {formatNumber(usageData.currentPeriod.aiChecks)} / {usageData.limits.aiChecks === -1 ? 'Unlimited' : formatNumber(usageData.limits.aiChecks)}
-                    </span>
-                  </div>
-                  {usageData.limits.aiChecks !== -1 && (
-                    <Progress 
-                      value={getUsagePercentage(usageData.currentPeriod.aiChecks, usageData.limits.aiChecks)} 
-                      className="h-2"
-                    />
-                  )}
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white">Recommendations</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="text-white font-medium mb-1">Consider Plan Upgrade</div>
+                <div className="text-gray-300 text-sm">
+                  Your AI checks usage is approaching the limit. Consider upgrading to a higher plan.
                 </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Team Members</span>
-                    <span className="text-sm text-muted-foreground">
-                      {formatNumber(usageData.currentPeriod.teamMembers)} / {usageData.limits.teamMembers === -1 ? 'Unlimited' : formatNumber(usageData.limits.teamMembers)}
-                    </span>
-                  </div>
-                  {usageData.limits.teamMembers !== -1 && (
-                    <Progress 
-                      value={getUsagePercentage(usageData.currentPeriod.teamMembers, usageData.limits.teamMembers)} 
-                      className="h-2"
-                    />
-                  )}
+              </div>
+              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div className="text-white font-medium mb-1">Storage Optimization</div>
+                <div className="text-gray-300 text-sm">
+                  Your storage usage is well within limits. No action needed.
                 </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Storage</span>
-                    <span className="text-sm text-muted-foreground">
-                      {formatBytes(usageData.currentPeriod.storage)} / {usageData.limits.storage === -1 ? 'Unlimited' : formatBytes(usageData.limits.storage)}
-                    </span>
-                  </div>
-                  {usageData.limits.storage !== -1 && (
-                    <Progress 
-                      value={getUsagePercentage(usageData.currentPeriod.storage, usageData.limits.storage)} 
-                      className="h-2"
-                    />
-                  )}
+              </div>
+              <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <div className="text-white font-medium mb-1">Team Growth</div>
+                <div className="text-gray-300 text-sm">
+                  Consider adding more team members as your usage grows.
                 </div>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 } 

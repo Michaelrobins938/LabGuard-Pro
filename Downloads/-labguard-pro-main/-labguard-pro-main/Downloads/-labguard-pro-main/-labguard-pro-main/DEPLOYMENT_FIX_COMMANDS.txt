@@ -1,0 +1,26 @@
+DEPLOYMENT FIX COMMANDS
+======================
+
+The issue is that Vercel is configured to deploy from the 'master' branch, but our fixes are on the 'main' branch.
+
+Run these commands in your terminal (one by one):
+
+1. Switch to master branch:
+   git checkout master
+
+2. Merge our fixes from main branch:
+   git merge main
+
+3. Push to master branch:
+   git push origin master
+
+4. Check that it worked:
+   git log --oneline -3
+
+After running these commands, Vercel should automatically trigger a new deployment from the master branch with our fixes.
+
+The fixes we made:
+- Fixed Prisma import: @/lib/prisma -> @/lib/db
+- Fixed nodemailer dependency conflict: added overrides to force version 6.6.5
+
+If you get any merge conflicts, just accept the changes from main branch. 

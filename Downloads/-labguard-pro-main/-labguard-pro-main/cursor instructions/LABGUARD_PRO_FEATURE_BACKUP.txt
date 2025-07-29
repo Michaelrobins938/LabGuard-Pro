@@ -1,0 +1,991 @@
+# LABGUARD PRO COMPREHENSIVE FEATURE BACKUP
+# Created: 2025-07-29
+# Purpose: Document all features before deployment simplification
+# Status: PRE-DEPLOYMENT FIX
+
+## =============================================================================
+## 1. COMPLETE DATABASE SCHEMA BACKUP
+## =============================================================================
+
+### CORE USER MANAGEMENT TABLES
+- **User Model**: Complete user authentication and profile management
+  - Fields: id, email, password, firstName, lastName, name, phone, role, isActive, emailVerified, lastLoginAt, createdAt, updatedAt, deletedAt, laboratoryId
+  - Relationships: laboratory (many-to-one), equipment (one-to-many), calibrationRecords (one-to-many), complianceReports (one-to-many), notifications (one-to-many), usageLogs (one-to-many), auditLogs (one-to-many), createdEquipment (one-to-many), reportsCreated (one-to-many), vectorTests (one-to-many), biomniQueries (one-to-many), protocolsCreated (one-to-many), protocolExecutions (one-to-many), researchProjects (one-to-many), experimentalDataUploads (one-to-many)
+
+- **Laboratory Model**: Multi-tenant laboratory management
+  - Fields: id, name, description, address, phone, email, website, isActive, planType, trialEndsAt, createdAt, updatedAt, deletedAt
+  - Relationships: users (one-to-many), equipment (one-to-many), complianceTemplates (one-to-many), complianceReports (one-to-many), subscriptions (one-to-many), calibrations (one-to-many), notifications (one-to-many), auditLogs (one-to-many), reports (one-to-many), vectorTests (one-to-many), vectorAlerts (one-to-many), biomniQueries (one-to-many), experimentalProtocols (one-to-many), protocolExecutions (one-to-many), researchProjects (one-to-many), experimentalData (one-to-many)
+
+### EQUIPMENT MANAGEMENT TABLES
+- **Equipment Model**: Laboratory instrument tracking
+  - Fields: id, name, model, serialNumber, manufacturer, equipmentType, location, status, lastCalibratedAt, nextCalibrationAt, calibrationIntervalDays, accuracy, precision, specifications, notes, installDate, createdAt, updatedAt, deletedAt, laboratoryId, assignedToId, createdById
+  - Relationships: laboratory (many-to-one), assignedTo (many-to-one), createdBy (many-to-one), calibrationRecords (one-to-many), complianceReports (one-to-many), maintenanceRecords (one-to-many), reports (one-to-many), vectorTests (one-to-many), biomniQueries (one-to-many), experimentalData (one-to-many)
+
+- **CalibrationRecord Model**: Equipment calibration tracking
+  - Fields: id, equipmentId, userId, laboratoryId, calibrationDate, dueDate, performedDate, scheduledDate, status, result, complianceStatus, method, standardUsed, temperature, humidity, pressure, accuracy, precision, linearity, repeatability, sensitivity, isCompliant, complianceScore, aiValidation, aiValidationResult, validationNotes, notes, deviations, correctiveActions, aiAnalysis, reportGenerated, reportUrl, templateId, createdAt, updatedAt, deletedAt
+  - Relationships: equipment (many-to-one), user (many-to-one), laboratory (many-to-one), template (many-to-one), biomniQueries (one-to-many)
+
+- **MaintenanceRecord Model**: Equipment maintenance tracking
+  - Fields: id, equipmentId, maintenanceDate, type, description, performedBy, cost, status, createdAt, updatedAt
+  - Relationships: equipment (many-to-one)
+
+### COMPLIANCE & REPORTING TABLES
+- **ComplianceTemplate Model**: AI prompt templates for compliance
+  - Fields: id, title, name, description, category, equipmentType, template, promptTemplate, variables, useCase, safetyChecks, validationCriteria, regulatoryStandards, isActive, version, createdAt, updatedAt, deletedAt, laboratoryId
+  - Relationships: laboratory (many-to-one), calibrationRecords (one-to-many), usageRecords (one-to-many)
+
+- **TemplateUsage Model**: Template usage tracking
+  - Fields: id, templateId, userId, laboratoryId, query, result, executionTime, cost, quantity, createdAt
+  - Relationships: template (many-to-one)
+
+- **UsageLog Model**: System usage tracking
+  - Fields: id, userId, laboratoryId, action, resource, quantity, cost, metadata, createdAt
+  - Relationships: user (many-to-one), laboratory (many-to-one)
+
+- **ComplianceReport Model**: AI-generated compliance reports
+  - Fields: id, title, description, reportType, status, content, summary, recommendations, riskLevel, generatedAt, expiresAt, isPublic, createdAt, updatedAt, deletedAt, laboratoryId, equipmentId, generatedById
+  - Relationships: laboratory (many-to-one), equipment (many-to-one), generatedBy (many-to-one)
+
+- **Report Model**: General reporting system
+  - Fields: id, title, description, type, findings, recommendations, status, equipmentId, laboratoryId, createdById, attachments, createdAt, updatedAt, deletedAt
+  - Relationships: equipment (many-to-one), laboratory (many-to-many), createdBy (many-to-one)
+
+### SUBSCRIPTION & BILLING TABLES
+- **Subscription Model**: Laboratory subscription management
+  - Fields: id, laboratoryId, planId, stripeId, stripeCustomerId, status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, cancelAtPeriodEnd, createdAt, updatedAt
+  - Relationships: laboratory (one-to-one), plan (many-to-one)
+
+- **SubscriptionPlan Model**: Available subscription plans
+  - Fields: id, name, description, price, currency, interval, stripeId, equipmentLimit, aiChecksLimit, teamMembersLimit, storageLimit, features, isActive, createdAt, updatedAt
+  - Relationships: subscriptions (one-to-many)
+
+### NOTIFICATION & AUDIT TABLES
+- **Notification Model**: System notifications
+  - Fields: id, userId, laboratoryId, type, title, message, isRead, metadata, createdAt, updatedAt
+  - Relationships: user (many-to-one), laboratory (many-to-one)
+
+- **AuditLog Model**: System audit trail
+  - Fields: id, userId, laboratoryId, action, entity, entityId, details, ipAddress, userAgent, createdAt
+  - Relationships: user (many-to-one), laboratory (many-to-one)
+
+### VECTOR CONTROL TABLES
+- **VectorTest Model**: Vector control testing
+  - Fields: id, type, priority, status, qcStatus, sampleCount, expectedCompletion, actualCompletion, location, notes, laboratoryId, technicianId, equipmentId, createdAt, updatedAt, deletedAt
+  - Relationships: laboratory (many-to-one), technician (many-to-one), equipment (many-to-one), stakeholders (one-to-many), alerts (one-to-many)
+
+- **VectorStakeholder Model**: Vector test stakeholders
+  - Fields: id, email, role, organization, testId, createdAt
+  - Relationships: test (many-to-one)
+
+- **VectorAlert Model**: Vector control alerts
+  - Fields: id, type, priority, message, actions, resolved, resolvedAt, testId, laboratoryId, createdAt, updatedAt
+  - Relationships: test (many-to-one), laboratory (many-to-one)
+
+### BIOMNI AI INTEGRATION TABLES
+- **BiomniQuery Model**: AI analysis queries
+  - Fields: id, query, context, result, summary, insights, recommendations, toolsUsed, databasesQueried, confidence, executionTime, cost, warnings, nextSteps, dataQuality, analysisType, priority, status, userId, laboratoryId, equipmentId, calibrationRecordId, researchProjectId, createdAt, updatedAt
+  - Relationships: user (many-to-one), laboratory (many-to-one), equipment (many-to-one), calibrationRecord (many-to-one), researchProject (many-to-one), experimentalProtocols (one-to-many)
+
+- **ExperimentalProtocol Model**: AI-generated experimental protocols
+  - Fields: id, name, description, category, biomniGenerated, biomniQueryId, objective, sampleType, techniques, steps, reagents, equipment, safetyConsiderations, expectedResults, qualityControls, troubleshooting, validated, validatedBy, validatedAt, validationNotes, usageCount, successRate, averageExecutionTime, costPerExecution, version, parentProtocolId, laboratoryId, createdBy, researchProjectId, createdAt, updatedAt, deletedAt
+  - Relationships: biomniQuery (many-to-one), parentProtocol (many-to-one), childProtocols (one-to-many), laboratory (many-to-one), creator (many-to-one), researchProject (many-to-one), executions (one-to-many)
+
+- **ProtocolExecution Model**: Protocol execution tracking
+  - Fields: id, protocolId, executionDate, operator, operatorUser, batchNumber, sampleId, status, duration, yield, purity, notes, deviations, measurements, images, qualityScore, passedQC, qcComments, reagentCost, laborCost, equipmentCost, totalCost, laboratoryId, createdAt, updatedAt
+  - Relationships: protocol (many-to-one), operatorUser (many-to-one), laboratory (many-to-one), experimentalData (one-to-many)
+
+- **ResearchProject Model**: Research project management
+  - Fields: id, name, description, hypothesis, objectives, methodology, timeline, budget, biomniGenerated, biomniInsights, recommendedProtocols, literatureReferences, riskAssessment, resourceRequirements, status, progress, milestones, deliverables, collaborators, fundingSources, ethicsApproval, datasets, publications, intellectualProperty, laboratoryId, principalInvestigator, completedAt, createdAt, updatedAt, deletedAt
+  - Relationships: laboratory (many-to-one), pi (many-to-one), biomniQueries (one-to-many), protocols (one-to-many), experimentalData (one-to-many)
+
+- **ExperimentalData Model**: Research data management
+  - Fields: id, name, description, dataType, fileFormat, filePath, fileSize, sampleCount, variables, metadata, qualityMetrics, processed, processingNotes, analysisResults, statisticalSummary, sourceExperiment, instrumentId, protocolExecutionId, accessLevel, retentionPeriod, backupLocation, checksumHash, laboratoryId, uploadedBy, researchProjectId, createdAt, updatedAt, deletedAt
+  - Relationships: instrument (many-to-one), protocolExecution (many-to-one), laboratory (many-to-one), uploader (many-to-one), researchProject (many-to-one)
+
+- **BiomniCapability Model**: AI capability management
+  - Fields: id, name, description, category, capabilityType, toolsRequired, databasesRequired, inputFormat, outputFormat, averageExecutionTime, averageAccuracy, averageCost, enabled, usageCount, lastUsed, documentation, examples, limitations, createdAt, updatedAt
+  - Relationships: None (standalone)
+
+### ENUMS DEFINED
+- UserRole: ADMIN, MANAGER, TECHNICIAN, USER
+- EquipmentType: ANALYZER, SPECTROMETER, MICROSCOPE, CENTRIFUGE, INCUBATOR, REFRIGERATOR, FREEZER, AUTOCLAVE, BALANCE, PH_METER, THERMOMETER, OTHER
+- EquipmentStatus: ACTIVE, INACTIVE, MAINTENANCE, RETIRED
+- CalibrationStatus: PENDING, IN_PROGRESS, COMPLETED, OVERDUE, CANCELLED
+- CalibrationResult: PASS, FAIL, CONDITIONAL
+- MaintenanceType: PREVENTIVE, CORRECTIVE, EMERGENCY
+- MaintenanceStatus: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, OVERDUE
+- ReportType: COMPLIANCE, AUDIT, PERFORMANCE, MAINTENANCE, CALIBRATION
+- ReportStatus: DRAFT, PENDING, APPROVED, REJECTED, PUBLISHED
+- RiskLevel: LOW, MEDIUM, HIGH, CRITICAL
+- PlanType: STARTER, PROFESSIONAL, ENTERPRISE
+- SubscriptionStatus: ACTIVE, PAST_DUE, CANCELED, TRIALING, UNPAID
+- NotificationType: CALIBRATION_DUE, CALIBRATION_OVERDUE, MAINTENANCE_DUE, SYSTEM_ALERT, USER_INVITE, SUBSCRIPTION_UPDATE
+- TemplateCategory: EQUIPMENT_CALIBRATION, SAMPLE_HANDLING, RESULT_VALIDATION, AUDIT_PREPARATION
+- QueryStatus: EXECUTING, COMPLETED, FAILED, CANCELLED
+- VectorType: MOSQUITO, TICK, RODENT, WATERBORNE
+- VectorPriority: OUTBREAK, ROUTINE, RESEARCH
+- VectorTestStatus: PENDING, IN_PROGRESS, COMPLETED, FAILED
+- QCStatus: PASS, FAIL, PENDING
+- VectorAlertType: QC_FAILURE, DELAY, OUTBREAK, EQUIPMENT
+- AlertPriority: CRITICAL, HIGH, MEDIUM, LOW
+- BiomniQueryStatus: PENDING, QUEUED, EXECUTING, COMPLETED, FAILED, CANCELLED, TIMEOUT
+- BiomniAnalysisType: PROTEOMICS, GENOMICS, METABOLOMICS, IMAGING, MULTIMODAL, PROTOCOL_GENERATION, EQUIPMENT_OPTIMIZATION, RESEARCH_INSIGHTS, GENERAL
+- BiomniPriority: LOW, MEDIUM, HIGH, CRITICAL
+- ProtocolCategory: MOLECULAR_BIOLOGY, CELL_CULTURE, BIOCHEMISTRY, ANALYTICAL_CHEMISTRY, MICROBIOLOGY, IMMUNOLOGY, GENOMICS, PROTEOMICS, METABOLOMICS, IMAGING, QUALITY_CONTROL, SAFETY, GENERAL
+- ProjectStatus: PLANNING, PROPOSAL_REVIEW, APPROVED, IN_PROGRESS, DATA_COLLECTION, DATA_ANALYSIS, MANUSCRIPT_PREPARATION, PEER_REVIEW, ON_HOLD, COMPLETED, CANCELLED, ARCHIVED
+- ExecutionStatus: SCHEDULED, IN_PROGRESS, COMPLETED, FAILED, ABORTED, REQUIRES_REVIEW
+- ExperimentalDataType: GENOMICS, TRANSCRIPTOMICS, PROTEOMICS, METABOLOMICS, IMAGING, FLOW_CYTOMETRY, MASS_SPECTROMETRY, CHROMATOGRAPHY, SPECTROSCOPY, MICROSCOPY, SEQUENCING, ELECTROPHORESIS, ASSAY_DATA, CLINICAL_DATA, METADATA, OTHER
+- DataAccessLevel: PUBLIC, LABORATORY, PROJECT_TEAM, PRINCIPAL_INVESTIGATOR, RESTRICTED, CONFIDENTIAL
+- BiomniCapabilityType: ANALYSIS_TOOL, PREDICTION_MODEL, OPTIMIZATION_ENGINE, DATA_PROCESSOR, VISUALIZATION_TOOL, VALIDATION_SYSTEM, INTEGRATION_SERVICE
+
+## =============================================================================
+## 2. API ENDPOINTS INVENTORY
+## =============================================================================
+
+### AUTHENTICATION ENDPOINTS (/api/auth)
+- **POST /register**: User registration with laboratory creation
+  - Request: { email, password, name, role, laboratoryId }
+  - Response: { message, user, token }
+  - Validation: Email format, password strength, unique email
+  - Business Logic: Password hashing, JWT token generation, laboratory association
+
+- **POST /login**: User authentication
+  - Request: { email, password }
+  - Response: { message, user, token }
+  - Validation: Email/password combination
+  - Business Logic: Password verification, JWT token generation
+
+- **GET /profile**: Get current user profile
+  - Request: Authorization header with JWT token
+  - Response: { user }
+  - Validation: Valid JWT token
+  - Business Logic: Token verification, user data retrieval
+
+- **PUT /profile**: Update user profile
+  - Request: { name, email } + Authorization header
+  - Response: { message, user }
+  - Validation: Valid JWT token, email format
+  - Business Logic: Profile update, validation
+
+- **PUT /change-password**: Change user password
+  - Request: { currentPassword, newPassword } + Authorization header
+  - Response: { message }
+  - Validation: Current password verification, new password strength
+  - Business Logic: Password hashing, security validation
+
+- **POST /refresh**: Refresh JWT token
+  - Request: Authorization header with JWT token
+  - Response: { message, token }
+  - Validation: Valid JWT token
+  - Business Logic: Token refresh, new JWT generation
+
+- **POST /logout**: User logout
+  - Request: Authorization header with JWT token
+  - Response: { message }
+  - Validation: Valid JWT token
+  - Business Logic: Token invalidation (client-side)
+
+### EQUIPMENT ENDPOINTS (/api/equipment)
+- **GET /**: List all equipment for laboratory
+- **POST /**: Create new equipment
+- **GET /:id**: Get equipment details
+- **PUT /:id**: Update equipment
+- **DELETE /:id**: Delete equipment
+
+### CALIBRATION ENDPOINTS (/api/calibration)
+- **GET /**: List calibration records
+- **POST /**: Create calibration record
+- **GET /:id**: Get calibration details
+- **PUT /:id**: Update calibration
+- **DELETE /:id**: Delete calibration
+
+### COMPLIANCE ENDPOINTS (/api/compliance)
+- **GET /templates**: List compliance templates
+- **POST /templates**: Create compliance template
+- **GET /reports**: List compliance reports
+- **POST /reports**: Generate compliance report
+- **GET /reports/:id**: Get report details
+
+### VECTOR CONTROL ENDPOINTS (/api/vector-control)
+- **GET /tests**: List vector tests
+- **POST /tests**: Create vector test
+- **GET /tests/:id**: Get test details
+- **PUT /tests/:id**: Update test
+- **DELETE /tests/:id**: Delete test
+- **GET /alerts**: List vector alerts
+- **POST /alerts**: Create vector alert
+
+### BILLING ENDPOINTS (/api/billing)
+- **GET /subscriptions**: List subscriptions
+- **POST /subscriptions**: Create subscription
+- **GET /invoices**: List invoices
+- **POST /webhooks**: Stripe webhook handling
+
+### REPORTS ENDPOINTS (/api/reports)
+- **GET /**: List all reports
+- **POST /**: Create new report
+- **GET /:id**: Get report details
+- **PUT /:id**: Update report
+- **DELETE /:id**: Delete report
+
+## =============================================================================
+## 3. FRONTEND FEATURES CATALOG
+## =============================================================================
+
+### AUTHENTICATION PAGES
+- **Login Page**: User authentication form
+- **Register Page**: User registration with laboratory setup
+- **Forgot Password Page**: Password reset request
+- **Reset Password Page**: Password reset form
+- **Profile Page**: User profile management
+
+### DASHBOARD PAGES
+- **Main Dashboard**: Overview of laboratory operations
+- **Equipment Dashboard**: Equipment management interface
+- **Calibration Dashboard**: Calibration tracking interface
+- **Compliance Dashboard**: Compliance reporting interface
+- **Vector Control Dashboard**: Vector control management
+- **Research Dashboard**: Research project management
+- **Analytics Dashboard**: Data analytics and insights
+
+### EQUIPMENT MANAGEMENT
+- **Equipment List**: Display all laboratory equipment
+- **Equipment Details**: Detailed equipment information
+- **Add Equipment**: Equipment creation form
+- **Edit Equipment**: Equipment editing interface
+- **Equipment Calendar**: Equipment scheduling view
+
+### CALIBRATION MANAGEMENT
+- **Calibration List**: Display calibration records
+- **Calibration Details**: Detailed calibration information
+- **Schedule Calibration**: Calibration scheduling interface
+- **Calibration Reports**: Calibration report generation
+- **Calibration Calendar**: Calibration scheduling view
+
+### COMPLIANCE & REPORTING
+- **Compliance Templates**: Template management interface
+- **Report Generator**: AI-powered report generation
+- **Compliance Dashboard**: Compliance overview
+- **Audit Trail**: System audit log viewer
+- **Regulatory Updates**: Regulatory compliance tracking
+
+### VECTOR CONTROL
+- **Vector Tests**: Vector test management
+- **Test Scheduling**: Vector test scheduling
+- **Alert Management**: Vector alert handling
+- **Stakeholder Management**: Stakeholder communication
+- **Vector Analytics**: Vector control analytics
+
+### RESEARCH & AI
+- **Research Projects**: Project management interface
+- **Protocol Management**: Experimental protocol management
+- **Data Management**: Research data handling
+- **AI Analysis**: Biomni AI integration
+- **Collaboration Tools**: Research collaboration features
+
+### ADMINISTRATION
+- **User Management**: User administration interface
+- **Laboratory Management**: Multi-laboratory administration
+- **Subscription Management**: Billing and subscription admin
+- **System Settings**: Application configuration
+- **Backup & Recovery**: Data backup management
+
+## =============================================================================
+## 4. ENTERPRISE FEATURES LIST
+## =============================================================================
+
+### LABORATORY MANAGEMENT FEATURES
+- Multi-tenant laboratory support
+- Laboratory profile management
+- Equipment inventory tracking
+- User role and permission management
+- Laboratory-specific configurations
+- Trial period management
+- Subscription plan management
+
+### EQUIPMENT TRACKING CAPABILITIES
+- Equipment registration and cataloging
+- Equipment status monitoring
+- Maintenance scheduling and tracking
+- Calibration scheduling and management
+- Equipment usage logging
+- Equipment performance analytics
+- Equipment lifecycle management
+
+### CALIBRATION MANAGEMENT
+- Automated calibration scheduling
+- Calibration record keeping
+- Compliance validation
+- AI-powered calibration analysis
+- Calibration report generation
+- Calibration certificate management
+- Calibration trend analysis
+
+### COMPLIANCE REPORTING
+- Regulatory compliance tracking
+- Automated compliance checking
+- AI-powered compliance analysis
+- Compliance report generation
+- Audit trail management
+- Regulatory update tracking
+- Compliance dashboard
+
+### VECTOR CONTROL SYSTEMS
+- Vector test management
+- Test scheduling and tracking
+- Alert system for vector control
+- Stakeholder communication
+- Vector control analytics
+- Regulatory compliance for vector control
+- Emergency response protocols
+
+### RESEARCH PROJECT MANAGEMENT
+- Research project tracking
+- Experimental protocol management
+- Data collection and management
+- Collaboration tools
+- Research analytics
+- Publication tracking
+- Intellectual property management
+
+### AI-POWERED ANALYSIS (BIOMNI)
+- AI-powered data analysis
+- Protocol generation
+- Equipment optimization
+- Research insights
+- Predictive analytics
+- Quality control automation
+- Risk assessment
+
+### USER ROLE PERMISSIONS
+- Role-based access control
+- Permission management
+- Multi-laboratory access control
+- Audit logging
+- Security compliance
+- User activity monitoring
+- Access control policies
+
+### MULTI-LABORATORY SUPPORT
+- Laboratory isolation
+- Cross-laboratory collaboration
+- Shared resource management
+- Laboratory-specific configurations
+- Data segregation
+- Collaborative features
+- Laboratory federation
+
+## =============================================================================
+## 5. CONFIGURATION BACKUP
+## =============================================================================
+
+### ENVIRONMENT VARIABLES
+- DATABASE_URL: PostgreSQL connection string
+- PRISMA_DATABASE_URL: Prisma database URL
+- JWT_SECRET: JWT token secret
+- NEXTAUTH_SECRET: NextAuth secret
+- NEXTAUTH_URL: NextAuth URL
+- FRONTEND_URL: Frontend application URL
+- BACKEND_API_URL: Backend API URL
+- CORS_ORIGIN: CORS configuration
+- NODE_ENV: Environment (development/production)
+- LOG_LEVEL: Logging level
+- SMTP_HOST: Email server host
+- SMTP_PORT: Email server port
+- SMTP_USER: Email username
+- SMTP_PASS: Email password
+- SMTP_FROM: Email from address
+- STRIPE_SECRET_KEY: Stripe secret key
+- STRIPE_PUBLISHABLE_KEY: Stripe publishable key
+- STRIPE_WEBHOOK_SECRET: Stripe webhook secret
+- OPENAI_API_KEY: OpenAI API key
+- BIOMNI_API_KEY: Biomni API key
+- TWILIO_ACCOUNT_SID: Twilio account SID
+- TWILIO_AUTH_TOKEN: Twilio auth token
+- TWILIO_PHONE_NUMBER: Twilio phone number
+
+### MIDDLEWARE CONFIGURATIONS
+- Authentication middleware
+- Authorization middleware
+- Rate limiting middleware
+- CORS middleware
+- Helmet security middleware
+- Morgan logging middleware
+- Error handling middleware
+
+### SECURITY SETTINGS
+- JWT token configuration
+- Password hashing rounds
+- Rate limiting settings
+- CORS policy configuration
+- Helmet security headers
+- Input validation rules
+- SQL injection prevention
+
+### DATABASE CONNECTION SETTINGS
+- PostgreSQL connection pool
+- Prisma client configuration
+- Database migration settings
+- Connection timeout settings
+- Query timeout settings
+- Database logging configuration
+
+### DEPLOYMENT CONFIGURATIONS
+- Vercel deployment settings
+- Build command configuration
+- Environment variable setup
+- Domain configuration
+- SSL certificate setup
+- CDN configuration
+- Monitoring setup
+
+## =============================================================================
+## 6. STEP-BY-STEP RESTORATION ROADMAP
+## =============================================================================
+
+### PHASE 1: CORE USER MANAGEMENT (KEEP DURING SIMPLIFICATION)
+**Priority**: CRITICAL - Keep for basic functionality
+**Dependencies**: None
+**Testing Checkpoint**: User registration and login working
+
+**Features to Keep**:
+- User registration and authentication
+- Basic user profile management
+- JWT token handling
+- Password reset functionality
+- Basic laboratory creation
+- Simple user roles (ADMIN, USER)
+
+**Database Tables to Keep**:
+- User (simplified)
+- Laboratory (simplified)
+
+**API Endpoints to Keep**:
+- POST /api/auth/register
+- POST /api/auth/login
+- GET /api/auth/profile
+- PUT /api/auth/profile
+- PUT /api/auth/change-password
+- POST /api/auth/refresh
+- POST /api/auth/logout
+
+**Frontend Pages to Keep**:
+- Login page
+- Register page
+- Basic dashboard
+- Profile page
+
+### PHASE 2: BASIC LABORATORY FEATURES (FIRST TO ADD BACK)
+**Priority**: HIGH - Add after core functionality
+**Dependencies**: Phase 1 complete
+**Testing Checkpoint**: Laboratory management working
+
+**Features to Add**:
+- Laboratory profile management
+- Equipment basic tracking
+- User role management
+- Basic notifications
+- Laboratory settings
+
+**Database Tables to Add**:
+- Equipment (basic fields)
+- Notification (basic)
+- AuditLog (basic)
+
+**API Endpoints to Add**:
+- GET /api/equipment
+- POST /api/equipment
+- GET /api/equipment/:id
+- PUT /api/equipment/:id
+- DELETE /api/equipment/:id
+
+**Frontend Pages to Add**:
+- Equipment list page
+- Equipment detail page
+- Laboratory settings page
+
+### PHASE 3: EQUIPMENT AND CALIBRATION (SECOND WAVE)
+**Priority**: HIGH - Add after basic features
+**Dependencies**: Phase 2 complete
+**Testing Checkpoint**: Equipment and calibration working
+
+**Features to Add**:
+- Equipment calibration tracking
+- Maintenance scheduling
+- Calibration reports
+- Equipment analytics
+- Compliance templates
+
+**Database Tables to Add**:
+- CalibrationRecord
+- MaintenanceRecord
+- ComplianceTemplate
+- TemplateUsage
+- UsageLog
+
+**API Endpoints to Add**:
+- GET /api/calibration
+- POST /api/calibration
+- GET /api/calibration/:id
+- PUT /api/calibration/:id
+- DELETE /api/calibration/:id
+- GET /api/compliance/templates
+- POST /api/compliance/templates
+
+**Frontend Pages to Add**:
+- Calibration dashboard
+- Calibration scheduling
+- Maintenance tracking
+- Compliance templates
+
+### PHASE 4: ADVANCED FEATURES (COMPLIANCE, REPORTING)
+**Priority**: MEDIUM - Add after core features
+**Dependencies**: Phase 3 complete
+**Testing Checkpoint**: Compliance and reporting working
+
+**Features to Add**:
+- Compliance reporting
+- AI-powered analysis
+- Advanced analytics
+- Report generation
+- Audit trail
+
+**Database Tables to Add**:
+- ComplianceReport
+- Report
+- Subscription
+- SubscriptionPlan
+
+**API Endpoints to Add**:
+- GET /api/compliance/reports
+- POST /api/compliance/reports
+- GET /api/reports
+- POST /api/reports
+- GET /api/billing/subscriptions
+- POST /api/billing/subscriptions
+
+**Frontend Pages to Add**:
+- Compliance dashboard
+- Report generator
+- Analytics dashboard
+- Billing management
+
+### PHASE 5: AI AND ANALYTICS FEATURES (FINAL WAVE)
+**Priority**: MEDIUM - Add after advanced features
+**Dependencies**: Phase 4 complete
+**Testing Checkpoint**: AI features working
+
+**Features to Add**:
+- Biomni AI integration
+- Research project management
+- Experimental protocols
+- Data management
+- AI-powered insights
+
+**Database Tables to Add**:
+- BiomniQuery
+- ExperimentalProtocol
+- ProtocolExecution
+- ResearchProject
+- ExperimentalData
+- BiomniCapability
+
+**API Endpoints to Add**:
+- GET /api/biomni/queries
+- POST /api/biomni/queries
+- GET /api/protocols
+- POST /api/protocols
+- GET /api/projects
+- POST /api/projects
+
+**Frontend Pages to Add**:
+- AI analysis dashboard
+- Research project management
+- Protocol management
+- Data management
+
+### PHASE 6: FULL ENTERPRISE CAPABILITIES
+**Priority**: LOW - Add after all other features
+**Dependencies**: Phase 5 complete
+**Testing Checkpoint**: All enterprise features working
+
+**Features to Add**:
+- Vector control systems
+- Advanced security features
+- Multi-laboratory federation
+- Advanced analytics
+- Enterprise integrations
+
+**Database Tables to Add**:
+- VectorTest
+- VectorStakeholder
+- VectorAlert
+
+**API Endpoints to Add**:
+- GET /api/vector/tests
+- POST /api/vector/tests
+- GET /api/vector/alerts
+- POST /api/vector/alerts
+
+**Frontend Pages to Add**:
+- Vector control dashboard
+- Advanced analytics
+- Enterprise settings
+
+## =============================================================================
+## 7. CODE SNIPPETS TO PRESERVE
+## =============================================================================
+
+### COMPLEX ALGORITHMS OR BUSINESS LOGIC
+- Password hashing with bcrypt
+- JWT token generation and verification
+- Role-based access control
+- Multi-tenant data isolation
+- Equipment calibration algorithms
+- Compliance validation logic
+- AI integration patterns
+- Data analytics algorithms
+
+### CUSTOM VALIDATION FUNCTIONS
+- Email format validation
+- Password strength validation
+- Equipment serial number validation
+- Calibration date validation
+- Laboratory name validation
+- User role validation
+- Data type validation
+- Business rule validation
+
+### SECURITY IMPLEMENTATIONS
+- JWT token handling
+- Password hashing
+- Role-based authorization
+- Input sanitization
+- SQL injection prevention
+- XSS protection
+- CSRF protection
+- Rate limiting
+
+### DATABASE QUERY OPTIMIZATIONS
+- Efficient user queries
+- Equipment relationship queries
+- Calibration record queries
+- Compliance report queries
+- Multi-laboratory queries
+- Analytics queries
+- Search optimizations
+- Pagination implementations
+
+### FRONTEND STATE MANAGEMENT PATTERNS
+- User authentication state
+- Laboratory selection state
+- Equipment management state
+- Calibration tracking state
+- Notification state
+- Form validation state
+- Loading state management
+- Error state handling
+
+### AUTHENTICATION/AUTHORIZATION LOGIC
+- JWT token verification
+- Role-based access control
+- Laboratory access control
+- Permission checking
+- Session management
+- Token refresh logic
+- Logout handling
+- Security middleware
+
+## =============================================================================
+## 8. DEPENDENCIES AND PACKAGES
+## =============================================================================
+
+### BACKEND DEPENDENCIES
+- **@prisma/client**: Database ORM
+- **bcryptjs**: Password hashing
+- **bull**: Job queue management
+- **compression**: Response compression
+- **cors**: Cross-origin resource sharing
+- **dotenv**: Environment variable management
+- **exceljs**: Excel file handling
+- **express**: Web framework
+- **express-rate-limit**: Rate limiting
+- **helmet**: Security headers
+- **jsonwebtoken**: JWT token handling
+- **morgan**: HTTP request logging
+- **multer**: File upload handling
+- **nodemailer**: Email sending
+- **openai**: OpenAI API integration
+- **pdfkit**: PDF generation
+- **redis**: Caching and session storage
+- **stripe**: Payment processing
+- **twilio**: SMS notifications
+- **winston**: Logging
+- **zod**: Schema validation
+
+### FRONTEND DEPENDENCIES
+- **next**: React framework
+- **react**: UI library
+- **typescript**: Type safety
+- **tailwindcss**: CSS framework
+- **@headlessui/react**: UI components
+- **@heroicons/react**: Icons
+- **@nextauth/prisma-adapter**: NextAuth adapter
+- **next-auth**: Authentication
+- **victory**: Data visualization
+- **recharts**: Chart library
+- **date-fns**: Date manipulation
+- **react-hook-form**: Form handling
+- **zod**: Schema validation
+- **@hookform/resolvers**: Form validation
+- **framer-motion**: Animations
+- **react-query**: Data fetching
+- **zustand**: State management
+
+### DEVELOPMENT DEPENDENCIES
+- **@types/node**: Node.js types
+- **@types/express**: Express types
+- **@types/bcryptjs**: bcrypt types
+- **@types/cors**: CORS types
+- **@types/jsonwebtoken**: JWT types
+- **@types/multer**: Multer types
+- **@types/nodemailer**: Nodemailer types
+- **eslint**: Code linting
+- **prettier**: Code formatting
+- **jest**: Testing framework
+- **ts-jest**: TypeScript testing
+- **nodemon**: Development server
+- **prisma**: Database toolkit
+- **typescript**: TypeScript compiler
+
+### BUILD TOOL SETTINGS
+- **TypeScript configuration**: tsconfig.json
+- **ESLint configuration**: .eslintrc.js
+- **Prettier configuration**: .prettierrc
+- **Jest configuration**: jest.config.js
+- **Next.js configuration**: next.config.js
+- **Tailwind configuration**: tailwind.config.js
+- **PostCSS configuration**: postcss.config.js
+
+### DEPLOYMENT-SPECIFIC CONFIGURATIONS
+- **Vercel configuration**: vercel.json
+- **Environment variables**: .env files
+- **Build scripts**: package.json scripts
+- **Database migrations**: Prisma migrations
+- **SSL certificates**: Vercel automatic
+- **CDN configuration**: Vercel automatic
+- **Monitoring**: Vercel analytics
+
+## =============================================================================
+## 9. TESTING CHECKPOINTS FOR EACH RESTORATION PHASE
+## =============================================================================
+
+### PHASE 1 TESTING CHECKPOINTS
+- [ ] User registration works
+- [ ] User login works
+- [ ] JWT token generation works
+- [ ] Password reset works
+- [ ] User profile management works
+- [ ] Basic laboratory creation works
+- [ ] Role-based access works
+- [ ] Frontend authentication flow works
+- [ ] Backend API endpoints respond correctly
+- [ ] Database connections work
+- [ ] Environment variables are configured
+- [ ] Deployment is successful
+
+### PHASE 2 TESTING CHECKPOINTS
+- [ ] Equipment creation works
+- [ ] Equipment listing works
+- [ ] Equipment editing works
+- [ ] Equipment deletion works
+- [ ] Laboratory settings work
+- [ ] User role management works
+- [ ] Basic notifications work
+- [ ] Equipment dashboard works
+- [ ] API endpoints respond correctly
+- [ ] Database relationships work
+- [ ] Frontend components render correctly
+- [ ] Form validation works
+
+### PHASE 3 TESTING CHECKPOINTS
+- [ ] Calibration scheduling works
+- [ ] Calibration record creation works
+- [ ] Calibration tracking works
+- [ ] Maintenance scheduling works
+- [ ] Compliance template creation works
+- [ ] Calibration reports work
+- [ ] Equipment analytics work
+- [ ] Calendar integration works
+- [ ] API endpoints respond correctly
+- [ ] Database queries are optimized
+- [ ] Frontend dashboards work
+- [ ] Data visualization works
+
+### PHASE 4 TESTING CHECKPOINTS
+- [ ] Compliance report generation works
+- [ ] AI-powered analysis works
+- [ ] Advanced analytics work
+- [ ] Report generation works
+- [ ] Audit trail works
+- [ ] Subscription management works
+- [ ] Billing integration works
+- [ ] Advanced dashboards work
+- [ ] API endpoints respond correctly
+- [ ] Database performance is good
+- [ ] Frontend analytics work
+- [ ] Data export works
+
+### PHASE 5 TESTING CHECKPOINTS
+- [ ] Biomni AI integration works
+- [ ] Research project creation works
+- [ ] Experimental protocol management works
+- [ ] Data management works
+- [ ] AI-powered insights work
+- [ ] Protocol execution tracking works
+- [ ] Research analytics work
+- [ ] Collaboration features work
+- [ ] API endpoints respond correctly
+- [ ] Database performance is excellent
+- [ ] Frontend AI features work
+- [ ] Data visualization is advanced
+
+### PHASE 6 TESTING CHECKPOINTS
+- [ ] Vector control systems work
+- [ ] Advanced security features work
+- [ ] Multi-laboratory federation works
+- [ ] Advanced analytics work
+- [ ] Enterprise integrations work
+- [ ] All features work together
+- [ ] Performance is optimal
+- [ ] Security is comprehensive
+- [ ] API endpoints are fully functional
+- [ ] Database is fully optimized
+- [ ] Frontend is fully functional
+- [ ] Enterprise features are complete
+
+## =============================================================================
+## 10. CRITICAL REQUIREMENTS FOR RESTORATION
+## =============================================================================
+
+### ENVIRONMENT VARIABLES REQUIRED
+- All database connection strings
+- JWT secrets for all environments
+- API keys for all services
+- Email configuration
+- Payment processing keys
+- AI service keys
+- Monitoring configuration
+- Security settings
+
+### DATABASE MIGRATIONS REQUIRED
+- Complete schema migration
+- Data seeding scripts
+- Index optimization
+- Constraint validation
+- Performance optimization
+- Backup and recovery procedures
+
+### API ENDPOINTS REQUIRED
+- All authentication endpoints
+- All CRUD operations
+- All business logic endpoints
+- All integration endpoints
+- All webhook handlers
+- All file upload endpoints
+
+### FRONTEND COMPONENTS REQUIRED
+- All authentication components
+- All dashboard components
+- All form components
+- All data visualization components
+- All navigation components
+- All modal components
+
+### TESTING REQUIREMENTS
+- Unit tests for all functions
+- Integration tests for all APIs
+- End-to-end tests for all flows
+- Performance tests for all features
+- Security tests for all endpoints
+- Accessibility tests for all components
+
+### DEPLOYMENT REQUIREMENTS
+- Vercel configuration
+- Environment variable setup
+- Database migration scripts
+- Build optimization
+- Monitoring setup
+- Backup procedures
+
+## =============================================================================
+## 11. RESTORATION PRIORITY MATRIX
+## =============================================================================
+
+### CRITICAL (Must have for basic functionality)
+- User authentication
+- Basic user management
+- Laboratory creation
+- Simple equipment tracking
+- Basic API structure
+
+### HIGH (Important for core features)
+- Equipment management
+- Calibration tracking
+- User roles and permissions
+- Basic reporting
+- Dashboard functionality
+
+### MEDIUM (Important for advanced features)
+- Compliance reporting
+- AI integration
+- Advanced analytics
+- Research project management
+- Multi-laboratory support
+
+### LOW (Nice to have)
+- Vector control systems
+- Advanced security features
+- Enterprise integrations
+- Advanced data visualization
+- Collaboration features
+
+## =============================================================================
+## 12. DEPENDENCY MAPPING
+## =============================================================================
+
+### PHASE DEPENDENCIES
+- Phase 2 depends on Phase 1
+- Phase 3 depends on Phase 2
+- Phase 4 depends on Phase 3
+- Phase 5 depends on Phase 4
+- Phase 6 depends on Phase 5
+
+### FEATURE DEPENDENCIES
+- Equipment management depends on user management
+- Calibration depends on equipment management
+- Compliance depends on calibration
+- AI features depend on data management
+- Analytics depend on all data collection
+
+### DATABASE DEPENDENCIES
+- User table is independent
+- Laboratory table depends on nothing
+- Equipment depends on Laboratory and User
+- Calibration depends on Equipment and User
+- All other tables depend on these core tables
+
+### API DEPENDENCIES
+- Authentication endpoints are independent
+- Equipment endpoints depend on authentication
+- Calibration endpoints depend on equipment
+- Compliance endpoints depend on calibration
+- AI endpoints depend on all data
+
+## =============================================================================
+## END OF BACKUP DOCUMENTATION
+## =============================================================================
+
+This backup file contains everything needed to restore the complete LabGuard Pro enterprise laboratory management system. Follow the restoration roadmap carefully to avoid dependency issues and ensure all features are properly restored.
+
+Remember to test each phase thoroughly before moving to the next phase. The success of the restoration depends on careful attention to dependencies and proper testing at each checkpoint.

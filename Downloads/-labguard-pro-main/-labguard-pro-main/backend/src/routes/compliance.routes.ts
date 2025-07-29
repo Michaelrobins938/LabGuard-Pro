@@ -1,6 +1,7 @@
 import express from 'express'
 import { PrismaClient } from '@prisma/client'
 import { authMiddleware } from '../middleware/auth.middleware'
+import { AuditLogService } from '../services/AuditLogService'
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -230,19 +231,18 @@ router.post('/violations', authMiddleware, async (req, res) => {
     // Create violation - temporarily disabled
     const violation = { id: 'temp-violation-id' }
 
-    // Create audit log entry
-    await prisma.auditLog.create({
-      data: {
-        action: 'COMPLIANCE_VIOLATION_CREATED',
-        details: `Created compliance violation for equipment ${equipment.name}`,
-        userId,
-        laboratoryId: user.laboratoryId,
-        details: {
-          violationId: violation.id,
-          equipmentId,
-          violationType,
-          severity
-        }
+    const auditLog = new AuditLogService(prisma)
+    await auditLog.log({
+      action: 'COMPLIANCE_VIOLATION_CREATED',
+      entity: 'ComplianceViolation',
+      laboratoryId: user.laboratoryId,
+      userId,
+      entityId: violation.id,
+      details: {
+        message: `Created compliance violation for equipment ${equipment.name}`,
+        equipmentId,
+        violationType,
+        severity
       }
     })
 
@@ -286,44 +286,27 @@ router.put('/violations/:id', authMiddleware, async (req, res) => {
     }
 
     // Update violation - temporarily disabled
-    const updatedViolation = { id }
-        status,
-        correctiveAction,
-        resolutionNotes,
-        resolvedAt: resolvedAt ? new Date(resolvedAt) : null,
-        updatedAt: new Date()
-      },
-      include: {
-        equipment: {
-          select: {
-            id: true,
-            name: true,
-            serialNumber: true,
-            type: true
-          }
-        },
-        reportedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    })
+    const updatedViolation = {
+      id,
+      status,
+      correctiveAction,
+      resolutionNotes,
+      resolvedAt: resolvedAt ? new Date(resolvedAt) : null,
+      updatedAt: new Date()
+    }
 
     // Create audit log entry
-    await prisma.auditLog.create({
-      data: {
-        action: 'COMPLIANCE_VIOLATION_UPDATED',
-        details: `Updated compliance violation ${id}`,
-        userId,
-        laboratoryId: user.laboratoryId,
-        details: {
-          violationId: id,
-          status,
-          action: 'update'
-        }
+    const auditLog = new AuditLogService(prisma)
+    await auditLog.log({
+      action: 'COMPLIANCE_VIOLATION_UPDATED',
+      entity: 'ComplianceViolation',
+      laboratoryId: user.laboratoryId,
+      userId,
+      entityId: id,
+      details: {
+        message: `Updated compliance violation ${id}`,
+        status,
+        action: 'update'
       }
     })
 
@@ -472,29 +455,6 @@ router.post('/export', authMiddleware, async (req, res) => {
 
     // Get compliance data for export - temporarily disabled
     const complianceData: any[] = []
-      where: {
-        equipment: { laboratoryId: user.laboratoryId },
-        createdAt: Object.keys(dateFilter).length > 0 ? dateFilter : undefined
-      },
-      include: {
-        equipment: {
-          select: {
-            id: true,
-            name: true,
-            serialNumber: true,
-            type: true
-          }
-        },
-        reportedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    })
 
     // TODO: Implement actual export logic based on format
     // For now, return the data structure
@@ -506,17 +466,17 @@ router.post('/export', authMiddleware, async (req, res) => {
     }
 
     // Create audit log entry
-    await prisma.auditLog.create({
-      data: {
-        action: 'COMPLIANCE_DATA_EXPORTED',
-        details: `Exported compliance data in ${format.toUpperCase()} format`,
-        userId,
-        laboratoryId: user.laboratoryId,
-        details: {
-          format,
-          recordCount: complianceData.length,
-          dateRange: { startDate, endDate }
-        }
+    const auditLog = new AuditLogService(prisma)
+    await auditLog.log({
+      action: 'COMPLIANCE_DATA_EXPORTED',
+      entity: 'Compliance',
+      laboratoryId: user.laboratoryId,
+      userId,
+      details: {
+        message: `Exported compliance data in ${format.toUpperCase()} format`,
+        format,
+        recordCount: complianceData.length,
+        dateRange: { startDate, endDate }
       }
     })
 

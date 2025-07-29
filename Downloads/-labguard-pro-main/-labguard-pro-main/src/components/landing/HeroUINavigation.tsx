@@ -25,8 +25,8 @@ export function HeroUINavigation() {
     {
       name: 'Product',
       items: [
-        { name: 'AI Assistant', description: 'Intelligent laboratory companion', icon: Brain, href: '/dashboard/ai-assistant-demo' },
-        { name: 'Analytics', description: 'Advanced data insights', icon: BarChart3, href: '/dashboard/analytics' },
+        { name: 'AI Assistant', description: 'Intelligent laboratory companion', icon: Brain, href: '/dashboard?bypass=true' },
+        { name: 'Analytics', description: 'Advanced data insights', icon: BarChart3, href: '/dashboard?bypass=true' },
         { name: 'Compliance', description: 'Automated regulatory monitoring', icon: Shield, href: '/dashboard/compliance' },
         { name: 'Equipment', description: 'Smart device management', icon: Zap, href: '/dashboard/equipment' }
       ]

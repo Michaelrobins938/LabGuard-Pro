@@ -205,7 +205,7 @@ export function BiomniInsights() {
   }
 
   const getInsightBadge = (type: string) => {
-    const badgeStyles = {
+    const badgeStyles: Record<string, string> = {
       optimization: 'bg-blue-100 text-blue-800',
       prediction: 'bg-purple-100 text-purple-800',
       recommendation: 'bg-yellow-100 text-yellow-800',
@@ -221,7 +221,7 @@ export function BiomniInsights() {
   }
 
   const getPriorityBadge = (priority: string) => {
-    const priorityStyles = {
+    const priorityStyles: Record<string, string> = {
       low: 'bg-gray-100 text-gray-800',
       medium: 'bg-yellow-100 text-yellow-800',
       high: 'bg-orange-100 text-orange-800',

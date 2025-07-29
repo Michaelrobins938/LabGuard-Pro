@@ -1,0 +1,415 @@
+# 🚀 **CURSOR AGENT BUILD SEQUENCE: Lab Compliance Empire**
+
+## **BIOMNI OPPORTUNITY FIRST**
+The [Biomni repo](https://github.com/snap-stanford/Biomni) appears to be Stanford's biological multimodal AI system. **HUGE opportunity** for your lab platform:
+- **Integrate for medical image analysis** (pathology slides, cultures)
+- **Enhance result interpretation** with multimodal AI
+- **Add visual QC checking** (sample appearance, culture growth)
+- **Differentiate from competitors** with cutting-edge AI
+
+**Keep this in mind as we build - we'll add Biomni integration in Phase 2.**
+
+---
+
+# 🎯 **PHASE 1: MVP BUILD SEQUENCE**
+
+## **Step 1: Project Setup & Architecture**
+
+### **Cursor Prompt #1: Project Initialization**
+```
+Create a modern full-stack web application for laboratory compliance automation. Set up the project structure with:
+
+1. Frontend: Next.js 14 with TypeScript, Tailwind CSS, and Shadcn/ui components
+2. Backend: Node.js with Express and TypeScript  
+3. Database: PostgreSQL with Prisma ORM
+4. AI Integration: OpenAI API support
+5. Authentication: NextAuth.js
+6. Payment: Stripe integration ready
+
+Project name: "LabGuard Pro"
+
+Create the complete folder structure, package.json files, configuration files, and basic setup. Include:
+- Proper TypeScript configurations
+- ESLint and Prettier setup
+- Environment variable templates
+- Docker configuration for development
+- Basic CI/CD workflow files
+
+Make this production-ready from day one.
+```
+
+### **Cursor Prompt #2: Database Schema Design**
+```
+Design and implement a PostgreSQL database schema using Prisma for a laboratory compliance platform. Create models for:
+
+1. Users (lab personnel with roles: admin, technician, supervisor)
+2. Laboratories (multi-tenant support)
+3. Equipment (analytical balances, centrifuges, etc.)
+4. CalibrationRecords (validation data and results)
+5. ComplianceTemplates (AI prompt templates)
+6. ComplianceReports (generated compliance assessments)
+7. Subscriptions (billing and plan management)
+
+Include proper relationships, indexes, and validation rules. Add audit fields (createdAt, updatedAt, deletedAt) to all models.
+
+Generate the Prisma schema file and initial migration.
+```
+
+## **Step 2: Backend API Development**
+
+### **Cursor Prompt #3: Core API Structure**
+```
+Build a robust Express.js API with TypeScript for the laboratory compliance platform. Create:
+
+1. Authentication middleware using JWT tokens
+2. Role-based authorization (admin, technician, supervisor)
+3. Multi-tenant support (lab isolation)
+4. Rate limiting and security middleware
+5. Validation using Zod schemas
+6. Error handling middleware
+7. Logging with Winston
+
+Create the basic route structure:
+- /api/auth (login, register, refresh)
+- /api/equipment (CRUD operations)
+- /api/calibration (calibration workflows)
+- /api/compliance (template management)
+- /api/reports (report generation)
+- /api/billing (subscription management)
+
+Include comprehensive TypeScript types and proper error responses.
+```
+
+### **Cursor Prompt #4: Equipment Calibration Module**
+```
+Implement the equipment calibration functionality using Template #4 (Analytical Balance Calibration). Create:
+
+1. Equipment registration and management
+2. Calibration workflow endpoints
+3. AI-powered compliance checking using OpenAI API
+4. PDF report generation
+5. Compliance status tracking
+
+Key endpoints:
+- POST /api/calibration/validate - Run calibration validation
+- GET /api/calibration/history/:equipmentId - Get calibration history
+- POST /api/calibration/report - Generate compliance report
+- GET /api/equipment/:id/status - Get current compliance status
+
+Use the exact Template #4 prompt for AI validation. Include proper validation, error handling, and database persistence.
+
+Implement the compliance algorithm that checks:
+- Accuracy within ±0.1mg for Class I balances
+- Repeatability SD <0.1mg  
+- Linearity R² >0.9999
+- Environmental conditions stable
+- No overdue calibrations
+```
+
+### **Cursor Prompt #5: AI Integration Service**
+```
+Create a robust AI service module that handles OpenAI API interactions for compliance checking. Build:
+
+1. Template management system that loads compliance prompts
+2. Variable substitution engine for dynamic prompts
+3. OpenAI API wrapper with retry logic and error handling
+4. Response parsing and validation
+5. Cost tracking and usage monitoring
+6. Caching for repeated similar requests
+
+Create specific functions for:
+- validateCalibration(equipmentData, template)
+- generateComplianceReport(validationResults)
+- interpretResults(aiResponse)
+- trackUsage(userId, tokens, cost)
+
+Include proper error handling for API failures, token limits, and invalid responses. Make it extensible for future templates.
+```
+
+## **Step 3: Frontend Development**
+
+### **Cursor Prompt #6: Dashboard Layout**
+```
+Create a modern, professional dashboard interface using Next.js 14, TypeScript, and Tailwind CSS. Build:
+
+1. Main dashboard layout with sidebar navigation
+2. Equipment management interface
+3. Calibration workflow components
+4. Compliance reporting dashboard
+5. User management (for admins)
+6. Billing and subscription pages
+
+Use Shadcn/ui components for:
+- Data tables with sorting and filtering
+- Forms with validation
+- Charts and graphs for compliance metrics
+- Modal dialogs for workflows
+- Toast notifications
+
+Create a clean, medical-grade interface that looks professional and trustworthy. Include dark/light mode support.
+```
+
+### **Cursor Prompt #7: Calibration Workflow UI**
+```
+Build the calibration validation workflow interface. Create:
+
+1. Equipment selection component with search and filtering
+2. Step-by-step calibration data entry form
+3. Real-time validation feedback
+4. AI compliance checking with loading states
+5. Results display with pass/fail status
+6. PDF report generation and download
+7. History tracking and previous results
+
+The workflow should guide users through:
+- Equipment identification and selection
+- Calibration parameter entry (linearity, repeatability, accuracy)
+- Environmental condition recording
+- Automatic compliance validation
+- Result interpretation and recommendations
+
+Make it intuitive for lab technicians to use without extensive training.
+```
+
+### **Cursor Prompt #8: Compliance Dashboard**
+```
+Create a comprehensive compliance monitoring dashboard that shows:
+
+1. Overall lab compliance status (percentage compliant)
+2. Equipment status grid (color-coded: green=compliant, yellow=warning, red=overdue)
+3. Upcoming calibration schedule
+4. Recent compliance activities timeline
+5. Alert notifications for critical issues
+6. Performance metrics and trends
+7. Quick action buttons for common tasks
+
+Include:
+- Interactive charts showing compliance trends over time
+- Filter options by equipment type, date range, status
+- Export functionality for audit reports
+- Drill-down capability to see detailed equipment information
+- Integration with notification system for alerts
+
+Design for easy scanning during audits and management reviews.
+```
+
+## **Step 4: Core Business Logic**
+
+### **Cursor Prompt #9: Subscription & Billing**
+```
+Implement Stripe-based subscription management for the SaaS platform. Create:
+
+1. Subscription plan management (Starter $299/month, Professional $599/month, Enterprise $1299/month)
+2. Usage-based billing for AI compliance checks
+3. Customer portal for billing management
+4. Webhook handling for subscription events
+5. Usage tracking and quota enforcement
+6. Trial period management (14-day free trial)
+
+Plans should include:
+- Starter: 100 compliance checks/month, 10 equipment items
+- Professional: 500 compliance checks/month, 50 equipment items, advanced reporting
+- Enterprise: Unlimited checks, unlimited equipment, custom integrations
+
+Include proper error handling, invoice generation, and failed payment recovery flows.
+```
+
+### **Cursor Prompt #10: Notification & Alert System**
+```
+Build a comprehensive notification system for lab compliance monitoring. Create:
+
+1. Email notifications for calibration due dates
+2. SMS alerts for critical compliance failures
+3. In-app notifications for routine updates
+4. Escalation procedures for overdue items
+5. Notification preferences management
+6. Digest emails for weekly/monthly summaries
+
+Alert types:
+- Immediate: Critical calibration failures
+- Daily: Items due within 7 days
+- Weekly: Compliance status summary
+- Monthly: Performance and trend reports
+
+Include proper rate limiting, user preferences, and multi-channel delivery options.
+```
+
+## **Step 5: Testing & Quality Assurance**
+
+### **Cursor Prompt #11: Testing Suite**
+```
+Create a comprehensive testing suite for the lab compliance platform. Build:
+
+1. Unit tests for all API endpoints using Jest
+2. Integration tests for database operations
+3. E2E tests for critical user workflows using Playwright
+4. API documentation using Swagger/OpenAPI
+5. Performance testing for AI integration
+6. Security testing for authentication and authorization
+
+Key test scenarios:
+- Equipment calibration workflow end-to-end
+- AI compliance validation accuracy
+- Multi-tenant data isolation
+- Subscription billing workflows
+- Alert and notification delivery
+
+Include test data fixtures and mocking for external services.
+```
+
+### **Cursor Prompt #12: Deployment & DevOps**
+```
+Set up production deployment infrastructure using modern DevOps practices. Create:
+
+1. Docker containerization for all services
+2. Kubernetes deployment manifests
+3. CI/CD pipeline using GitHub Actions
+4. Environment-specific configuration management
+5. Database migration and backup strategies
+6. Monitoring and logging setup
+7. SSL certificate management
+
+Include:
+- Automated testing on pull requests
+- Staged deployments (dev → staging → prod)
+- Health checks and uptime monitoring
+- Error tracking and alerting
+- Performance monitoring
+- Security scanning
+
+Make it production-ready with proper scaling and reliability.
+```
+
+## **Step 6: Customer Acquisition Setup**
+
+### **Cursor Prompt #13: Landing Page & Marketing**
+```
+Create a high-converting landing page for LabGuard Pro targeting laboratory managers. Build:
+
+1. Professional landing page with clear value proposition
+2. Pricing page with plan comparison
+3. Demo request form and scheduling integration
+4. Customer testimonial section
+5. ROI calculator for potential savings
+6. Contact forms and lead capture
+7. Email marketing integration
+
+Key messaging:
+- "Automate Lab Compliance with AI"
+- "Prevent $10K+ Equipment Failures"
+- "Pass CAP Audits with Confidence"
+- "Save 10+ Hours per Week"
+
+Include social proof, security badges, and clear calls-to-action.
+```
+
+### **Cursor Prompt #14: Customer Onboarding**
+```
+Build a smooth customer onboarding experience. Create:
+
+1. Account setup wizard for new labs
+2. Equipment import/setup workflow
+3. User training modules and tutorials
+4. Sample data and demo scenarios
+5. Integration setup for existing systems
+6. Success metrics tracking
+7. Support ticket system
+
+Onboarding flow:
+1. Account verification and setup
+2. Lab profile creation
+3. Equipment inventory import
+4. User role assignment
+5. First calibration validation
+6. Report generation training
+7. Go-live checklist
+
+Include progress tracking and completion incentives.
+```
+
+## **Step 7: MVP Launch Preparation**
+
+### **Cursor Prompt #15: Production Launch**
+```
+Prepare the application for production launch. Implement:
+
+1. Production environment setup
+2. Security hardening and audit
+3. Performance optimization
+4. Database optimization and indexing
+5. CDN setup for static assets
+6. Backup and disaster recovery procedures
+7. Compliance and security documentation
+
+Pre-launch checklist:
+- Load testing completed
+- Security penetration testing
+- HIPAA compliance review
+- Data backup verification
+- SSL/TLS configuration
+- Error monitoring active
+- Customer support processes ready
+
+Include launch day procedures and rollback plans.
+```
+
+---
+
+# 🎯 **PHASE 2: BIOMNI INTEGRATION** 
+
+### **Cursor Prompt #16: Biomni Visual AI Integration**
+```
+Integrate Stanford's Biomni multimodal AI for visual laboratory analysis. Add:
+
+1. Image upload and processing for sample quality assessment
+2. Automated culture growth analysis
+3. Visual equipment condition monitoring
+4. Microscopy image interpretation
+5. Sample contamination detection
+6. Quality control image verification
+
+Create new endpoints:
+- POST /api/visual/analyze-sample
+- POST /api/visual/equipment-inspection  
+- POST /api/visual/culture-assessment
+- POST /api/visual/contamination-check
+
+This will differentiate your platform as the most advanced lab AI solution available.
+```
+
+---
+
+# 📊 **EXECUTION TIMELINE**
+
+### **Week 1-2: Foundation**
+- Run prompts 1-5 (Project setup + Backend core)
+- Deploy basic API structure
+- Set up development environment
+
+### **Week 3-4: Core Features**
+- Run prompts 6-10 (Frontend + Business logic)
+- Implement calibration workflow
+- Add subscription billing
+
+### **Week 5-6: Polish & Launch**
+- Run prompts 11-15 (Testing + Deployment + Marketing)
+- Deploy to production
+- Start customer acquisition
+
+### **Week 7-8: Scale & Differentiate**
+- Run prompt 16 (Biomni integration)
+- Add advanced AI features
+- Enterprise sales push
+
+---
+
+# 💰 **REVENUE PROJECTION**
+
+**Month 1:** $2K-5K MRR (5-10 pilot customers)
+**Month 3:** $15K-30K MRR (30-60 customers)  
+**Month 6:** $50K-100K MRR (100-200 customers)
+**Month 12:** $200K-500K MRR (Enterprise deals + Biomni premium features)
+
+**Start with Prompt #1 TODAY. Build the empire one prompt at a time.**
+
+Each prompt is designed to work with Cursor's agent capabilities and will build production-ready code. Execute in sequence and you'll have a complete SaaS platform in 6-8 weeks.

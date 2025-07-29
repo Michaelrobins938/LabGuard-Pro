@@ -3,8 +3,11 @@
 // Integration: Stanford Biomni + OpenAI + Anthropic + Custom Lab Tools
 
 import { BiomniTaskResult, EquipmentMonitoringResult, MaintenancePrediction, WorkflowOptimizationResult, DataAnalysisResult } from './types';
-import { biomniIntegration } from './biomni-integration';
+import BiomniService from './biomni-integration';
 import { LabContext } from './types';
+
+// Initialize BiomniService instance
+const biomniIntegration = new BiomniService();
 
 export class EnhancedBiomniAgent {
   constructor() {}

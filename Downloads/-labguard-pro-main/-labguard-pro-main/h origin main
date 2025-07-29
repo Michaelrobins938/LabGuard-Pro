@@ -1,0 +1,5 @@
+.env.production
+backend/src/app.ts
+backend/src/controllers/equipment.controller.ts
+backend/src/services/VectorControlService.ts
+backend/src/types/express.d.ts

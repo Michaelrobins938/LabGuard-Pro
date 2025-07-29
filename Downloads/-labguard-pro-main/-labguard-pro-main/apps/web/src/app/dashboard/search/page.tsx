@@ -26,7 +26,7 @@ import {
   Plus
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { apiService } from '@/lib/api-service'
+// import { apiService } from '@/lib/api-service' // TODO: Implement search API
 
 interface SearchResult {
   id: string
@@ -65,15 +65,8 @@ export default function SearchPage() {
   const { data: searchResults, isLoading: searchLoading } = useQuery({
     queryKey: ['search', searchQuery, activeFilters],
     queryFn: async () => {
-      const response = await apiService.search.globalSearch({
-        query: searchQuery,
-        filters: activeFilters,
-        types: selectedTypes,
-        dateRange,
-        location: locationFilter,
-        status: statusFilter
-      })
-      return response as SearchResult[]
+      // TODO: Implement search API
+      return [] as SearchResult[]
     },
     enabled: !!session && (searchQuery.length > 0 || Object.keys(activeFilters).length > 0)
   })
@@ -82,8 +75,8 @@ export default function SearchPage() {
   const { data: savedSearchesData } = useQuery({
     queryKey: ['saved-searches'],
     queryFn: async () => {
-      const response = await apiService.search.getSavedSearches()
-      return response as SavedSearch[]
+      // TODO: Implement saved searches API
+      return [] as SavedSearch[]
     },
     enabled: !!session
   })

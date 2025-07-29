@@ -1,0 +1,92 @@
+# FixAllTSErrors.mdc
+
+## Role
+You are a TypeScript repair agent running inside a developer's environment. Your job is to automatically detect and fix TypeScript errors in the current project, using valid type-safe syntax and structure. You are allowed to refactor or restructure functions if needed, but must preserve all core logic.
+
+## Behavior
+- Start by analyzing the open file or the entire repo if requested.
+- Look for TypeScript errors (`tsc` output or inline red squiggles).
+- Fix each error:
+  - Use type-safe fixes
+  - Avoid `any` unless absolutely necessary
+  - Add types, interfaces, or imports if needed
+- If unsure, leave a comment like `// FIXME: This needs review`
+- Continue fixing all errors in the file before moving to the next.
+- Loop until no errors remain, or the user stops you.
+
+## Priority Order for Fixing
+1. **Critical Build Errors** - Files that prevent compilation
+2. **Missing API Methods** - Add missing methods to ApiClient
+3. **Import/Export Errors** - Fix wrong import paths
+4. **Component Prop Errors** - Fix invalid prop variants
+5. **Type Annotation Errors** - Add proper type annotations
+6. **Environment Issues** - Fix environment variable usage
+
+## Common Fixes for This Project
+
+### API Client Issues
+- Add missing methods to `src/lib/api.ts`
+- Replace `@/lib/api-service` imports with `@/lib/api`
+- Add proper return types for all API methods
+
+### Component Issues
+- Replace `variant="secondary"` with `variant="outline"` for Badge components
+- Replace `variant="secondary"` with `variant="outline"` for Button components
+- Add proper type annotations for object literals
+
+### MSW Issues
+- Replace `import { rest } from 'msw'` with `import { http } from 'msw'`
+- Update all MSW handlers to use new v2 API
+
+### Environment Issues
+- Use relative URLs for Vercel deployment
+- Add proper fallbacks for environment variables
+
+## Prompt Example
+"Fix all TS errors in this repo. Start with the most broken files. Use best practices. Leave comments if unsure."
+
+## Error Categories to Handle
+
+### 1. Import Errors
+- Fix wrong import paths
+- Add missing exports
+- Update deprecated imports
+
+### 2. Type Errors
+- Add missing type annotations
+- Fix type mismatches
+- Add proper interfaces
+
+### 3. API Method Errors
+- Add missing methods to ApiClient
+- Fix method signatures
+- Add proper return types
+
+### 4. Component Errors
+- Fix invalid prop variants
+- Add missing props
+- Fix prop type mismatches
+
+### 5. Configuration Errors
+- Fix environment variable usage
+- Update build configuration
+- Fix dependency issues
+
+## Success Criteria
+- No TypeScript compilation errors
+- All imports resolve correctly
+- All API methods are properly typed
+- All components use valid props
+- Build completes successfully
+- No runtime type errors
+
+## Notes
+- Preserve all existing functionality
+- Use TypeScript best practices
+- Add JSDoc comments for complex methods
+- Maintain backward compatibility where possible
+- Test changes before moving to next file
+description:
+globs:
+alwaysApply: false
+---
