@@ -192,85 +192,37 @@ export function BiomniAssistant() {
     setAvatarState('thinking');
 
     try {
-      const context = await contextAnalyzer.getCurrentContext();
-      
-      // Check if Biomni is available
-      const isAvailable = await biomniClient.checkAvailability();
-      
-      if (!isAvailable) {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: "🧬 I'm currently connecting to Stanford's Biomni AI system. For immediate assistance, please:\n\n1. **Visit the web interface**: [biomni.stanford.edu](https://biomni.stanford.edu)\n2. **Set up local installation**: Follow the [official guide](https://github.com/snap-stanford/Biomni)\n3. **Configure API keys**: Add ANTHROPIC_API_KEY to your .env.local file\n\nI can still help with general laboratory questions while we get Biomni connected!",
-          timestamp: Date.now(),
-          avatarState: 'helpful',
-          suggestions: [
-            "How do I set up Biomni locally?",
-            "What API keys do I need?",
-            "Can I use the web interface instead?",
-            "Tell me about Biomni's capabilities"
-          ]
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-        setAvatarState('helpful');
-        return;
+      // Use the new chat API
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
       }
 
-      // Route to appropriate Biomni function based on query content
-      const lowerInput = inputValue.toLowerCase();
-      let response: string;
-      let researchResult: any = null;
-      
-      if (lowerInput.includes('protocol') || lowerInput.includes('experiment') || lowerInput.includes('design')) {
-        const result = await biomniIntegration.designExperimentalProtocol(inputValue, context);
-        response = result.result;
-        researchResult = result;
-        setAvatarState('discovering');
-      } else if (lowerInput.includes('genomic') || lowerInput.includes('dna') || lowerInput.includes('sequence') || lowerInput.includes('analysis')) {
-        const result = await biomniIntegration.conductBioinformaticsAnalysis({ query: inputValue }, context);
-        response = result.result;
-        researchResult = result;
-        setAvatarState('analyzing');
-      } else if (lowerInput.includes('literature') || lowerInput.includes('review') || lowerInput.includes('paper') || lowerInput.includes('research')) {
-        const result = await biomniIntegration.conductLiteratureReview(inputValue, context);
-        response = result.result;
-        researchResult = result;
-        setAvatarState('helpful');
-      } else if (lowerInput.includes('hypothesis') || lowerInput.includes('hypothesize') || lowerInput.includes('predict')) {
-        const result = await biomniIntegration.generateResearchHypothesis({ query: inputValue }, context);
-        response = result.result;
-        researchResult = result;
-        setAvatarState('discovering');
-      } else if (lowerInput.includes('equipment') || lowerInput.includes('calibration') || lowerInput.includes('maintenance')) {
-        const result = await biomniIntegration.analyzeLabEquipment({ query: inputValue }, context);
-        response = result.result;
-        researchResult = result;
-        setAvatarState('helpful');
-      } else if (lowerInput.includes('workflow') || lowerInput.includes('optimize') || lowerInput.includes('process')) {
-        const result = await biomniIntegration.optimizeLabWorkflow({ query: inputValue }, context);
-        response = result.result;
-        researchResult = result;
-        setAvatarState('helpful');
-      } else {
-        // General query - use Biomni's general response
-        response = await biomniClient.generateResponse(inputValue, context);
-        setAvatarState('speaking');
-      }
+      const data = await response.json();
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: response,
+        content: data.content,
         timestamp: Date.now(),
-        avatarState: avatarState,
-        suggestions: generateSuggestions(inputValue),
-        researchResult: researchResult
+        avatarState: 'speaking',
+        suggestions: generateSuggestions(inputValue)
       };
 
       setMessages(prev => [...prev, assistantMessage]);
       setAvatarState('idle');
     } catch (error) {
-      console.error('Biomni error:', error);
+      console.error('AI error:', error);
       
       const fallbackResponse = getFallbackResponse(inputValue);
       
