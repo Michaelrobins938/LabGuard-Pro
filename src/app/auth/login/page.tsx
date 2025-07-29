@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { apiClient } from '@/lib/api';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -31,30 +31,28 @@ export default function LoginPage() {
     setSuccess('');
 
     try {
-      console.log('🔄 Starting login process...');
+      console.log('🔄 Starting login process with NextAuth...');
       
-      const response = await apiClient.login({
+      const result = await signIn('credentials', {
         email: formData.email.toLowerCase().trim(),
-        password: formData.password
+        password: formData.password,
+        redirect: false,
       });
 
-      if (response.success) {
-        console.log('✅ Login successful');
-        
-        // Store user data
-        if (typeof window !== 'undefined' && response.user) {
-          localStorage.setItem('labguard_user', JSON.stringify(response.user));
-        }
+      if (result?.error) {
+        throw new Error(result.error);
+      }
 
+      if (result?.ok) {
+        console.log('✅ Login successful with NextAuth');
         setSuccess('Login successful! Redirecting to dashboard...');
         
         // Redirect after success message
         setTimeout(() => {
           router.push('/dashboard');
         }, 1500);
-        
       } else {
-        throw new Error(response.error || 'Login failed');
+        throw new Error('Login failed. Please check your credentials.');
       }
       
     } catch (error: any) {
@@ -101,12 +99,11 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 required
                 disabled={loading}
-                autoComplete="email"
               />
             </div>
             
@@ -121,7 +118,6 @@ export default function LoginPage() {
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   required
                   disabled={loading}
-                  autoComplete="current-password"
                 />
                 <Button
                   type="button"
@@ -147,20 +143,21 @@ export default function LoginPage() {
               className="w-full" 
               disabled={loading}
             >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </Button>
             
-            <div className="text-sm text-center space-y-2">
-              <div>
-                Don't have an account?{' '}
-                <Link 
-                  href="/auth/register" 
-                  className="text-blue-600 hover:underline"
-                >
-                  Sign up
-                </Link>
-              </div>
+            <div className="text-center text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Link href="/auth/register" className="text-blue-600 hover:text-blue-800 font-medium">
+                Sign up
+              </Link>
             </div>
           </CardFooter>
         </form>
