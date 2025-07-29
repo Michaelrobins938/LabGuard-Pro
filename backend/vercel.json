@@ -8,30 +8,24 @@
   ],
   "routes": [
     {
-      "src": "/api/auth/(.*)",
-      "dest": "src/server.ts",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
-      }
+      "src": "/health",
+      "dest": "src/server.ts"
     },
     {
       "src": "/api/(.*)",
-      "dest": "src/server.ts",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
-      }
+      "dest": "src/server.ts"
     },
     {
       "src": "/(.*)",
       "dest": "src/server.ts"
     }
   ],
+  "functions": {
+    "src/server.ts": {
+      "maxDuration": 30
+    }
+  },
   "env": {
     "NODE_ENV": "production"
-  },
-  "public": true
+  }
 } 
