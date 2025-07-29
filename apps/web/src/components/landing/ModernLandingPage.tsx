@@ -718,30 +718,30 @@ export function ModernLandingPage() {
             <div>
               <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Product</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+                <li><a href="/solutions" className="hover:text-white transition-colors">Solutions</a></li>
+                <li><a href="/pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="/resources/api" className="hover:text-white transition-colors">API</a></li>
+                <li><a href="/ai-demo" className="hover:text-white transition-colors">AI Demo</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Company</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="/about" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="/blog" className="hover:text-white transition-colors">Blog</a></li>
+                <li><a href="/careers" className="hover:text-white transition-colors">Careers</a></li>
+                <li><a href="/contact" className="hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Support</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+                <li><a href="/resources/documentation" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="/support" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="/resources/case-studies" className="hover:text-white transition-colors">Case Studies</a></li>
+                <li><a href="/partners" className="hover:text-white transition-colors">Partners</a></li>
               </ul>
             </div>
           </div>
