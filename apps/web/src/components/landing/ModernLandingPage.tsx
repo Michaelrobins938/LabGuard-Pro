@@ -100,7 +100,7 @@ export function ModernLandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
       {/* Navigation */}
       <nav className="relative z-50 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -134,82 +134,179 @@ export function ModernLandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative px-6 py-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <Badge className="mb-6 bg-blue-500/20 text-blue-400 border-blue-500/30">
-            <Sparkles className="w-3 h-3 mr-1" />
-            Powered by Stanford Biomni AI
-          </Badge>
-          
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            Laboratory Intelligence
-            <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Reimagined
-            </span>
-          </h1>
-          
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            Transform your laboratory with AI-powered compliance automation, real-time monitoring, 
-            and Stanford's cutting-edge Biomni research platform. Accelerate your research by 100x.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
-            <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-lg px-8 py-4">
-              <Zap className="w-5 h-5 mr-2" />
-              Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 text-lg px-8 py-4">
-              <Play className="w-5 h-5 mr-2" />
-              Watch Demo
-            </Button>
-          </div>
-        </motion.div>
+      {/* Hero Section - Mobile Optimized */}
+      <section className="relative px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pt-24 sm:pb-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left Column - Hero Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center lg:text-left space-y-6"
+            >
+              <div className="space-y-4">
+                <motion.h1 
+                  className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                >
+                  Your
+                  <br />
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Laboratory
+                  </span>
+                  <br />
+                  with AI
+                </motion.h1>
+                
+                <motion.p 
+                  className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                >
+                  Revolutionize your lab operations with Stanford's cutting-edge Biomni AI. 
+                  Automate compliance, streamline workflows, and ensure 100% accuracy in every experiment.
+                </motion.p>
+              </div>
 
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.8 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
-        >
-          {stats.map((stat, index) => (
-            <Card key={index} className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  {stat.icon}
+              {/* Mobile Optimized CTA Buttons */}
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+              >
+                <Button 
+                  size="lg"
+                  className="mobile-button-primary text-lg px-8 py-4 h-auto"
+                  onClick={() => window.location.href = '/pricing'}
+                >
+                  Start Free Trial
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="mobile-button-secondary text-lg px-8 py-4 h-auto border-white/20 text-white hover:bg-white/10"
+                >
+                  <Play className="mr-2 w-5 h-5" />
+                  Watch Demo
+                </Button>
+              </motion.div>
+
+              {/* Mobile Optimized Stats */}
+              <motion.div 
+                className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 pt-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+              >
+                {stats.map((stat, index) => (
+                  <div key={index} className="text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <div className="p-2 bg-white/10 rounded-lg">
+                        {stat.icon}
+                      </div>
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                      {stat.value}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-400 leading-tight">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </motion.div>
+
+            {/* Right Column - AI Assistant Demo */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="glass-card p-6 sm:p-8 rounded-2xl border border-white/10">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                      <Brain className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-semibold text-white">🧬 Stanford Biomni AI</h3>
+                      <p className="text-sm text-gray-400">Live Demo - Try it now!</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-green-400">Live</span>
+                  </div>
                 </div>
-                <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
-                <p className="text-sm text-gray-300">{stat.label}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </motion.div>
+                
+                <div className="space-y-4">
+                  <div className="bg-white/10 rounded-xl p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Brain className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-white font-medium">
+                          🧬 **Welcome to Stanford Biomni AI Demo!**
+                        </p>
+                        <p className="text-xs text-gray-300 mt-2">
+                          I can accelerate your research by 100x with access to 150+ tools and 59 databases.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => window.location.href = '/dashboard/ai-assistant-demo'}
+                      className="w-full mobile-button-primary text-base px-6 py-3"
+                    >
+                      🚀 Try Interactive Demo
+                    </button>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white/5 rounded-lg p-3 text-center">
+                        <div className="text-xs text-gray-400">Protocol Design</div>
+                        <div className="text-xs text-blue-400">PCR Analysis</div>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3 text-center">
+                        <div className="text-xs text-gray-400">Genomic Analysis</div>
+                        <div className="text-xs text-purple-400">Cancer Biomarkers</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </section>
 
-      {/* Features Section */}
-      <section className="px-6 py-20">
+      {/* Features Section - Mobile Optimized */}
+      <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Why Choose LabGuard Pro?
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+            Powered by Stanford Research
           </h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            The only laboratory platform powered by Stanford's Biomni AI, offering unprecedented 
-            research acceleration and compliance automation.
+          <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
+            Advanced AI capabilities built on decades of Stanford research and real-world laboratory data
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
           {features.map((feature, index) => (
             <motion.div
               key={index}
@@ -217,14 +314,23 @@ export function ModernLandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.8 }}
               viewport={{ once: true }}
+              className="group"
             >
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
-                <CardContent className="p-6">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-4`}>
-                    {feature.icon}
+              <Card className="mobile-card h-full hover:bg-white/15 transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6 sm:p-8">
+                  <div className="flex items-start space-x-4">
+                    <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                      {feature.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                  <p className="text-gray-300">{feature.description}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -232,93 +338,24 @@ export function ModernLandingPage() {
         </div>
       </section>
 
-      {/* AI Assistant Showcase */}
-      <section className="px-6 py-20 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+      {/* Testimonials Section - Mobile Optimized */}
+      <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center"
+          className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Meet Your AI Laboratory Partner
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Powered by Stanford's Biomni AI system with access to 150+ tools, 59 databases, 
-            and 106 software packages for unprecedented research acceleration.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Beaker className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Protocol Design</h3>
-                <p className="text-gray-300 text-sm">
-                  AI-powered experimental protocol generation with optimization
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <TestTube className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Data Analysis</h3>
-                <p className="text-gray-300 text-sm">
-                  Advanced bioinformatics analysis with genomic data processing
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Compliance</h3>
-                <p className="text-gray-300 text-sm">
-                  Automated compliance checking and audit trail generation
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-lg px-8 py-4"
-            onClick={() => {
-              const event = new CustomEvent('toggle-assistant')
-              window.dispatchEvent(event)
-            }}
-          >
-            <Bot className="w-5 h-5 mr-2" />
-            Try AI Assistant Now
-          </Button>
-        </motion.div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="px-6 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
             Trusted by Leading Laboratories
           </h2>
-          <p className="text-xl text-gray-300">
+          <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
             See what researchers and laboratory professionals are saying about LabGuard Pro
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
@@ -327,17 +364,19 @@ export function ModernLandingPage() {
               transition={{ delay: index * 0.2, duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                <CardContent className="p-6">
+              <Card className="mobile-card h-full">
+                <CardContent className="p-6 sm:p-8">
                   <div className="flex items-center mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-300 mb-4">"{testimonial.content}"</p>
+                  <p className="text-sm sm:text-base text-gray-300 mb-6 leading-relaxed">
+                    "{testimonial.content}"
+                  </p>
                   <div>
-                    <p className="font-semibold text-white">{testimonial.name}</p>
-                    <p className="text-sm text-gray-400">{testimonial.role}</p>
+                    <p className="font-semibold text-white text-sm sm:text-base">{testimonial.name}</p>
+                    <p className="text-xs sm:text-sm text-gray-400">{testimonial.role}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -346,55 +385,55 @@ export function ModernLandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="px-6 py-12 border-t border-white/10">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      {/* Footer - Mobile Optimized */}
+      <footer className="px-4 sm:px-6 lg:px-8 py-12 sm:py-16 border-t border-white/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-white">LabGuard Pro</span>
               </div>
-              <p className="text-gray-300 text-sm">
+              <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
                 The future of laboratory intelligence, powered by Stanford Biomni AI.
               </p>
             </div>
             
             <div>
-              <h3 className="text-white font-semibold mb-4">Product</h3>
+              <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Product</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white">Features</a></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-white">Integrations</a></li>
-                <li><a href="#" className="hover:text-white">API</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-white font-semibold mb-4">Company</h3>
+              <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Company</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white">About</a></li>
-                <li><a href="#" className="hover:text-white">Blog</a></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-white font-semibold mb-4">Support</h3>
+              <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Support</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white">Documentation</a></li>
-                <li><a href="#" className="hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-white">Community</a></li>
-                <li><a href="#" className="hover:text-white">Status</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-white/10 mt-8 pt-8 text-center">
-            <p className="text-gray-400 text-sm">
+            <p className="text-sm text-gray-400">
               © 2024 LabGuard Pro. Powered by Stanford Biomni AI. All rights reserved.
             </p>
           </div>

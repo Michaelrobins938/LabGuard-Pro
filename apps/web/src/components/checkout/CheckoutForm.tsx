@@ -106,151 +106,147 @@ export function CheckoutForm({ plan, isYearly, isDemoMode = false }: CheckoutFor
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Customer Information */}
-      <Card className="bg-white/5 border-white/10">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <CreditCard className="w-5 h-5 mr-2" />
-            Customer Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+      <div className="glass-card p-6 sm:p-8 rounded-2xl">
+        <div className="flex items-center mb-6">
+          <CreditCard className="w-6 h-6 text-blue-400 mr-3" />
+          <h2 className="text-xl sm:text-2xl font-semibold text-white">Payment Information</h2>
+        </div>
+        
+        {/* Customer Information */}
+        <div className="space-y-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="firstName" className="text-white">First Name *</Label>
+              <Label htmlFor="firstName" className="text-sm font-medium text-gray-300 mb-2 block">
+                First Name *
+              </Label>
               <Input
                 id="firstName"
                 name="firstName"
+                type="text"
                 value={formData.firstName}
                 onChange={handleInputChange}
+                className="mobile-input"
+                placeholder="Enter your first name"
                 required
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                placeholder="John"
               />
             </div>
             <div>
-              <Label htmlFor="lastName" className="text-white">Last Name *</Label>
+              <Label htmlFor="lastName" className="text-sm font-medium text-gray-300 mb-2 block">
+                Last Name *
+              </Label>
               <Input
                 id="lastName"
                 name="lastName"
+                type="text"
                 value={formData.lastName}
                 onChange={handleInputChange}
+                className="mobile-input"
+                placeholder="Enter your last name"
                 required
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                placeholder="Doe"
               />
             </div>
           </div>
           
           <div>
-            <Label htmlFor="email" className="text-white">Email Address *</Label>
+            <Label htmlFor="email" className="text-sm font-medium text-gray-300 mb-2 block">
+              Email Address *
+            </Label>
             <Input
               id="email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleInputChange}
+              className="mobile-input"
+              placeholder="Enter your email address"
               required
-              className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              placeholder="john.doe@company.com"
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="company" className="text-white">Company</Label>
+              <Label htmlFor="company" className="text-sm font-medium text-gray-300 mb-2 block">
+                Company
+              </Label>
               <Input
                 id="company"
                 name="company"
+                type="text"
                 value={formData.company}
                 onChange={handleInputChange}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                placeholder="Your Company"
+                className="mobile-input"
+                placeholder="Enter company name"
               />
             </div>
             <div>
-              <Label htmlFor="phone" className="text-white">Phone</Label>
+              <Label htmlFor="phone" className="text-sm font-medium text-gray-300 mb-2 block">
+                Phone Number
+              </Label>
               <Input
                 id="phone"
                 name="phone"
+                type="tel"
                 value={formData.phone}
                 onChange={handleInputChange}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                placeholder="+1 (555) 123-4567"
+                className="mobile-input"
+                placeholder="Enter phone number"
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Payment Information */}
-      <Card className="bg-white/5 border-white/10">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Lock className="w-5 h-5 mr-2" />
-            Payment Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PaymentElement 
-            options={{
-              layout: 'tabs',
-              fields: {
-                billingDetails: {
-                  name: 'auto',
-                  email: 'auto',
-                  phone: 'auto',
-                  address: 'never'
-                }
-              }
-            }}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Security Notice */}
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <Shield className="w-5 h-5 text-blue-400 mt-1 flex-shrink-0" />
-          <div>
-            <h4 className="text-white font-medium">Secure Payment</h4>
-            <p className="text-gray-300 text-sm">
-              Your payment information is encrypted and secure. We use Stripe for PCI-compliant payment processing.
-            </p>
+        {/* Payment Element */}
+        {!isDemoMode && (
+          <div className="space-y-4">
+            <Label className="text-sm font-medium text-gray-300 mb-2 block">
+              Payment Method
+            </Label>
+            <div className="mobile-input min-h-[60px] flex items-center">
+              <PaymentElement />
+            </div>
           </div>
+        )}
+
+        {/* Demo Mode Notice */}
+        {isDemoMode && (
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                <Lock className="w-4 h-4 text-blue-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-medium text-sm">Demo Mode</h4>
+                <p className="text-gray-300 text-xs">This is a demonstration. No actual payment will be processed.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full mobile-button-primary text-lg py-4 h-auto mt-6"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Lock className="w-5 h-5 mr-2" />
+              {isDemoMode ? 'Complete Demo Purchase' : `Pay ${formatPrice(isYearly ? plan.yearlyPrice : plan.monthlyPrice)}`}
+            </>
+          )}
+        </Button>
+
+        {/* Security Notice */}
+        <div className="flex items-center justify-center mt-6 text-xs text-gray-400">
+          <Shield className="w-4 h-4 mr-2" />
+          Your payment is secured with bank-level encryption
         </div>
       </div>
-
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={loading || !stripe}
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Processing Payment...
-          </>
-        ) : (
-          <>
-            <Lock className="w-5 h-5 mr-2" />
-            Complete Purchase - {formatPrice(isYearly ? plan.yearlyPrice : plan.monthlyPrice)}
-          </>
-        )}
-      </Button>
-
-      {/* Terms */}
-      <p className="text-gray-400 text-sm text-center">
-        By completing your purchase, you agree to our{' '}
-        <a href="/terms" className="text-blue-400 hover:text-blue-300 underline">
-          Terms of Service
-        </a>{' '}
-        and{' '}
-        <a href="/privacy" className="text-blue-400 hover:text-blue-300 underline">
-          Privacy Policy
-        </a>
-      </p>
     </form>
   )
 }
