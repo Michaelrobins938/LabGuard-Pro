@@ -29,11 +29,21 @@ import {
   Crown,
   Lock,
   BarChart3,
-  Clock
+  Clock,
+  ChevronDown,
+  Mail,
+  Phone,
+  MapPin,
+  Twitter,
+  Linkedin,
+  Youtube,
+  Facebook,
+  Instagram
 } from 'lucide-react'
 
 export function ModernLandingPage() {
   const [isYearly, setIsYearly] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
 
   const features = [
     {
@@ -43,55 +53,48 @@ export function ModernLandingPage() {
       color: "from-blue-500 to-purple-600"
     },
     {
-      icon: <Target className="w-6 h-6" />,
-      title: "AI-Powered Calibration",
-      description: "Automated equipment calibration with real-time validation and compliance checking",
-      color: "from-green-500 to-teal-600"
+      icon: <Shield className="w-6 h-6" />,
+      title: "CAP/CLIA Compliance",
+      description: "Automated audit preparation and regulatory compliance monitoring",
+      color: "from-green-500 to-blue-600"
     },
     {
-      icon: <Shield className="w-6 h-6" />,
-      title: "Enterprise Security",
-      description: "HIPAA, SOC2, and GDPR compliant with advanced encryption and audit trails",
-      color: "from-red-500 to-pink-600"
+      icon: <Target className="w-6 h-6" />,
+      title: "Predictive Analytics",
+      description: "AI-powered insights for equipment maintenance and quality control",
+      color: "from-purple-500 to-pink-600"
     },
     {
       icon: <Database className="w-6 h-6" />,
-      title: "Real-time Analytics",
-      description: "Comprehensive dashboards with predictive analytics and performance insights",
-      color: "from-yellow-500 to-orange-600"
+      title: "Real-time Monitoring",
+      description: "Continuous monitoring of laboratory processes and equipment status",
+      color: "from-orange-500 to-red-600"
+    },
+    {
+      icon: <Code className="w-6 h-6" />,
+      title: "API Integration",
+      description: "Seamless integration with existing laboratory management systems",
+      color: "from-indigo-500 to-purple-600"
     },
     {
       icon: <Cpu className="w-6 h-6" />,
       title: "Smart Automation",
-      description: "Intelligent workflow automation with AI-driven decision making",
-      color: "from-purple-500 to-indigo-600"
-    },
-    {
-      icon: <Globe className="w-6 h-6" />,
-      title: "Multi-tenant Architecture",
-      description: "Scalable platform supporting multiple laboratories and organizations",
-      color: "from-cyan-500 to-blue-600"
+      description: "Automated workflows and intelligent process optimization",
+      color: "from-teal-500 to-cyan-600"
     }
-  ]
-
-  const stats = [
-    { label: "Equipment Monitored", value: "10,000+", icon: <Microscope className="w-5 h-5" /> },
-    { label: "AI Assistance Sessions", value: "50,000+", icon: <Bot className="w-5 h-5" /> },
-    { label: "Research Projects", value: "1,000+", icon: <Dna className="w-5 h-5" /> },
-    { label: "Compliance Rate", value: "99.8%", icon: <CheckCircle className="w-5 h-5" /> }
   ]
 
   const testimonials = [
     {
-      name: "Dr. Sarah Johnson",
-      role: "Lab Director, Stanford Medical Center",
-      content: "LabGuard Pro with Biomni AI has revolutionized our laboratory operations. The AI assistant has accelerated our research by 100x.",
+      name: "Dr. Sarah Chen",
+      role: "Research Director, Stanford Medical Center",
+      content: "LabGuard Pro has transformed our laboratory operations. The AI-powered compliance monitoring has reduced our audit preparation time by 80%.",
       rating: 5
     },
     {
-      name: "Dr. Michael Chen",
-      role: "Research Scientist, MIT",
-      content: "The integration with Stanford's Biomni system is game-changing. We can now design experiments and analyze data with unprecedented speed.",
+      name: "Dr. Michael Rodriguez",
+      role: "Quality Manager, Mayo Clinic",
+      content: "The predictive analytics feature has prevented equipment failures and saved us thousands in maintenance costs.",
       rating: 5
     },
     {
@@ -183,6 +186,37 @@ export function ModernLandingPage() {
     }).format(amount / 100)
   }
 
+  const navigationItems = {
+    product: [
+      { name: 'AI Assistant', href: '/ai-demo' },
+      { name: 'Analytics', href: '/dashboard/analytics' },
+      { name: 'Compliance', href: '/dashboard/compliance' },
+      { name: 'Equipment Management', href: '/dashboard/equipment' },
+      { name: 'Protocol Design', href: '/dashboard/ai' }
+    ],
+    solutions: [
+      { name: 'Research Labs', href: '/solutions/research' },
+      { name: 'Clinical Labs', href: '/solutions/clinical' },
+      { name: 'Pharmaceutical', href: '/solutions/pharmaceutical' },
+      { name: 'Biotechnology', href: '/solutions/biotechnology' },
+      { name: 'Academic Institutions', href: '/solutions/enterprise' }
+    ],
+    resources: [
+      { name: 'Documentation', href: '/resources/documentation' },
+      { name: 'Case Studies', href: '/resources/case-studies' },
+      { name: 'Blog', href: '/blog' },
+      { name: 'Support Center', href: '/support' },
+      { name: 'API Reference', href: '/resources/api' }
+    ],
+    company: [
+      { name: 'About', href: '/about' },
+      { name: 'Careers', href: '/careers' },
+      { name: 'Contact', href: '/contact' },
+      { name: 'Partners', href: '/partners' },
+      { name: 'Press', href: '/press' }
+    ]
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
       {/* Navigation */}
@@ -203,54 +237,118 @@ export function ModernLandingPage() {
             </span>
           </div>
           <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10"
-              onClick={() => {
-                const featuresSection = document.getElementById('features')
-                featuresSection?.scrollIntoView({ behavior: 'smooth' })
-              }}
-            >
-              Features
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10"
-              onClick={() => window.location.href = '/solutions'}
-            >
-              Solutions
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10"
-              onClick={() => {
-                const pricingSection = document.getElementById('pricing')
-                pricingSection?.scrollIntoView({ behavior: 'smooth' })
-              }}
-            >
-              Pricing
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10"
-              onClick={() => window.location.href = '/resources'}
-            >
-              Resources
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10"
-              onClick={() => window.location.href = '/blog'}
-            >
-              Blog
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10"
-              onClick={() => window.location.href = '/about'}
-            >
-              About
-            </Button>
+            {/* Product Dropdown */}
+            <div className="relative group">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 flex items-center space-x-1"
+                onMouseEnter={() => setActiveDropdown('product')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <span>Product</span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              {activeDropdown === 'product' && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
+                  <div className="p-4 space-y-2">
+                    {navigationItems.product.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
+                      >
+                        {item.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Solutions Dropdown */}
+            <div className="relative group">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 flex items-center space-x-1"
+                onMouseEnter={() => setActiveDropdown('solutions')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <span>Solutions</span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              {activeDropdown === 'solutions' && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
+                  <div className="p-4 space-y-2">
+                    {navigationItems.solutions.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
+                      >
+                        {item.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Resources Dropdown */}
+            <div className="relative group">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 flex items-center space-x-1"
+                onMouseEnter={() => setActiveDropdown('resources')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <span>Resources</span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              {activeDropdown === 'resources' && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
+                  <div className="p-4 space-y-2">
+                    {navigationItems.resources.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
+                      >
+                        {item.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Company Dropdown */}
+            <div className="relative group">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 flex items-center space-x-1"
+                onMouseEnter={() => setActiveDropdown('company')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <span>Company</span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              {activeDropdown === 'company' && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl">
+                  <div className="p-4 space-y-2">
+                    {navigationItems.company.map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className="block p-3 rounded-lg hover:bg-white/5 transition-colors text-white"
+                      >
+                        {item.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Button 
               variant="ghost" 
               className="text-white hover:bg-white/10"
@@ -260,16 +358,9 @@ export function ModernLandingPage() {
             </Button>
             <Button 
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              onClick={() => window.location.href = '/ai-demo'}
-            >
-              <Bot className="w-4 h-4 mr-2" />
-              Try AI Assistant
-            </Button>
-            <Button 
-              className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
               onClick={() => window.location.href = '/auth/register'}
             >
-              Start Trial
+              Start Free Trial
             </Button>
           </div>
         </div>
@@ -346,21 +437,58 @@ export function ModernLandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8, duration: 0.8 }}
               >
-                {stats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className="flex items-center justify-center mb-2">
-                      <div className="p-2 bg-white/10 rounded-lg">
-                        {stat.icon}
-                      </div>
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                      {stat.value}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-400 leading-tight">
-                      {stat.label}
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <div className="p-2 bg-white/10 rounded-lg">
+                      <Microscope className="w-5 h-5 text-white" />
                     </div>
                   </div>
-                ))}
+                  <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                    10,000+
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-400 leading-tight">
+                    Equipment Monitored
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <div className="p-2 bg-white/10 rounded-lg">
+                      <Bot className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                    50,000+
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-400 leading-tight">
+                    AI Assistance Sessions
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <div className="p-2 bg-white/10 rounded-lg">
+                      <Dna className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                    1,000+
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-400 leading-tight">
+                    Research Projects
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <div className="p-2 bg-white/10 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                    99.8%
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-400 leading-tight">
+                    Compliance Rate
+                  </div>
+                </div>
               </motion.div>
             </motion.div>
 
@@ -744,38 +872,79 @@ export function ModernLandingPage() {
                 </div>
                 <span className="text-xl font-bold text-white">LabGuard Pro</span>
               </div>
-              <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-6">
                 The future of laboratory intelligence, powered by Stanford Biomni AI.
               </p>
+              
+              {/* Contact Information */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center space-x-3 text-sm text-gray-300">
+                  <Mail className="w-4 h-4" />
+                  <span>hello@labguardpro.com</span>
+                </div>
+                <div className="flex items-center space-x-3 text-sm text-gray-300">
+                  <Phone className="w-4 h-4" />
+                  <span>+1 (555) 123-4567</span>
+                </div>
+                <div className="flex items-center space-x-3 text-sm text-gray-300">
+                  <MapPin className="w-4 h-4" />
+                  <span>Stanford, CA 94305</span>
+                </div>
+              </div>
+              
+              {/* Social Media Icons */}
+              <div className="flex items-center space-x-4">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Globe className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Youtube className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Facebook className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Instagram className="w-5 h-5" />
+                </a>
+              </div>
             </div>
             
             <div>
               <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Product</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="/solutions" className="hover:text-white transition-colors">Solutions</a></li>
-                <li><a href="/pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="/resources/api" className="hover:text-white transition-colors">API</a></li>
-                <li><a href="/ai-demo" className="hover:text-white transition-colors">AI Demo</a></li>
+                <li><a href="/ai-demo" className="hover:text-white transition-colors">AI Assistant</a></li>
+                <li><a href="/dashboard/analytics" className="hover:text-white transition-colors">Analytics</a></li>
+                <li><a href="/dashboard/compliance" className="hover:text-white transition-colors">Compliance</a></li>
+                <li><a href="/dashboard/equipment" className="hover:text-white transition-colors">Equipment Management</a></li>
+                <li><a href="/dashboard/ai" className="hover:text-white transition-colors">Protocol Design</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Company</h3>
+              <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Solutions</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="/about" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="/blog" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="/careers" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="/contact" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="/solutions/research" className="hover:text-white transition-colors">Research Labs</a></li>
+                <li><a href="/solutions/clinical" className="hover:text-white transition-colors">Clinical Labs</a></li>
+                <li><a href="/solutions/pharmaceutical" className="hover:text-white transition-colors">Pharmaceutical</a></li>
+                <li><a href="/solutions/biotechnology" className="hover:text-white transition-colors">Biotechnology</a></li>
+                <li><a href="/solutions/enterprise" className="hover:text-white transition-colors">Academic Institutions</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Support</h3>
+              <h3 className="text-white font-semibold mb-4 text-sm sm:text-base">Resources</h3>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li><a href="/resources/documentation" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="/support" className="hover:text-white transition-colors">Help Center</a></li>
                 <li><a href="/resources/case-studies" className="hover:text-white transition-colors">Case Studies</a></li>
-                <li><a href="/partners" className="hover:text-white transition-colors">Partners</a></li>
+                <li><a href="/blog" className="hover:text-white transition-colors">Blog</a></li>
+                <li><a href="/support" className="hover:text-white transition-colors">Support Center</a></li>
+                <li><a href="/resources/api" className="hover:text-white transition-colors">API Reference</a></li>
               </ul>
             </div>
           </div>
