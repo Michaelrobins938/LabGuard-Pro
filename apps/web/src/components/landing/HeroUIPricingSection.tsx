@@ -16,6 +16,7 @@ import {
   Clock
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 export function HeroUIPricingSection() {
   const [isYearly, setIsYearly] = useState(false)
@@ -195,14 +196,14 @@ export function HeroUIPricingSection() {
                 </div>
 
                 {/* CTA Button */}
-                <button className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${
+                <Link href="/dashboard?bypass=true" className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center ${
                   plan.popular
                     ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
                     : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
                 }`}>
                   {plan.popular ? 'Start Free Trial' : 'Get Started'}
                   <ArrowRight className="w-4 h-4 ml-2 inline" />
-                </button>
+                </Link>
               </div>
 
               {/* Features */}
@@ -289,15 +290,15 @@ export function HeroUIPricingSection() {
               No credit card required, cancel anytime.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <Link href="/dashboard?bypass=true" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
                 <Sparkles className="w-5 h-5 mr-2" />
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </button>
-              <button className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all duration-300 backdrop-blur-sm">
+              </Link>
+              <Link href="/contact" className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all duration-300 backdrop-blur-sm">
                 <Users className="w-5 h-5 mr-2" />
                 Schedule Demo
-              </button>
+              </Link>
             </div>
             <p className="text-sm text-gray-400 mt-4">
               14-day free trial • No credit card required • Cancel anytime
