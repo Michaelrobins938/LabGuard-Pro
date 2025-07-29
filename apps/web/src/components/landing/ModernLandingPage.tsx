@@ -27,11 +27,8 @@ import {
   Beaker,
   TestTube
 } from 'lucide-react'
-import { EnhancedBiomniAssistant } from '@/components/ai-assistant/EnhancedBiomniAssistant'
 
 export function ModernLandingPage() {
-  const [showAIAssistant, setShowAIAssistant] = useState(true)
-
   const features = [
     {
       icon: <Brain className="w-6 h-6" />,
@@ -122,10 +119,7 @@ export function ModernLandingPage() {
             </Button>
             <Button 
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              onClick={() => {
-                const event = new CustomEvent('toggle-assistant')
-                window.dispatchEvent(event)
-              }}
+              onClick={() => window.location.href = '/ai-demo'}
             >
               <Bot className="w-4 h-4 mr-2" />
               Try AI Assistant
@@ -191,9 +185,10 @@ export function ModernLandingPage() {
                   variant="outline" 
                   size="lg"
                   className="mobile-button-secondary text-lg px-8 py-4 h-auto border-white/20 text-white hover:bg-white/10"
+                  onClick={() => window.location.href = '/ai-demo'}
                 >
                   <Play className="mr-2 w-5 h-5" />
-                  Watch Demo
+                  Try AI Demo
                 </Button>
               </motion.div>
 
@@ -222,7 +217,7 @@ export function ModernLandingPage() {
               </motion.div>
             </motion.div>
 
-            {/* Right Column - AI Assistant Demo */}
+            {/* Right Column - AI Assistant Demo Card */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -237,7 +232,7 @@ export function ModernLandingPage() {
                     </div>
                     <div>
                       <h3 className="text-lg sm:text-xl font-semibold text-white">🧬 Stanford Biomni AI</h3>
-                      <p className="text-sm text-gray-400">Live Demo - Try it now!</p>
+                      <p className="text-sm text-gray-400">Interactive Demo Available</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -254,10 +249,10 @@ export function ModernLandingPage() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-white font-medium">
-                          🧬 **Welcome to Stanford Biomni AI Demo!**
+                          🧬 **Experience Stanford Biomni AI**
                         </p>
                         <p className="text-xs text-gray-300 mt-2">
-                          I can accelerate your research by 100x with access to 150+ tools and 59 databases.
+                          Try our interactive demo with 150+ tools and 59 databases for laboratory research.
                         </p>
                       </div>
                     </div>
@@ -265,10 +260,10 @@ export function ModernLandingPage() {
                   
                   <div className="space-y-3">
                     <button 
-                      onClick={() => window.location.href = '/dashboard/ai-assistant-demo'}
+                      onClick={() => window.location.href = '/ai-demo'}
                       className="w-full mobile-button-primary text-base px-6 py-3"
                     >
-                      🚀 Try Interactive Demo
+                      🚀 Launch Interactive Demo
                     </button>
                     
                     <div className="grid grid-cols-2 gap-3">
@@ -439,26 +434,6 @@ export function ModernLandingPage() {
           </div>
         </div>
       </footer>
-
-      {/* AI Assistant - Desktop Only */}
-      {showAIAssistant && (
-        <div className="hidden lg:block fixed bottom-6 right-6 z-50">
-          <EnhancedBiomniAssistant />
-        </div>
-      )}
-
-      {/* Mobile AI Assistant Button */}
-      {showAIAssistant && (
-        <div className="lg:hidden fixed bottom-4 right-4 z-50">
-          <button
-            onClick={() => window.open('/dashboard/ai-assistant-demo', '_blank')}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
-            aria-label="Open AI Assistant Demo"
-          >
-            <Brain className="w-6 h-6" />
-          </button>
-        </div>
-      )}
     </div>
   )
 } 
