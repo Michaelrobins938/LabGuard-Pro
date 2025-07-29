@@ -189,19 +189,45 @@ export function ModernLandingPage() {
       <nav className="relative z-50 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <div 
+              className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => window.location.href = '/'}
+            >
               <Bot className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">LabGuard Pro</span>
+            <span 
+              className="text-xl font-bold text-white cursor-pointer hover:text-blue-300 transition-colors"
+              onClick={() => window.location.href = '/'}
+            >
+              LabGuard Pro
+            </span>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" className="text-white hover:bg-white/10">
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
+              onClick={() => {
+                const featuresSection = document.getElementById('features')
+                featuresSection?.scrollIntoView({ behavior: 'smooth' })
+              }}
+            >
               Features
             </Button>
-            <Button variant="ghost" className="text-white hover:bg-white/10">
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
+              onClick={() => {
+                const pricingSection = document.getElementById('pricing')
+                pricingSection?.scrollIntoView({ behavior: 'smooth' })
+              }}
+            >
               Pricing
             </Button>
-            <Button variant="ghost" className="text-white hover:bg-white/10">
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
+              onClick={() => window.location.href = '/about'}
+            >
               About
             </Button>
             <Button 
@@ -372,7 +398,7 @@ export function ModernLandingPage() {
       </section>
 
       {/* Features Section - Mobile Optimized */}
-      <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+      <section id="features" className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -421,7 +447,7 @@ export function ModernLandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+      <section id="pricing" className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
