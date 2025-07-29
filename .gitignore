@@ -86,3 +86,4 @@ prisma/migrations/
 !.gitignore
 !README.md 
 .vercel
+.env*.local

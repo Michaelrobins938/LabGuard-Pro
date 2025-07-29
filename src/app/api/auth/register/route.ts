@@ -35,18 +35,19 @@ export async function POST(request: NextRequest) {
       hasPassword: !!body.password
     })
 
-    // Transform frontend data to backend format
+    // Transform frontend data to backend format - send firstName and lastName separately
     const backendData = {
       email: body.email,
       password: body.password,
-      name: `${body.firstName || ''} ${body.lastName || ''}`.trim() || body.name || 'User',
-      role: body.role || 'USER',
-      laboratoryId: body.laboratoryId || null
+      firstName: body.firstName || '',
+      lastName: body.lastName || '',
+      role: body.role || 'USER'
     }
 
     console.log(`🔄 [${requestId}] Transformed data for backend:`, {
       email: backendData.email,
-      name: backendData.name,
+      firstName: backendData.firstName,
+      lastName: backendData.lastName,
       role: backendData.role
     })
 
