@@ -22,36 +22,37 @@ import {
   MapPin
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 export function HeroUIFooter() {
   const footerLinks = {
     product: [
-      { name: 'AI Assistant', href: '#' },
-      { name: 'Analytics', href: '#' },
-      { name: 'Compliance', href: '#' },
-      { name: 'Equipment Management', href: '#' },
-      { name: 'Protocol Design', href: '#' }
+      { name: 'AI Assistant', href: '/dashboard?bypass=true' },
+      { name: 'Analytics', href: '/dashboard?bypass=true' },
+      { name: 'Compliance', href: '/dashboard/compliance' },
+      { name: 'Equipment Management', href: '/dashboard/equipment' },
+      { name: 'Protocol Design', href: '/dashboard?bypass=true' }
     ],
     solutions: [
-      { name: 'Research Labs', href: '#' },
-      { name: 'Clinical Labs', href: '#' },
-      { name: 'Pharmaceutical', href: '#' },
-      { name: 'Biotechnology', href: '#' },
-      { name: 'Academic Institutions', href: '#' }
+      { name: 'Research Labs', href: '/solutions/research' },
+      { name: 'Clinical Labs', href: '/solutions/clinical' },
+      { name: 'Pharmaceutical', href: '/solutions/pharmaceutical' },
+      { name: 'Biotechnology', href: '/solutions/biotechnology' },
+      { name: 'Academic Institutions', href: '/solutions/research' }
     ],
     resources: [
-      { name: 'Documentation', href: '#' },
-      { name: 'Case Studies', href: '#' },
-      { name: 'Blog', href: '#' },
-      { name: 'Support Center', href: '#' },
-      { name: 'API Reference', href: '#' }
+      { name: 'Documentation', href: '/resources/documentation' },
+      { name: 'Case Studies', href: '/resources/case-studies' },
+      { name: 'Blog', href: '/blog' },
+      { name: 'Support Center', href: '/support' },
+      { name: 'API Reference', href: '/resources/api' }
     ],
     company: [
-      { name: 'About Us', href: '#' },
-      { name: 'Careers', href: '#' },
-      { name: 'Contact', href: '#' },
-      { name: 'Partners', href: '#' },
-      { name: 'Press Kit', href: '#' }
+      { name: 'About Us', href: '/about' },
+      { name: 'Careers', href: '/careers' },
+      { name: 'Contact', href: '/contact' },
+      { name: 'Partners', href: '/partners' },
+      { name: 'Press Kit', href: '/press' }
     ]
   }
 
@@ -180,9 +181,9 @@ export function HeroUIFooter() {
                 <ul className="space-y-3">
                   {links.map((link, linkIndex) => (
                     <li key={linkIndex}>
-                      <button className="text-gray-300 hover:text-white transition-colors text-left">
+                      <Link href={link.href} className="text-gray-300 hover:text-white transition-colors text-left">
                         {link.name}
-                      </button>
+                      </Link>
                     </li>
                   ))}
                 </ul>

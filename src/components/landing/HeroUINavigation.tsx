@@ -25,10 +25,10 @@ export function HeroUINavigation() {
     {
       name: 'Product',
       items: [
-        { name: 'AI Assistant', description: 'Intelligent laboratory companion', icon: Brain, href: '/biomni-demo' },
-        { name: 'Analytics', description: 'Advanced data insights', icon: BarChart3, href: '/demo' },
-        { name: 'Compliance', description: 'Automated regulatory monitoring', icon: Shield, href: '/demo' },
-        { name: 'Equipment', description: 'Smart device management', icon: Zap, href: '/demo' }
+        { name: 'AI Assistant', description: 'Intelligent laboratory companion', icon: Brain, href: '/dashboard?bypass=true' },
+        { name: 'Analytics', description: 'Advanced data insights', icon: BarChart3, href: '/dashboard?bypass=true' },
+        { name: 'Compliance', description: 'Automated regulatory monitoring', icon: Shield, href: '/dashboard/compliance' },
+        { name: 'Equipment', description: 'Smart device management', icon: Zap, href: '/dashboard/equipment' }
       ]
     },
     {
