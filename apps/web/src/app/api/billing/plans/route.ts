@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
           teamMembers: 2,
           storage: 10
         },
-        stripeId: process.env.STRIPE_STARTER_PRICE_ID
+        stripeId: process.env.STRIPE_STARTER_PRICE_ID,
+        stripeYearlyId: process.env.STRIPE_STARTER_YEARLY_PRICE_ID
       },
       {
         id: 'professional',
@@ -68,7 +69,8 @@ export async function GET(request: NextRequest) {
           storage: 100
         },
         popular: true,
-        stripeId: process.env.STRIPE_PROFESSIONAL_PRICE_ID
+        stripeId: process.env.STRIPE_PROFESSIONAL_PRICE_ID,
+        stripeYearlyId: process.env.STRIPE_PROFESSIONAL_YEARLY_PRICE_ID
       },
       {
         id: 'enterprise',
@@ -103,7 +105,8 @@ export async function GET(request: NextRequest) {
           storage: 500
         },
         recommended: true,
-        stripeId: process.env.STRIPE_ENTERPRISE_PRICE_ID
+        stripeId: process.env.STRIPE_ENTERPRISE_PRICE_ID,
+        stripeYearlyId: process.env.STRIPE_ENTERPRISE_YEARLY_PRICE_ID
       }
     ]
 
