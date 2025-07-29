@@ -79,14 +79,14 @@ export function HeroUIFooter() {
   ]
 
   return (
-    <footer className="bg-slate-900 relative overflow-hidden">
+    <footer className="bg-slate-900 relative overflow-hidden z-10">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-20">
         {/* CTA Section */}
         <div className="py-16 border-b border-white/10">
           <div className="text-center">
@@ -169,11 +169,9 @@ export function HeroUIFooter() {
 
             {/* Footer Links */}
             {Object.entries(footerLinks).map(([category, links], index) => (
-              <motion.div
+              <div
                 key={category}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="space-y-3"
               >
                 <h3 className="text-lg font-semibold text-white mb-4 capitalize">
                   {category}
@@ -181,13 +179,17 @@ export function HeroUIFooter() {
                 <ul className="space-y-3">
                   {links.map((link, linkIndex) => (
                     <li key={linkIndex}>
-                      <Link href={link.href} className="text-gray-300 hover:text-white transition-colors text-left">
+                      <Link 
+                        href={link.href} 
+                        className="text-gray-300 hover:text-white transition-colors text-left block"
+                        onClick={() => console.log('Footer link clicked:', link.href)}
+                      >
                         {link.name}
                       </Link>
                     </li>
                   ))}
                 </ul>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
