@@ -36,14 +36,17 @@ router.post('/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Create user
+    // Create user with all required fields for complex schema
     const user = await req.prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         firstName,
         lastName,
-        role
+        role,
+        laboratoryId: "default-lab", // Add required field
+        isActive: true,             // Add required field
+        emailVerified: false        // Add required field
       },
       select: {
         id: true,
