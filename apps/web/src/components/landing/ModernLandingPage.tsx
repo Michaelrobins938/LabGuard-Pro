@@ -216,6 +216,13 @@ export function ModernLandingPage() {
             <Button 
               variant="ghost" 
               className="text-white hover:bg-white/10"
+              onClick={() => window.location.href = '/solutions'}
+            >
+              Solutions
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
               onClick={() => {
                 const pricingSection = document.getElementById('pricing')
                 pricingSection?.scrollIntoView({ behavior: 'smooth' })
@@ -226,9 +233,30 @@ export function ModernLandingPage() {
             <Button 
               variant="ghost" 
               className="text-white hover:bg-white/10"
+              onClick={() => window.location.href = '/resources'}
+            >
+              Resources
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
+              onClick={() => window.location.href = '/blog'}
+            >
+              Blog
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
               onClick={() => window.location.href = '/about'}
             >
               About
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
+              onClick={() => window.location.href = '/auth/login'}
+            >
+              Sign In
             </Button>
             <Button 
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
@@ -236,6 +264,12 @@ export function ModernLandingPage() {
             >
               <Bot className="w-4 h-4 mr-2" />
               Try AI Assistant
+            </Button>
+            <Button 
+              className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+              onClick={() => window.location.href = '/auth/register'}
+            >
+              Start Trial
             </Button>
           </div>
         </div>
