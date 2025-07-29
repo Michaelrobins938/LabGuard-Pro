@@ -72,21 +72,48 @@ const systemActions = [
     title: 'Export Data',
     description: 'Download laboratory data',
     icon: Download,
-    action: () => console.log('Export data')
+    action: () => {
+      // Export laboratory data
+      const exportData = {
+        equipment: equipment,
+        calibrations: calibrations,
+        exportDate: new Date().toISOString(),
+        laboratory: 'Advanced Research Laboratory'
+      };
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `labguard-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
   },
   {
     id: 2,
     title: 'Import Data',
-    description: 'Upload equipment data',
+    description: 'Import equipment and calibration data',
     icon: Upload,
-    action: () => console.log('Import data')
+    color: 'blue',
+    action: () => {
+      // Navigate to import page
+      window.location.href = '/dashboard/import';
+    }
   },
   {
     id: 3,
     title: 'Notifications',
-    description: 'Manage alerts and notifications',
+    description: 'View all notifications and alerts',
     icon: Bell,
-    action: () => console.log('Notifications')
+    color: 'purple',
+    action: () => {
+      // Navigate to notifications page
+      window.location.href = '/dashboard/notifications';
+    }
   }
 ]
 

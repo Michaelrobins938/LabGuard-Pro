@@ -1,569 +1,687 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Bug, 
-  AlertTriangle, 
-  Clock, 
-  CheckCircle, 
-  Phone, 
-  Mail, 
-  FileText,
-  Users,
-  Settings,
-  TrendingUp,
-  Shield,
-  Activity,
-  Zap,
-  Target,
-  Globe
-} from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { AlertTriangle, Bell, CheckCircle, Clock, MapPin, Users, Beaker, AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
+// Types based on the backend Prisma schema
 interface VectorTest {
   id: string
-  type: 'mosquito' | 'tick' | 'rodent' | 'waterborne'
-  priority: 'outbreak' | 'routine' | 'research'
-  status: 'pending' | 'in_progress' | 'completed' | 'failed'
-  qcStatus: 'pass' | 'fail' | 'pending'
+  type: 'MOSQUITO' | 'TICK' | 'RODENT' | 'WATERBORNE'
+  priority: 'OUTBREAK' | 'ROUTINE' | 'RESEARCH'
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
+  qcStatus: 'PASS' | 'FAIL' | 'PENDING'
   sampleCount: number
-  expectedCompletion: Date
-  actualCompletion?: Date
-  stakeholders: string[]
+  expectedCompletion: string
+  actualCompletion?: string
   location: string
-  technician: string
-  equipment: string
-  notes: string
+  notes?: string
+  technician?: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+  } | null
+  equipment?: {
+    id: string
+    name: string
+    model: string
+    location: string
+  } | null
+  stakeholders: {
+    id: string
+    email: string
+    role: string | null
+    organization: string | null
+  }[]
+  alerts: VectorAlert[]
+  createdAt: string
+  updatedAt: string
 }
 
 interface VectorAlert {
   id: string
-  testId: string
-  type: 'qc_failure' | 'delay' | 'outbreak' | 'equipment'
-  priority: 'critical' | 'high' | 'medium' | 'low'
+  type: 'QC_FAILURE' | 'DELAY' | 'OUTBREAK' | 'EQUIPMENT'
+  priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
   message: string
-  timestamp: Date
   actions: string[]
   resolved: boolean
-  stakeholders: string[]
+  createdAt: string
 }
 
-export default function VectorControlWorkflow() {
-  const [vectorTests, setVectorTests] = useState<VectorTest[]>([])
+interface VectorStats {
+  total: number
+  pending: number
+  inProgress: number
+  completed: number
+  failed: number
+  criticalAlerts: number
+  overdueTests: number
+}
+
+// API client functions
+const vectorControlAPI = {
+  async getTests(params?: {
+    status?: string
+    type?: string
+    priority?: string
+    limit?: number
+    offset?: number
+  }): Promise<{ data: VectorTest[], count: number }> {
+    const searchParams = new URLSearchParams()
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString())
+        }
+      })
+    }
+    
+    const response = await fetch(`/api/vector-control/tests?${searchParams}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch vector tests')
+    }
+    
+    return response.json()
+  },
+
+  async createTest(data: {
+    type: string
+    priority: string
+    sampleCount: number
+    expectedCompletion: string
+    location: string
+    notes?: string
+    technicianId?: string
+    equipmentId?: string
+    stakeholders?: { email: string; role?: string; organization?: string }[]
+  }): Promise<{ data: VectorTest }> {
+    const response = await fetch('/api/vector-control/tests', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to create vector test')
+    }
+    
+    return response.json()
+  },
+
+  async updateTest(id: string, data: {
+    status?: string
+    qcStatus?: string
+    actualCompletion?: string
+    notes?: string
+    technicianId?: string
+    equipmentId?: string
+  }): Promise<{ data: VectorTest }> {
+    const response = await fetch(`/api/vector-control/tests/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to update vector test')
+    }
+    
+    return response.json()
+  },
+
+  async deleteTest(id: string): Promise<void> {
+    const response = await fetch(`/api/vector-control/tests/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to delete vector test')
+    }
+  },
+
+  async getAlerts(): Promise<{ data: VectorAlert[], count: number }> {
+    const response = await fetch('/api/vector-control/alerts', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch vector alerts')
+    }
+    
+    return response.json()
+  },
+
+  async createAlert(data: {
+    type: string
+    priority: string
+    message: string
+    actions: string[]
+    testId: string
+  }): Promise<{ data: VectorAlert }> {
+    const response = await fetch('/api/vector-control/alerts', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to create vector alert')
+    }
+    
+    return response.json()
+  },
+
+  async resolveAlert(id: string): Promise<{ data: VectorAlert }> {
+    const response = await fetch(`/api/vector-control/alerts/${id}/resolve`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to resolve vector alert')
+    }
+    
+    return response.json()
+  },
+
+  async getStats(): Promise<{ data: VectorStats }> {
+    const response = await fetch('/api/vector-control/stats', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch vector stats')
+    }
+    
+    return response.json()
+  }
+}
+
+export function VectorControlWorkflow() {
+  const [tests, setTests] = useState<VectorTest[]>([])
   const [alerts, setAlerts] = useState<VectorAlert[]>([])
+  const [stats, setStats] = useState<VectorStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedTest, setSelectedTest] = useState<VectorTest | null>(null)
-  const [activeTab, setActiveTab] = useState<'tests' | 'alerts' | 'analytics'>('tests')
+  const [isCreating, setIsCreating] = useState(false)
 
-  // Simulate vector control data
+  // Form state for creating new tests
+  const [newTest, setNewTest] = useState({
+    type: '',
+    priority: '',
+    sampleCount: '',
+    expectedCompletion: '',
+    location: '',
+    notes: '',
+    stakeholderEmails: ''
+  })
+
+  // Load initial data
   useEffect(() => {
-    const mockVectorTests: VectorTest[] = [
-      {
-        id: "VC-2024-001",
-        type: "mosquito",
-        priority: "outbreak",
-        status: "failed",
-        qcStatus: "fail",
-        sampleCount: 150,
-        expectedCompletion: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
-        stakeholders: ["vector-control@health.gov", "emergency-services@health.gov"],
-        location: "Downtown District",
-        technician: "Dr. Sarah Johnson",
-        equipment: "Analyzer-01",
-        notes: "West Nile Virus screening - QC failure detected"
-      },
-      {
-        id: "VC-2024-002",
-        type: "tick",
-        priority: "routine",
-        status: "in_progress",
-        qcStatus: "pass",
-        sampleCount: 75,
-        expectedCompletion: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4 hours from now
-        stakeholders: ["vector-control@health.gov"],
-        location: "Rural Area A",
-        technician: "Mike Chen",
-        equipment: "Analyzer-02",
-        notes: "Lyme disease surveillance - routine monitoring"
-      },
-      {
-        id: "VC-2024-003",
-        type: "waterborne",
-        priority: "research",
-        status: "pending",
-        qcStatus: "pending",
-        sampleCount: 200,
-        expectedCompletion: new Date(Date.now() + 6 * 60 * 60 * 1000), // 6 hours from now
-        stakeholders: ["research-institute@university.edu"],
-        location: "Lake District",
-        technician: "Lisa Rodriguez",
-        equipment: "Analyzer-03",
-        notes: "Water quality research project"
-      }
-    ]
-
-    const mockAlerts: VectorAlert[] = [
-      {
-        id: "alert-001",
-        testId: "VC-2024-001",
-        type: "qc_failure",
-        priority: "critical",
-        message: "Critical QC Failure: Vector Control Test VC-2024-001",
-        timestamp: new Date(),
-        actions: [
-          "Automated retest scheduled",
-          "Vector Control notified",
-          "Emergency services alerted",
-          "Compliance documentation generated"
-        ],
-        resolved: false,
-        stakeholders: ["vector-control@health.gov", "emergency-services@health.gov"]
-      },
-      {
-        id: "alert-002",
-        testId: "VC-2024-002",
-        type: "delay",
-        priority: "medium",
-        message: "Test delay: Equipment maintenance required",
-        timestamp: new Date(),
-        actions: [
-          "Maintenance scheduled",
-          "Alternative equipment assigned",
-          "Stakeholders notified of delay"
-        ],
-        resolved: false,
-        stakeholders: ["vector-control@health.gov"]
-      }
-    ]
-
-    setVectorTests(mockVectorTests)
-    setAlerts(mockAlerts)
+    loadData()
   }, [])
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'mosquito': return <Bug className="w-5 h-5" />
-      case 'tick': return <Target className="w-5 h-5" />
-      case 'rodent': return <Activity className="w-5 h-5" />
-      case 'waterborne': return <Globe className="w-5 h-5" />
-      default: return <Shield className="w-5 h-5" />
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const [testsResponse, alertsResponse, statsResponse] = await Promise.all([
+        vectorControlAPI.getTests({ limit: 50 }),
+        vectorControlAPI.getAlerts(),
+        vectorControlAPI.getStats()
+      ])
+      
+      setTests(testsResponse.data)
+      setAlerts(alertsResponse.data)
+      setStats(statsResponse.data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data')
+      console.error('Error loading vector control data:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'mosquito': return 'text-red-400'
-      case 'tick': return 'text-orange-400'
-      case 'rodent': return 'text-brown-400'
-      case 'waterborne': return 'text-blue-400'
-      default: return 'text-gray-400'
+  const handleCreateTest = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    try {
+      setLoading(true)
+      
+      const stakeholders = newTest.stakeholderEmails
+        ? newTest.stakeholderEmails.split(',').map(email => ({ email: email.trim() }))
+        : []
+      
+      await vectorControlAPI.createTest({
+        type: newTest.type,
+        priority: newTest.priority,
+        sampleCount: parseInt(newTest.sampleCount),
+        expectedCompletion: newTest.expectedCompletion,
+        location: newTest.location,
+        notes: newTest.notes || undefined,
+        stakeholders: stakeholders.length > 0 ? stakeholders : undefined
+      })
+      
+      // Reset form and reload data
+      setNewTest({
+        type: '',
+        priority: '',
+        sampleCount: '',
+        expectedCompletion: '',
+        location: '',
+        notes: '',
+        stakeholderEmails: ''
+      })
+      setIsCreating(false)
+      
+      await loadData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create test')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpdateTestStatus = async (id: string, status: string, qcStatus?: string) => {
+    try {
+      setLoading(true)
+      
+      await vectorControlAPI.updateTest(id, {
+        status,
+        qcStatus,
+        actualCompletion: status === 'COMPLETED' ? new Date().toISOString() : undefined
+      })
+      
+      await loadData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update test')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResolveAlert = async (alertId: string) => {
+    try {
+      await vectorControlAPI.resolveAlert(alertId)
+      await loadData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resolve alert')
     }
   }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'outbreak': return 'bg-red-500'
-      case 'routine': return 'bg-blue-500'
-      case 'research': return 'bg-green-500'
-      default: return 'bg-gray-500'
+      case 'OUTBREAK': case 'CRITICAL': return 'destructive'
+      case 'ROUTINE': case 'HIGH': return 'default'
+      case 'RESEARCH': case 'MEDIUM': return 'secondary'
+      default: return 'outline'
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-400'
-      case 'in_progress': return 'text-blue-400'
-      case 'pending': return 'text-yellow-400'
-      case 'failed': return 'text-red-400'
-      default: return 'text-gray-400'
+      case 'COMPLETED': case 'PASS': return 'default'
+      case 'IN_PROGRESS': return 'secondary'
+      case 'FAILED': case 'FAIL': return 'destructive'
+      default: return 'outline'
     }
   }
 
-  const getQCStatusColor = (qcStatus: string) => {
-    switch (qcStatus) {
-      case 'pass': return 'text-green-400'
-      case 'fail': return 'text-red-400'
-      case 'pending': return 'text-yellow-400'
-      default: return 'text-gray-400'
-    }
-  }
-
-  const handleQCFailure = (test: VectorTest) => {
-    const newAlert: VectorAlert = {
-      id: `alert-${Date.now()}`,
-      testId: test.id,
-      type: "qc_failure",
-      priority: test.priority === 'outbreak' ? 'critical' : 'high',
-      message: `QC Failure: ${test.type} test ${test.id}`,
-      timestamp: new Date(),
-      actions: [
-        "Automated retest initiated",
-        "Stakeholders notified",
-        "Emergency protocols activated",
-        "Compliance documentation generated",
-        "Resource allocation optimized"
-      ],
-      resolved: false,
-      stakeholders: test.stakeholders
-    }
-
-    setAlerts(prev => [newAlert, ...prev])
-  }
-
-  const getCommunicationProtocol = (priority: string) => {
-    switch (priority) {
-      case 'outbreak': return "SMS + Email + Phone + Emergency Broadcast"
-      case 'routine': return "Email + Dashboard"
-      case 'research': return "Email only"
-      default: return "Email"
-    }
+  if (loading && !tests.length) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Vector Control Workflow</h2>
-          <p className="text-gray-300">Specialized management for vector-borne disease testing</p>
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Statistics Dashboard */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Tests</CardTitle>
+              <Beaker className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.inProgress}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Critical Alerts</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.criticalAlerts}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Overdue</CardTitle>
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">{stats.overdueTests}</div>
+            </CardContent>
+          </Card>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 text-green-400">
-            <Zap className="w-5 h-5" />
-            <span className="text-sm font-medium">Emergency Protocols Active</span>
-          </div>
-          <button className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-            <Settings className="w-5 h-5 text-gray-300" />
-          </button>
-        </div>
-      </div>
+      )}
 
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-white/5 rounded-lg p-1">
-        {[
-          { id: 'tests', label: 'Active Tests', icon: Activity },
-          { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
-          { id: 'analytics', label: 'Analytics', icon: TrendingUp }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-              activeTab === tab.id
-                ? 'bg-teal-500/20 text-teal-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            <span className="text-sm font-medium">{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      <AnimatePresence mode="wait">
-        {activeTab === 'tests' && (
-          <motion.div
-            key="tests"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
-          >
-            {/* Tests Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {vectorTests.map((test) => (
-                <motion.div
-                  key={test.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="glass-card rounded-xl p-6 cursor-pointer"
-                  onClick={() => setSelectedTest(test)}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${getTypeColor(test.type)}`}>
-                        {getTypeIcon(test.type)}
+      {/* Active Alerts */}
+      {alerts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Active Alerts ({alerts.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {alerts.map((alert) => (
+                <div key={alert.id} className="flex items-start justify-between p-3 border rounded-lg">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getPriorityColor(alert.priority)}>
+                        {alert.priority}
+                      </Badge>
+                      <Badge variant="outline">{alert.type}</Badge>
+                    </div>
+                    <p className="text-sm">{alert.message}</p>
+                    {alert.actions.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        Actions: {alert.actions.join(', ')}
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-white capitalize">{test.type}</h4>
-                        <p className="text-sm text-gray-400">ID: {test.id}</p>
-                      </div>
-                    </div>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(test.priority)}`}>
-                      {test.priority.toUpperCase()}
-                    </span>
+                    )}
                   </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-300">Status:</span>
-                      <span className={`text-sm font-medium ${getStatusColor(test.status)}`}>
-                        {test.status.replace('_', ' ').toUpperCase()}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-300">QC Status:</span>
-                      <span className={`text-sm font-medium ${getQCStatusColor(test.qcStatus)}`}>
-                        {test.qcStatus.toUpperCase()}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-300">Samples:</span>
-                      <span className="text-sm text-white">{test.sampleCount}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-300">Location:</span>
-                      <span className="text-sm text-white">{test.location}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-300">Completion:</span>
-                      <span className="text-sm text-white">
-                        {test.expectedCompletion.toLocaleTimeString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {test.qcStatus === 'fail' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleQCFailure(test)
-                      }}
-                      className="w-full mt-4 py-2 px-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 hover:bg-red-500/30 transition-colors"
-                    >
-                      Trigger Emergency Response
-                    </button>
-                  )}
-                </motion.div>
+                  <Button
+                    size="sm"
+                    onClick={() => handleResolveAlert(alert.id)}
+                    disabled={loading}
+                  >
+                    Resolve
+                  </Button>
+                </div>
               ))}
             </div>
-          </motion.div>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {activeTab === 'alerts' && (
-          <motion.div
-            key="alerts"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-4"
-          >
-            {alerts.map((alert) => (
-              <motion.div
-                key={alert.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className={`p-4 rounded-lg border-l-4 ${
-                  alert.priority === 'critical' ? 'border-red-500 bg-red-500/10' :
-                  alert.priority === 'high' ? 'border-orange-500 bg-orange-500/10' :
-                  alert.priority === 'medium' ? 'border-yellow-500 bg-yellow-500/10' :
-                  'border-green-500 bg-green-500/10'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        alert.priority === 'critical' ? 'bg-red-500' :
-                        alert.priority === 'high' ? 'bg-orange-500' :
-                        alert.priority === 'medium' ? 'bg-yellow-500' :
-                        'bg-green-500'
-                      }`}>
-                        {alert.priority.toUpperCase()}
+      {/* Create New Test */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Vector Control Tests</CardTitle>
+          <CardDescription>
+            Manage vector control testing workflows and track progress
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!isCreating ? (
+            <Button onClick={() => setIsCreating(true)} className="mb-4">
+              Create New Test
+            </Button>
+          ) : (
+            <form onSubmit={handleCreateTest} className="space-y-4 mb-6 p-4 border rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Test Type</label>
+                  <Select value={newTest.type} onValueChange={(value) => setNewTest({...newTest, type: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select test type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MOSQUITO">Mosquito</SelectItem>
+                      <SelectItem value="TICK">Tick</SelectItem>
+                      <SelectItem value="RODENT">Rodent</SelectItem>
+                      <SelectItem value="WATERBORNE">Waterborne</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Priority</label>
+                  <Select value={newTest.priority} onValueChange={(value) => setNewTest({...newTest, priority: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="OUTBREAK">Outbreak</SelectItem>
+                      <SelectItem value="ROUTINE">Routine</SelectItem>
+                      <SelectItem value="RESEARCH">Research</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Sample Count</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={newTest.sampleCount}
+                    onChange={(e) => setNewTest({...newTest, sampleCount: e.target.value})}
+                    placeholder="Number of samples"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Expected Completion</label>
+                  <Input
+                    type="datetime-local"
+                    value={newTest.expectedCompletion}
+                    onChange={(e) => setNewTest({...newTest, expectedCompletion: e.target.value})}
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium">Location</label>
+                  <Input
+                    value={newTest.location}
+                    onChange={(e) => setNewTest({...newTest, location: e.target.value})}
+                    placeholder="Test location"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium">Stakeholder Emails (comma-separated)</label>
+                  <Input
+                    value={newTest.stakeholderEmails}
+                    onChange={(e) => setNewTest({...newTest, stakeholderEmails: e.target.value})}
+                    placeholder="email1@example.com, email2@example.com"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium">Notes</label>
+                  <Textarea
+                    value={newTest.notes}
+                    onChange={(e) => setNewTest({...newTest, notes: e.target.value})}
+                    placeholder="Additional notes"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button type="submit" disabled={loading}>
+                  Create Test
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsCreating(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* Tests List */}
+          <div className="space-y-4">
+            {tests.map((test) => (
+              <div key={test.id} className="border rounded-lg p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{test.type} Test</h3>
+                      <Badge variant={getPriorityColor(test.priority)}>
+                        {test.priority}
+                      </Badge>
+                      <Badge variant={getStatusColor(test.status)}>
+                        {test.status}
+                      </Badge>
+                      {test.qcStatus !== 'PENDING' && (
+                        <Badge variant={getStatusColor(test.qcStatus)}>
+                          QC: {test.qcStatus}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {test.location}
                       </span>
-                      <span className="text-sm text-gray-400">
-                        {alert.timestamp.toLocaleTimeString()}
+                      <span className="flex items-center gap-1">
+                        <Beaker className="h-3 w-3" />
+                        {test.sampleCount} samples
                       </span>
-                    </div>
-                    <h4 className="font-medium text-white mb-2">{alert.message}</h4>
-                    <div className="space-y-1 mb-3">
-                      {alert.actions.map((action, index) => (
-                        <div key={index} className="flex items-center space-x-2 text-sm text-gray-300">
-                          <CheckCircle className="w-4 h-4 text-green-400" />
-                          <span>{action}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <Users className="w-4 h-4" />
-                      <span>Stakeholders: {alert.stakeholders.length}</span>
+                      {test.stakeholders.length > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          {test.stakeholders.length} stakeholders
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <button className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                      <Phone className="w-4 h-4 text-gray-300" />
-                    </button>
-                    <button className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                      <Mail className="w-4 h-4 text-gray-300" />
-                    </button>
-                    <button className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                      <FileText className="w-4 h-4 text-gray-300" />
-                    </button>
+                  
+                  <div className="flex gap-2">
+                    {test.status === 'PENDING' && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleUpdateTestStatus(test.id, 'IN_PROGRESS')}
+                        disabled={loading}
+                      >
+                        Start
+                      </Button>
+                    )}
+                    {test.status === 'IN_PROGRESS' && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleUpdateTestStatus(test.id, 'COMPLETED', 'PASS')}
+                          disabled={loading}
+                        >
+                          Complete (Pass)
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleUpdateTestStatus(test.id, 'FAILED', 'FAIL')}
+                          disabled={loading}
+                        >
+                          Mark Failed
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        {activeTab === 'analytics' && (
-          <motion.div
-            key="analytics"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            <div className="glass-card rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Test Distribution</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Mosquito Tests:</span>
-                  <span className="text-white font-medium">45%</span>
+                
+                <div className="text-sm text-muted-foreground">
+                  Expected: {new Date(test.expectedCompletion).toLocaleDateString()}
+                  {test.actualCompletion && (
+                    <span> • Completed: {new Date(test.actualCompletion).toLocaleDateString()}</span>
+                  )}
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Tick Tests:</span>
-                  <span className="text-white font-medium">30%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Waterborne:</span>
-                  <span className="text-white font-medium">15%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Rodent:</span>
-                  <span className="text-white font-medium">10%</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="glass-card rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">QC Performance</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Pass Rate:</span>
-                  <span className="text-green-400 font-medium">94.2%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Fail Rate:</span>
-                  <span className="text-red-400 font-medium">5.8%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Avg Response Time:</span>
-                  <span className="text-blue-400 font-medium">2.3 min</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="glass-card rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Communication Stats</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Auto Notifications:</span>
-                  <span className="text-green-400 font-medium">98.5%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Manual Calls:</span>
-                  <span className="text-orange-400 font-medium">1.5%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-300">Avg Resolution:</span>
-                  <span className="text-blue-400 font-medium">15 min</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Selected Test Details Modal */}
-      <AnimatePresence>
-        {selectedTest && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-            onClick={() => setSelectedTest(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-card rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Vector Control Test Details</h3>
-                <button
-                  onClick={() => setSelectedTest(null)}
-                  className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-semibold text-white mb-2">Test Information</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-400">Test ID:</span>
-                      <p className="text-white">{selectedTest.id}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Type:</span>
-                      <p className="text-white capitalize">{selectedTest.type}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Priority:</span>
-                      <p className="text-white capitalize">{selectedTest.priority}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Location:</span>
-                      <p className="text-white">{selectedTest.location}</p>
-                    </div>
+                
+                {test.notes && (
+                  <p className="text-sm mt-2">{test.notes}</p>
+                )}
+                
+                {test.technician && (
+                  <div className="text-sm text-muted-foreground mt-2">
+                    Technician: {test.technician.firstName} {test.technician.lastName}
                   </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-white mb-2">Communication Protocol</h4>
-                  <div className="p-3 bg-white/5 rounded-lg">
-                    <p className="text-sm text-white">
-                      {getCommunicationProtocol(selectedTest.priority)}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-white mb-2">Stakeholders</h4>
-                  <div className="space-y-2">
-                    {selectedTest.stakeholders.map((stakeholder, index) => (
-                      <div key={index} className="flex items-center space-x-2 p-2 bg-white/5 rounded-lg">
-                        <Users className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-white">{stakeholder}</span>
+                )}
+                
+                {test.alerts.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {test.alerts.map((alert) => (
+                      <div key={alert.id} className="text-sm p-2 bg-red-50 border border-red-200 rounded">
+                        <Badge variant={getPriorityColor(alert.priority)} className="mr-2">
+                          {alert.priority}
+                        </Badge>
+                        {alert.message}
                       </div>
                     ))}
                   </div>
-                </div>
-
-                <div className="flex space-x-3">
-                  <button className="flex-1 py-2 px-4 bg-teal-500/20 border border-teal-500/30 rounded-lg text-teal-400 hover:bg-teal-500/30 transition-colors">
-                    <Phone className="w-4 h-4 mr-2" />
-                    Emergency Call
-                  </button>
-                  <button className="flex-1 py-2 px-4 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-400 hover:bg-blue-500/30 transition-colors">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Alert
-                  </button>
-                </div>
+                )}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            ))}
+            
+            {tests.length === 0 && !loading && (
+              <div className="text-center py-8 text-muted-foreground">
+                No vector control tests found. Create your first test to get started.
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 } 

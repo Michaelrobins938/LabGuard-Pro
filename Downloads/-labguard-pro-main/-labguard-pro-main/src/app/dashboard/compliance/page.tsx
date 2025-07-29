@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   BookOpen, 
   Shield, 
@@ -16,7 +17,9 @@ import {
   Settings,
   Users,
   Activity,
-  ExternalLink
+  ExternalLink,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -24,6 +27,7 @@ import Link from 'next/link';
 
 export default function ComplianceDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showAIBanner, setShowAIBanner] = useState(true);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -52,6 +56,19 @@ export default function ComplianceDashboard() {
           </div>
         </div>
       </div>
+
+      {/* AI Integration Banner */}
+      {showAIBanner && (
+        <Alert className="mb-6 border-blue-200 bg-blue-50">
+          <Sparkles className="h-4 w-4 mr-2" />
+          <AlertDescription>
+            <strong>AI-Powered Compliance Monitoring!</strong> Our AI system can automatically detect compliance issues, suggest corrective actions, and generate audit reports. 
+            <Button variant="outline" size="sm" className="ml-2" onClick={() => setShowAIBanner(false)}>
+              Dismiss
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

@@ -7,387 +7,417 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = env("database_PRISMA_DATABASE_URL")
+  directUrl = env("database_POSTGRES_URL_NON_POOLING")
 }
 
 // User and Authentication
 model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  password          String
-  firstName         String
-  lastName          String
-  name              String?  // Computed field for display
-  phone             String?
-  role              UserRole @default(TECHNICIAN)
-  isActive          Boolean  @default(true)
-  emailVerified     Boolean  @default(false)
-  lastLoginAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  name          String? // Computed field for display
+  phone         String?
+  role          UserRole  @default(TECHNICIAN)
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 
   // Relations
-  laboratoryId      String
-  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id])
-  
-  equipment         Equipment[]
-  calibrationRecords CalibrationRecord[]
-  complianceReports ComplianceReport[]
-  notifications     Notification[]
-  usageLogs        UsageLog[]
-  auditLogs         AuditLog[]
-  createdEquipment  Equipment[] @relation("EquipmentCreatedBy")
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  equipment               Equipment[]
+  calibrationRecords      CalibrationRecord[]
+  complianceReports       ComplianceReport[]
+  notifications           Notification[]
+  usageLogs               UsageLog[]
+  auditLogs               AuditLog[]
+  createdEquipment        Equipment[]            @relation("EquipmentCreatedBy")
+  reportsCreated          Report[]               @relation("UserReports")
+  vectorTests             VectorTest[]           @relation("VectorTestTechnician")
+  biomniQueries           BiomniQuery[]
+  protocolsCreated        ExperimentalProtocol[]
+  protocolExecutions      ProtocolExecution[]
+  researchProjects        ResearchProject[]
+  experimentalDataUploads ExperimentalData[]
 
   @@map("users")
 }
 
 // Laboratory model for multi-tenant support
 model Laboratory {
-  id                String   @id @default(cuid())
-  name              String
-  description       String?
-  address           String?
-  phone             String?
-  email             String   @unique
-  website           String?
-  isActive          Boolean  @default(true)
-  planType          PlanType @default(STARTER)
-  trialEndsAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  address     String?
+  phone       String?
+  email       String    @unique
+  website     String?
+  isActive    Boolean   @default(true)
+  planType    PlanType  @default(STARTER)
+  trialEndsAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
   // Relations
-  users             User[]
-  equipment         Equipment[]
-  complianceTemplates ComplianceTemplate[]
-  complianceReports ComplianceReport[]
-  subscriptions    Subscription[]
-  calibrations     CalibrationRecord[]
-  notifications    Notification[]
-  auditLogs        AuditLog[]
+  users                 User[]
+  equipment             Equipment[]
+  complianceTemplates   ComplianceTemplate[]
+  complianceReports     ComplianceReport[]
+  subscriptions         Subscription[]
+  calibrations          CalibrationRecord[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]
+  reports               Report[]
+  vectorTests           VectorTest[]
+  vectorAlerts          VectorAlert[]
+  biomniQueries         BiomniQuery[]
+  experimentalProtocols ExperimentalProtocol[]
+  protocolExecutions    ProtocolExecution[]
+  researchProjects      ResearchProject[]
+  experimentalData      ExperimentalData[]
 
   @@map("laboratories")
 }
 
 // Equipment model for lab instruments
 model Equipment {
-  id                String   @id @default(cuid())
-  name              String
-  model             String?
-  serialNumber      String?  @unique
-  manufacturer      String?
-  equipmentType     EquipmentType
-  location          String?
-  status            EquipmentStatus @default(ACTIVE)
-  lastCalibratedAt  DateTime?
-  nextCalibrationAt DateTime?
-  calibrationIntervalDays Int @default(365)
-  accuracy          Float?
-  precision         Float?
-  specifications    Json?
-  notes             String?
-  installDate       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
+  id                      String          @id @default(cuid())
+  name                    String
+  model                   String?
+  serialNumber            String?         @unique
+  manufacturer            String?
+  equipmentType           EquipmentType
+  location                String?
+  status                  EquipmentStatus @default(ACTIVE)
+  lastCalibratedAt        DateTime?
+  nextCalibrationAt       DateTime?
+  calibrationIntervalDays Int             @default(365)
+  accuracy                Float?
+  precision               Float?
+  specifications          Json?
+  notes                   String?
+  installDate             DateTime?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  deletedAt               DateTime?
 
   // Relations
-  laboratoryId      String
-  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id])
-  
-  assignedToId      String?
-  assignedTo        User? @relation(fields: [assignedToId], references: [id])
-  
-  createdById       String?
-  createdBy         User? @relation("EquipmentCreatedBy", fields: [createdById], references: [id])
-  
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  assignedToId String?
+  assignedTo   User?   @relation(fields: [assignedToId], references: [id])
+
+  createdById String?
+  createdBy   User?   @relation("EquipmentCreatedBy", fields: [createdById], references: [id])
+
   calibrationRecords CalibrationRecord[]
-  complianceReports ComplianceReport[]
+  complianceReports  ComplianceReport[]
   maintenanceRecords MaintenanceRecord[]
+  reports            Report[]
+  vectorTests        VectorTest[]        @relation("VectorTestEquipment")
+  biomniQueries      BiomniQuery[]
+  experimentalData   ExperimentalData[]
 
   @@map("equipment")
 }
 
 // Calibration Records
 model CalibrationRecord {
-  id                String              @id @default(cuid())
-  equipmentId       String
-  equipment         Equipment           @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
-  userId            String
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  laboratoryId      String
-  laboratory        Laboratory          @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  
+  id           String     @id @default(cuid())
+  equipmentId  String
+  equipment    Equipment  @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+
   // Calibration dates
-  calibrationDate   DateTime
-  dueDate           DateTime
-  performedDate     DateTime?
-  scheduledDate     DateTime?
-  
+  calibrationDate DateTime
+  dueDate         DateTime
+  performedDate   DateTime?
+  scheduledDate   DateTime?
+
   // Status and results
-  status            CalibrationStatus  @default(PENDING)
-  result            CalibrationResult  @default(PASS)
-  complianceStatus  String?            // COMPLIANT, NON_COMPLIANT, etc.
-  
+  status           CalibrationStatus @default(PENDING)
+  result           CalibrationResult @default(PASS)
+  complianceStatus String? // COMPLIANT, NON_COMPLIANT, etc.
+
   // Calibration details
-  method            String?
-  standardUsed      String?
-  temperature       Float?
-  humidity          Float?
-  pressure          Float?
-  
+  method       String?
+  standardUsed String?
+  temperature  Float?
+  humidity     Float?
+  pressure     Float?
+
   // Calibration results
-  accuracy          Float?
-  precision         Float?
-  linearity         Float?
-  repeatability     Float?
-  sensitivity       Float?
-  
+  accuracy      Float?
+  precision     Float?
+  linearity     Float?
+  repeatability Float?
+  sensitivity   Float?
+
   // Compliance status
-  isCompliant       Boolean?
-  complianceScore   Float?             // 0-100 compliance score
-  aiValidation      Json?              // AI compliance check results
-  aiValidationResult Json?             // AI validation results
-  validationNotes   String?
-  
+  isCompliant        Boolean?
+  complianceScore    Float? // 0-100 compliance score
+  aiValidation       Json? // AI compliance check results
+  aiValidationResult Json? // AI validation results
+  validationNotes    String?
+
   // Additional fields
   notes             String?
   deviations        Json?
   correctiveActions Json?
   aiAnalysis        Json?
-  
+
   // Report generation
-  reportGenerated   Boolean @default(false)
-  reportUrl         String?
-  
+  reportGenerated Boolean @default(false)
+  reportUrl       String?
+
   // Template relation
-  templateId        String?
-  template          ComplianceTemplate? @relation(fields: [templateId], references: [id])
-  
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  deletedAt         DateTime?
+  templateId String?
+  template   ComplianceTemplate? @relation(fields: [templateId], references: [id])
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+  biomniQueries BiomniQuery[]
 
   @@map("calibration_records")
 }
 
 // Maintenance Records
 model MaintenanceRecord {
-  id                String              @id @default(cuid())
-  equipmentId       String
-  equipment         Equipment           @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
-  maintenanceDate   DateTime
-  type              MaintenanceType
-  description       String
-  performedBy       String?
-  cost              Float?
-  status            MaintenanceStatus  @default(COMPLETED)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id              String            @id @default(cuid())
+  equipmentId     String
+  equipment       Equipment         @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  maintenanceDate DateTime
+  type            MaintenanceType
+  description     String
+  performedBy     String?
+  cost            Float?
+  status          MaintenanceStatus @default(COMPLETED)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@map("maintenance_records")
 }
 
 // Compliance templates for AI prompts
 model ComplianceTemplate {
-  id                String   @id @default(cuid())
-  title             String
-  name              String?
-  description       String?
-  category          TemplateCategory?
-  equipmentType     EquipmentType
-  template          String // AI prompt template
-  promptTemplate    String? // Alternative field name
-  variables         Json? // Template variables
-  useCase           String?
-  safetyChecks      String[] // Array of safety check names
-  validationCriteria Json?
+  id                  String            @id @default(cuid())
+  title               String
+  name                String?
+  description         String?
+  category            TemplateCategory?
+  equipmentType       EquipmentType
+  template            String // AI prompt template
+  promptTemplate      String? // Alternative field name
+  variables           Json? // Template variables
+  useCase             String?
+  safetyChecks        String[] // Array of safety check names
+  validationCriteria  Json?
   regulatoryStandards String[] // Array of regulatory standards
-  isActive          Boolean @default(true)
-  version           String @default("1.0.0")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
+  isActive            Boolean           @default(true)
+  version             String            @default("1.0.0")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  deletedAt           DateTime?
 
   // Relations
-  laboratoryId      String?
-  laboratory        Laboratory? @relation(fields: [laboratoryId], references: [id])
+  laboratoryId       String?
+  laboratory         Laboratory?         @relation(fields: [laboratoryId], references: [id])
   calibrationRecords CalibrationRecord[]
-  usageRecords      TemplateUsage[]
+  usageRecords       TemplateUsage[]
 
   @@map("compliance_templates")
 }
 
 // Template usage tracking
 model TemplateUsage {
-  id                String   @id @default(cuid())
-  templateId        String
-  template          ComplianceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  userId            String
-  laboratoryId      String
-  query             String
-  result            Json?
-  executionTime     Int?     // milliseconds
-  cost              Float?
-  quantity          Int?      // Token count
-  createdAt         DateTime @default(now())
+  id            String             @id @default(cuid())
+  templateId    String
+  template      ComplianceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  userId        String
+  laboratoryId  String
+  query         String
+  result        Json?
+  executionTime Int? // milliseconds
+  cost          Float?
+  quantity      Int? // Token count
+  createdAt     DateTime           @default(now())
 
   @@map("template_usage")
 }
 
 // Usage logs for tracking
 model UsageLog {
-  id                String   @id @default(cuid())
-  userId            String
-  user              User @relation(fields: [userId], references: [id])
-  laboratoryId      String
-  action            String
-  resource          String
-  quantity          Int?
-  cost              Float?
-  metadata          Json?
-  createdAt         DateTime @default(now())
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  laboratoryId String
+  action       String
+  resource     String
+  quantity     Int?
+  cost         Float?
+  metadata     Json?
+  createdAt    DateTime @default(now())
 
   @@map("usage_logs")
 }
 
 // Compliance reports generated by AI
 model ComplianceReport {
-  id                String   @id @default(cuid())
-  title             String
-  description       String?
-  reportType        ReportType
-  status            ReportStatus @default(DRAFT)
-  
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  reportType  ReportType
+  status      ReportStatus @default(DRAFT)
+
   // Report content
-  content           Json
-  summary           String?
-  recommendations   String?
-  riskLevel         RiskLevel?
-  
+  content         Json
+  summary         String?
+  recommendations String?
+  riskLevel       RiskLevel?
+
   // Metadata
-  generatedAt       DateTime @default(now())
-  expiresAt         DateTime?
-  isPublic          Boolean @default(false)
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
+  generatedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  isPublic    Boolean   @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   // Relations
-  laboratoryId      String
-  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id])
-  
-  equipmentId       String?
-  equipment         Equipment? @relation(fields: [equipmentId], references: [id])
-  
-  generatedById     String
-  generatedBy       User @relation(fields: [generatedById], references: [id])
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+
+  generatedById String
+  generatedBy   User   @relation(fields: [generatedById], references: [id])
 
   @@map("compliance_reports")
 }
 
+// Add Report model after ComplianceReport
+model Report {
+  id              String       @id @default(cuid())
+  title           String
+  description     String?
+  type            String
+  findings        String?
+  recommendations String?
+  status          ReportStatus @default(DRAFT)
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  createdById String
+  createdBy   User   @relation("UserReports", fields: [createdById], references: [id])
+
+  attachments Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@map("reports")
+}
+
 // Subscription management
 model Subscription {
-  id                String   @id @default(cuid())
-  laboratoryId      String   @unique
-  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  planId            String
-  plan              SubscriptionPlan @relation(fields: [planId], references: [id])
-  stripeId          String?  @unique
-  stripeCustomerId  String?
-  status            SubscriptionStatus @default(ACTIVE)
+  id                 String             @id @default(cuid())
+  laboratoryId       String             @unique
+  laboratory         Laboratory         @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  planId             String
+  plan               SubscriptionPlan   @relation(fields: [planId], references: [id])
+  stripeId           String?            @unique
+  stripeCustomerId   String?
+  status             SubscriptionStatus @default(ACTIVE)
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
   trialStart         DateTime?
   trialEnd           DateTime?
-  cancelAtPeriodEnd  Boolean @default(false)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  cancelAtPeriodEnd  Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   @@map("subscriptions")
 }
 
 model SubscriptionPlan {
-  id                String   @id @default(cuid())
-  name              String   @unique
-  description       String?
-  price             Float
-  currency          String   @default("USD")
-  interval          String   @default("month") // month, year
-  stripeId          String?  @unique
-  equipmentLimit    Int      @default(10)
-  aiChecksLimit     Int      @default(100)
-  teamMembersLimit  Int      @default(5)
-  storageLimit      Int      @default(10) // GB
-  features          Json     // Array of feature names
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String   @id @default(cuid())
+  name             String   @unique
+  description      String?
+  price            Float
+  currency         String   @default("USD")
+  interval         String   @default("month") // month, year
+  stripeId         String?  @unique
+  equipmentLimit   Int      @default(10)
+  aiChecksLimit    Int      @default(100)
+  teamMembersLimit Int      @default(5)
+  storageLimit     Int      @default(10) // GB
+  features         Json // Array of feature names
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Relations
-  subscriptions     Subscription[]
+  subscriptions Subscription[]
 
   @@map("subscription_plans")
 }
 
 // Notifications
 model Notification {
-  id          String           @id @default(cuid())
-  userId      String?
-  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String           @id @default(cuid())
+  userId       String?
+  user         User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   laboratoryId String
-  laboratory  Laboratory       @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  type        NotificationType
-  title       String
-  message     String
-  isRead      Boolean          @default(false)
-  metadata    Json?            // Additional data for the notification
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  laboratory   Laboratory       @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  type         NotificationType
+  title        String
+  message      String
+  isRead       Boolean          @default(false)
+  metadata     Json? // Additional data for the notification
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@map("notifications")
 }
 
 // Audit Logs
 model AuditLog {
-  id          String      @id @default(cuid())
-  userId      String?
-  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id           String     @id @default(cuid())
+  userId       String?
+  user         User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
   laboratoryId String
-  laboratory  Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  action      String      // CREATE, UPDATE, DELETE, LOGIN, etc.
-  entity      String      // Equipment, Calibration, User, etc.
-  entityId    String?     // ID of the affected entity
-  details     Json?       // Additional details about the action
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime    @default(now())
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  action       String // CREATE, UPDATE, DELETE, LOGIN, etc.
+  entity       String // Equipment, Calibration, User, etc.
+  entityId     String? // ID of the affected entity
+  details      Json? // Additional details about the action
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime   @default(now())
 
   @@map("audit_logs")
 }
 
-// Biomni Integration
-model BiomniQuery {
-  id                String   @id @default(cuid())
-  query             String
-  context           String?
-  userId            String
-  laboratoryId      String
-  result            Json?
-  toolsUsed         String[]
-  databasesQueried  String[]
-  confidence        Float?
-  executionTime     Int?     // milliseconds
-  cost              Float?
-  status            QueryStatus @default(EXECUTING)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@map("biomni_queries")
-}
+// Biomni Integration - REMOVED DUPLICATE MODEL
 
 // Enums
 enum UserRole {
@@ -444,6 +474,7 @@ enum MaintenanceStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+  OVERDUE
 }
 
 enum ReportType {
@@ -504,4 +535,543 @@ enum QueryStatus {
   COMPLETED
   FAILED
   CANCELLED
-} 
+}
+
+// Vector Control Models
+model VectorTest {
+  id                 String           @id @default(cuid())
+  type               VectorType
+  priority           VectorPriority
+  status             VectorTestStatus @default(PENDING)
+  qcStatus           QCStatus         @default(PENDING)
+  sampleCount        Int
+  expectedCompletion DateTime
+  actualCompletion   DateTime?
+  location           String
+  notes              String?
+
+  // Relations
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  technicianId String?
+  technician   User?   @relation("VectorTestTechnician", fields: [technicianId], references: [id])
+
+  equipmentId String?
+  equipment   Equipment? @relation("VectorTestEquipment", fields: [equipmentId], references: [id])
+
+  // Stakeholders and alerts
+  stakeholders VectorStakeholder[]
+  alerts       VectorAlert[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("vector_tests")
+}
+
+model VectorStakeholder {
+  id           String  @id @default(cuid())
+  email        String
+  role         String?
+  organization String?
+
+  // Relations
+  testId String
+  test   VectorTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("vector_stakeholders")
+}
+
+model VectorAlert {
+  id         String          @id @default(cuid())
+  type       VectorAlertType
+  priority   AlertPriority
+  message    String
+  actions    String[] // Array of action descriptions
+  resolved   Boolean         @default(false)
+  resolvedAt DateTime?
+
+  // Relations
+  testId String
+  test   VectorTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("vector_alerts")
+}
+
+// Vector Control Enums
+enum VectorType {
+  MOSQUITO
+  TICK
+  RODENT
+  WATERBORNE
+}
+
+enum VectorPriority {
+  OUTBREAK
+  ROUTINE
+  RESEARCH
+}
+
+enum VectorTestStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum QCStatus {
+  PASS
+  FAIL
+  PENDING
+}
+
+enum VectorAlertType {
+  QC_FAILURE
+  DELAY
+  OUTBREAK
+  EQUIPMENT
+}
+
+enum AlertPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+// ========================================
+// BIOMNI AI INTEGRATION MODELS
+// ========================================
+
+model BiomniQuery {
+  id               String             @id @default(cuid())
+  query            String             @db.Text
+  context          String?            @db.Text
+  result           String?            @db.Text
+  summary          String?            @db.Text
+  insights         Json? // Array of insights
+  recommendations  Json? // Array of recommendations
+  toolsUsed        String[]
+  databasesQueried String[]
+  confidence       Float?
+  executionTime    Int? // milliseconds
+  cost             Float? // API cost in dollars
+  warnings         Json? // Array of warnings
+  nextSteps        Json? // Array of next steps
+  dataQuality      Json? // Data quality assessment
+  analysisType     BiomniAnalysisType
+  priority         BiomniPriority     @default(MEDIUM)
+  status           BiomniQueryStatus  @default(PENDING)
+
+  // Relationships
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  // Equipment context (optional)
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+
+  // Calibration context (optional)
+  calibrationRecordId String?
+  calibrationRecord   CalibrationRecord? @relation(fields: [calibrationRecordId], references: [id])
+
+  // Research project context (optional)
+  researchProjectId String?
+  researchProject   ResearchProject? @relation(fields: [researchProjectId], references: [id])
+
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  ExperimentalProtocol ExperimentalProtocol[]
+
+  @@map("biomni_queries")
+}
+
+model ExperimentalProtocol {
+  id              String           @id @default(cuid())
+  name            String
+  description     String           @db.Text
+  category        ProtocolCategory
+  biomniGenerated Boolean          @default(false)
+  biomniQueryId   String?
+  biomniQuery     BiomniQuery?     @relation(fields: [biomniQueryId], references: [id])
+
+  // Protocol details
+  objective            String @db.Text
+  sampleType           String
+  techniques           Json // Array of techniques
+  steps                Json // Array of protocol steps
+  reagents             Json // Required reagents
+  equipment            Json // Required equipment
+  safetyConsiderations Json // Safety requirements
+  expectedResults      Json // Expected outcomes
+  qualityControls      Json // QC measures
+  troubleshooting      Json // Troubleshooting guide
+
+  // Validation and testing
+  validated       Boolean   @default(false)
+  validatedBy     String?
+  validatedAt     DateTime?
+  validationNotes String?   @db.Text
+
+  // Usage and performance tracking
+  usageCount           Int    @default(0)
+  successRate          Float?
+  averageExecutionTime Int? // minutes
+  costPerExecution     Float?
+
+  // Versioning
+  version          String                 @default("1.0")
+  parentProtocolId String?
+  parentProtocol   ExperimentalProtocol?  @relation("ProtocolVersions", fields: [parentProtocolId], references: [id])
+  childProtocols   ExperimentalProtocol[] @relation("ProtocolVersions")
+
+  // Relationships
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+  createdBy    String
+  creator      User       @relation(fields: [createdBy], references: [id])
+
+  // Protocol executions
+  executions ProtocolExecution[]
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
+  ResearchProject   ResearchProject? @relation(fields: [researchProjectId], references: [id])
+  researchProjectId String?
+
+  @@map("experimental_protocols")
+}
+
+model ProtocolExecution {
+  id         String               @id @default(cuid())
+  protocolId String
+  protocol   ExperimentalProtocol @relation(fields: [protocolId], references: [id])
+
+  // Execution details
+  executionDate DateTime
+  operator      String
+  operatorUser  User     @relation(fields: [operator], references: [id])
+  batchNumber   String?
+  sampleId      String?
+
+  // Results and metrics
+  status       ExecutionStatus
+  duration     Int? // minutes
+  yield        Float? // percentage
+  purity       Float? // percentage
+  notes        String?         @db.Text
+  deviations   Json? // Array of deviations from protocol
+  measurements Json? // Measurement data
+  images       Json? // Array of image URLs/paths
+
+  // Quality assessment
+  qualityScore Float?
+  passedQC     Boolean?
+  qcComments   String?  @db.Text
+
+  // Cost tracking
+  reagentCost   Float?
+  laborCost     Float?
+  equipmentCost Float?
+  totalCost     Float?
+
+  // Relationships
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  ExperimentalData ExperimentalData[]
+
+  @@map("protocol_executions")
+}
+
+model ResearchProject {
+  id          String  @id @default(cuid())
+  name        String
+  description String  @db.Text
+  hypothesis  String? @db.Text
+  objectives  Json // Research objectives
+  methodology Json // Research methodology
+  timeline    Json // Project timeline
+  budget      Json // Budget considerations
+
+  // AI-generated content
+  biomniGenerated      Boolean @default(false)
+  biomniInsights       Json? // AI-generated insights
+  recommendedProtocols Json? // Suggested protocols
+  literatureReferences Json? // Relevant literature
+  riskAssessment       Json? // Risk analysis
+  resourceRequirements Json? // Resource planning
+
+  // Status and progress tracking
+  status       ProjectStatus @default(PLANNING)
+  progress     Float         @default(0)
+  milestones   Json // Project milestones
+  deliverables Json // Expected deliverables
+
+  // Collaboration and team
+  collaborators  Json? // External collaborators
+  fundingSources Json? // Funding information
+  ethicsApproval String? // Ethics approval reference
+
+  // Data and results
+  datasets             Json? // Associated datasets
+  publications         Json? // Related publications
+  intellectualProperty Json? // IP considerations
+
+  // Relationships
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  principalInvestigator String
+  pi                    User       @relation(fields: [principalInvestigator], references: [id])
+
+  // Associated queries and protocols
+  biomniQueries BiomniQuery[]
+  protocols     ExperimentalProtocol[]
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  completedAt      DateTime?
+  deletedAt        DateTime?
+  ExperimentalData ExperimentalData[]
+
+  @@map("research_projects")
+}
+
+model ExperimentalData {
+  id          String               @id @default(cuid())
+  name        String
+  description String?              @db.Text
+  dataType    ExperimentalDataType
+  fileFormat  String // e.g., "csv", "json", "fasta", "fastq"
+  filePath    String? // Path to stored file
+  fileSize    BigInt? // File size in bytes
+
+  // Data characteristics
+  sampleCount    Int?
+  variables      Json? // Data variables/columns
+  metadata       Json // Experimental metadata
+  qualityMetrics Json? // Data quality assessment
+
+  // Processing and analysis
+  processed          Boolean @default(false)
+  processingNotes    String? @db.Text
+  analysisResults    Json? // Analysis outcomes
+  statisticalSummary Json? // Statistical analysis
+
+  // Provenance and traceability
+  sourceExperiment    String? // Source experiment ID
+  instrumentId        String?
+  instrument          Equipment?         @relation(fields: [instrumentId], references: [id])
+  protocolExecutionId String?
+  protocolExecution   ProtocolExecution? @relation(fields: [protocolExecutionId], references: [id])
+
+  // Data governance
+  accessLevel     DataAccessLevel @default(LABORATORY)
+  retentionPeriod Int? // Days to retain data
+  backupLocation  String?
+  checksumHash    String? // Data integrity verification
+
+  // Relationships
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id])
+  uploadedBy   String
+  uploader     User       @relation(fields: [uploadedBy], references: [id])
+
+  // Research associations
+  researchProjectId String?
+  researchProject   ResearchProject? @relation(fields: [researchProjectId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("experimental_data")
+}
+
+model BiomniCapability {
+  id             String               @id @default(cuid())
+  name           String               @unique
+  description    String               @db.Text
+  category       String // e.g., "analysis", "prediction", "optimization"
+  capabilityType BiomniCapabilityType
+
+  // Technical details
+  toolsRequired     Json // Required Biomni tools
+  databasesRequired Json // Required databases
+  inputFormat       Json // Expected input format
+  outputFormat      Json // Expected output format
+
+  // Performance metrics
+  averageExecutionTime Int? // milliseconds
+  averageAccuracy      Float? // percentage
+  averageCost          Float? // dollars per execution
+
+  // Usage and availability
+  enabled    Boolean   @default(true)
+  usageCount Int       @default(0)
+  lastUsed   DateTime?
+
+  // Documentation
+  documentation String? @db.Text
+  examples      Json? // Usage examples
+  limitations   Json? // Known limitations
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("biomni_capabilities")
+}
+
+// ========================================
+// BIOMNI ENUMS
+// ========================================
+
+enum BiomniQueryStatus {
+  PENDING
+  QUEUED
+  EXECUTING
+  COMPLETED
+  FAILED
+  CANCELLED
+  TIMEOUT
+}
+
+enum BiomniAnalysisType {
+  PROTEOMICS
+  GENOMICS
+  METABOLOMICS
+  IMAGING
+  MULTIMODAL
+  PROTOCOL_GENERATION
+  EQUIPMENT_OPTIMIZATION
+  RESEARCH_INSIGHTS
+  GENERAL
+}
+
+enum BiomniPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ProtocolCategory {
+  MOLECULAR_BIOLOGY
+  CELL_CULTURE
+  BIOCHEMISTRY
+  ANALYTICAL_CHEMISTRY
+  MICROBIOLOGY
+  IMMUNOLOGY
+  GENOMICS
+  PROTEOMICS
+  METABOLOMICS
+  IMAGING
+  QUALITY_CONTROL
+  SAFETY
+  GENERAL
+}
+
+enum ProjectStatus {
+  PLANNING
+  PROPOSAL_REVIEW
+  APPROVED
+  IN_PROGRESS
+  DATA_COLLECTION
+  DATA_ANALYSIS
+  MANUSCRIPT_PREPARATION
+  PEER_REVIEW
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum ExecutionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  ABORTED
+  REQUIRES_REVIEW
+}
+
+enum ExperimentalDataType {
+  GENOMICS
+  TRANSCRIPTOMICS
+  PROTEOMICS
+  METABOLOMICS
+  IMAGING
+  FLOW_CYTOMETRY
+  MASS_SPECTROMETRY
+  CHROMATOGRAPHY
+  SPECTROSCOPY
+  MICROSCOPY
+  SEQUENCING
+  ELECTROPHORESIS
+  ASSAY_DATA
+  CLINICAL_DATA
+  METADATA
+  OTHER
+}
+
+enum DataAccessLevel {
+  PUBLIC
+  LABORATORY
+  PROJECT_TEAM
+  PRINCIPAL_INVESTIGATOR
+  RESTRICTED
+  CONFIDENTIAL
+}
+
+enum BiomniCapabilityType {
+  ANALYSIS_TOOL
+  PREDICTION_MODEL
+  OPTIMIZATION_ENGINE
+  DATA_PROCESSOR
+  VISUALIZATION_TOOL
+  VALIDATION_SYSTEM
+  INTEGRATION_SERVICE
+}
+
+// ========================================
+// RELATION EXTENSIONS FOR EXISTING MODELS
+// ========================================
+
+// Add Biomni relations to existing models
+// (These relations need to be added to the existing model definitions above)
+
+// User model additions:
+// biomniQueries         BiomniQuery[]
+// protocolsCreated      ExperimentalProtocol[]
+// protocolExecutions    ProtocolExecution[]
+// researchProjects      ResearchProject[]
+// experimentalDataUploads ExperimentalData[]
+
+// Laboratory model additions:
+// biomniQueries         BiomniQuery[]
+// experimentalProtocols ExperimentalProtocol[]
+// protocolExecutions    ProtocolExecution[]
+// researchProjects      ResearchProject[]
+// experimentalData      ExperimentalData[]
+
+// Equipment model additions:
+// biomniQueries         BiomniQuery[]
+// experimentalData      ExperimentalData[]
+
+// CalibrationRecord model additions:
+// biomniQueries         BiomniQuery[] 

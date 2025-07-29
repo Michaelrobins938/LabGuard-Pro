@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import { apiService } from '@/lib/api'
+import { apiClient } from '@/lib/api'
 
 interface User {
   id: string
@@ -10,7 +10,12 @@ interface User {
   lastName: string
   role: string
   laboratoryId?: string
-  laboratoryName?: string
+  laboratory?: {
+    id: string
+    name: string
+    type?: string
+    planType: string
+  }
 }
 
 interface AuthContextType {
@@ -38,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check for existing token on mount
   useEffect(() => {
-    const token = localStorage.getItem('auth-token')
+    const token = apiClient.getAuthToken()
     if (token) {
       refreshUser()
     } else {
@@ -49,17 +54,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (credentials: { email: string; password: string }) => {
     try {
       setLoading(true)
-      const response = await apiService.auth.login(credentials)
+      const response = await apiClient.login(credentials)
       
-      if (response.data.token) {
-        localStorage.setItem('auth-token', response.data.token)
-        setUser(response.data.user)
+      if (response.success && response.token) {
+        apiClient.setAuthToken(response.token)
+        if (response.user) {
+          setUser(response.user)
+          localStorage.setItem('labguard_user', JSON.stringify(response.user))
+        }
         return { success: true }
       } else {
-        return { success: false, error: 'No token received' }
+        return { success: false, error: response.error || 'Login failed' }
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Login failed'
+      const errorMessage = error.message || 'Login failed'
       return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
@@ -77,17 +85,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }) => {
     try {
       setLoading(true)
-      const response = await apiService.auth.register(userData)
+      const response = await apiClient.register(userData)
       
-      if (response.data.token) {
-        localStorage.setItem('auth-token', response.data.token)
-        setUser(response.data.user)
+      if (response.success && response.token) {
+        apiClient.setAuthToken(response.token)
+        if (response.user) {
+          setUser(response.user)
+          localStorage.setItem('labguard_user', JSON.stringify(response.user))
+        }
         return { success: true }
       } else {
-        return { success: false, error: 'No token received' }
+        return { success: false, error: response.error || 'Registration failed' }
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Registration failed'
+      const errorMessage = error.message || 'Registration failed'
       return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
@@ -96,22 +107,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await apiService.auth.logout()
+      await apiClient.logout()
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
-      localStorage.removeItem('auth-token')
+      apiClient.removeAuthToken()
       setUser(null)
     }
   }
 
   const refreshUser = async () => {
     try {
-      const response = await apiService.auth.getProfile()
-      setUser(response.data)
+      const response = await apiClient.getProfile()
+      if (response.success && response.user) {
+        setUser(response.user)
+      } else {
+        throw new Error('Failed to get user profile')
+      }
     } catch (error) {
       console.error('Failed to refresh user:', error)
-      localStorage.removeItem('auth-token')
+      apiClient.removeAuthToken()
       setUser(null)
     } finally {
       setLoading(false)

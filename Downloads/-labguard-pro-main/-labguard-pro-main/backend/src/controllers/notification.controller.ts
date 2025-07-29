@@ -10,19 +10,19 @@ const prisma = new PrismaClient()
 
 // Email transporter
 const emailTransporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
+  host: process.env.SMTP_HOST as string,
+  port: parseInt(process.env.SMTP_PORT as string ?? '587'),
   secure: false,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: process.env.SMTP_USER as string,
+    pass: process.env.SMTP_PASS as string,
   },
 })
 
 // Twilio client
 const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
+  (process.env.TWILIO_ACCOUNT_SID as string) ?? '',
+  (process.env.TWILIO_AUTH_TOKEN as string) ?? ''
 )
 
 // Validation schemas
@@ -328,7 +328,7 @@ export class NotificationController {
 
     await twilioClient.messages.create({
       body: `${notification.title}: ${notification.message}`,
-      from: process.env.TWILIO_PHONE_NUMBER,
+      from: (process.env.TWILIO_PHONE_NUMBER as string) ?? '',
       to: user.phone
     })
 

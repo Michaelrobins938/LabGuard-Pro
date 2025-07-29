@@ -25,413 +25,688 @@ import {
   Database,
   Cpu,
   Beaker,
-  TestTube
+  TestTube,
+  Crown,
+  Lock,
+  BarChart3,
+  Clock,
+  ChevronDown,
+  Mail,
+  Phone,
+  MapPin,
+  Twitter,
+  Linkedin,
+  Youtube,
+  Facebook,
+  Instagram,
+  FlaskConical,
+  Award,
+  FileText,
+  Calendar
 } from 'lucide-react'
-import { EnhancedBiomniAssistant } from '@/components/ai-assistant/EnhancedBiomniAssistant'
 
 export function ModernLandingPage() {
-  const [showAIAssistant, setShowAIAssistant] = useState(true)
+  const [isYearly, setIsYearly] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
 
   const features = [
     {
       icon: <Brain className="w-6 h-6" />,
       title: "Stanford Biomni AI",
-      description: "Powered by Stanford's cutting-edge research with 150+ tools and 59 databases",
-      color: "from-blue-500 to-purple-600"
-    },
-    {
-      icon: <Target className="w-6 h-6" />,
-      title: "AI-Powered Calibration",
-      description: "Automated equipment calibration with real-time validation and compliance checking",
-      color: "from-green-500 to-teal-600"
+      description: "Powered by Stanford's cutting-edge research with 150+ biomedical tools and 59 scientific databases."
     },
     {
       icon: <Shield className="w-6 h-6" />,
-      title: "Enterprise Security",
-      description: "HIPAA, SOC2, and GDPR compliant with advanced encryption and audit trails",
-      color: "from-red-500 to-pink-600"
+      title: "Compliance Automation",
+      description: "Automated regulatory compliance with real-time monitoring and audit trail generation."
     },
     {
-      icon: <Database className="w-6 h-6" />,
-      title: "Real-time Analytics",
-      description: "Comprehensive dashboards with predictive analytics and performance insights",
-      color: "from-yellow-500 to-orange-600"
+      icon: <Microscope className="w-6 h-6" />,
+      title: "Equipment Management",
+      description: "Comprehensive laboratory equipment tracking with maintenance scheduling and calibration alerts."
     },
     {
-      icon: <Cpu className="w-6 h-6" />,
-      title: "Smart Automation",
-      description: "Intelligent workflow automation with AI-driven decision making",
-      color: "from-purple-500 to-indigo-600"
-    },
-    {
-      icon: <Globe className="w-6 h-6" />,
-      title: "Multi-tenant Architecture",
-      description: "Scalable platform supporting multiple laboratories and organizations",
-      color: "from-cyan-500 to-blue-600"
+      icon: <BarChart3 className="w-6 h-6" />,
+      title: "Advanced Analytics",
+      description: "AI-powered insights and predictive analytics for laboratory optimization and decision-making."
     }
   ]
 
   const stats = [
-    { label: "Equipment Monitored", value: "10,000+", icon: <Microscope className="w-5 h-5" /> },
-    { label: "AI Assistance Sessions", value: "50,000+", icon: <Bot className="w-5 h-5" /> },
-    { label: "Research Projects", value: "1,000+", icon: <Dna className="w-5 h-5" /> },
-    { label: "Compliance Rate", value: "99.8%", icon: <CheckCircle className="w-5 h-5" /> }
+    { label: 'Laboratories', value: '10,000+', icon: Microscope },
+    { label: 'Compliance Rate', value: '99.9%', icon: Shield },
+    { label: 'Time Saved', value: '60%', icon: Clock },
+    { label: 'Cost Reduction', value: '40%', icon: TrendingUp }
   ]
 
-  const testimonials = [
+  const pricingPlans = [
     {
-      name: "Dr. Sarah Johnson",
-      role: "Lab Director, Stanford Medical Center",
-      content: "LabGuard Pro with Biomni AI has revolutionized our laboratory operations. The AI assistant has accelerated our research by 100x.",
-      rating: 5
+      name: "Starter",
+      price: isYearly ? 29 : 39,
+      description: "Perfect for small laboratories",
+      features: [
+        "Up to 10 equipment items",
+        "Basic compliance monitoring",
+        "Email support",
+        "Standard reports"
+      ],
+      popular: false
     },
     {
-      name: "Dr. Michael Chen",
-      role: "Research Scientist, MIT",
-      content: "The integration with Stanford's Biomni system is game-changing. We can now design experiments and analyze data with unprecedented speed.",
-      rating: 5
+      name: "Professional",
+      price: isYearly ? 79 : 99,
+      description: "Ideal for growing laboratories",
+      features: [
+        "Up to 50 equipment items",
+        "Advanced compliance monitoring",
+        "AI-powered insights",
+        "Priority support",
+        "Custom reports"
+      ],
+      popular: true
     },
     {
-      name: "Dr. Emily Rodriguez",
-      role: "Quality Manager, Mayo Clinic",
-      content: "The compliance automation features have saved us countless hours. Our audit scores have improved dramatically.",
-      rating: 5
+      name: "Enterprise",
+      price: isYearly ? 199 : 249,
+      description: "For large organizations",
+      features: [
+        "Unlimited equipment",
+        "Full compliance automation",
+        "Advanced AI features",
+        "24/7 support",
+        "Custom integrations",
+        "Dedicated account manager"
+      ],
+      popular: false
     }
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-full blur-3xl"></div>
+      </div>
+
       {/* Navigation */}
       <nav className="relative z-50 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <div 
+              className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => window.location.href = '/'}
+            >
               <Bot className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">LabGuard Pro</span>
+            <span 
+              className="text-xl font-bold text-white cursor-pointer hover:text-blue-300 transition-colors"
+              onClick={() => window.location.href = '/'}
+            >
+              LabGuard Pro
+            </span>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" className="text-white hover:bg-white/10">
-              Features
-            </Button>
-            <Button variant="ghost" className="text-white hover:bg-white/10">
-              Pricing
-            </Button>
-            <Button variant="ghost" className="text-white hover:bg-white/10">
-              About
+            {/* Product Dropdown */}
+            <div className="relative group">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 flex items-center space-x-1"
+                onMouseEnter={() => setActiveDropdown('product')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <span>Product</span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              <div 
+                className={`absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-200 ${
+                  activeDropdown === 'product' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}
+                onMouseEnter={() => setActiveDropdown('product')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <div className="p-4 space-y-2">
+                  <a href="/ai-demo" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Bot className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <div className="text-white font-medium">AI Assistant</div>
+                      <div className="text-sm text-gray-400">Stanford Biomni Integration</div>
+                    </div>
+                  </a>
+                  <a href="/dashboard/analytics" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <BarChart3 className="w-5 h-5 text-green-400" />
+                    <div>
+                      <div className="text-white font-medium">Analytics</div>
+                      <div className="text-sm text-gray-400">Advanced Insights</div>
+                    </div>
+                  </a>
+                  <a href="/dashboard/compliance" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Shield className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <div className="text-white font-medium">Compliance</div>
+                      <div className="text-sm text-gray-400">Regulatory Monitoring</div>
+                    </div>
+                  </a>
+                  <a href="/dashboard/equipment" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Microscope className="w-5 h-5 text-orange-400" />
+                    <div>
+                      <div className="text-white font-medium">Equipment Management</div>
+                      <div className="text-sm text-gray-400">Asset Tracking</div>
+                    </div>
+                  </a>
+                  <a href="/dashboard/ai" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Code className="w-5 h-5 text-cyan-400" />
+                    <div>
+                      <div className="text-white font-medium">Protocol Design</div>
+                      <div className="text-sm text-gray-400">AI-Generated Protocols</div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Solutions Dropdown */}
+            <div className="relative group">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 flex items-center space-x-1"
+                onMouseEnter={() => setActiveDropdown('solutions')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <span>Solutions</span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              <div 
+                className={`absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-200 ${
+                  activeDropdown === 'solutions' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}
+                onMouseEnter={() => setActiveDropdown('solutions')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <div className="p-4 space-y-2">
+                  <a href="/solutions/research" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Beaker className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <div className="text-white font-medium">Research Labs</div>
+                      <div className="text-sm text-gray-400">Academic & Research</div>
+                    </div>
+                  </a>
+                  <a href="/solutions/clinical" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <TestTube className="w-5 h-5 text-green-400" />
+                    <div>
+                      <div className="text-white font-medium">Clinical Labs</div>
+                      <div className="text-sm text-gray-400">Medical Diagnostics</div>
+                    </div>
+                  </a>
+                  <a href="/solutions/pharmaceutical" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <FlaskConical className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <div className="text-white font-medium">Pharmaceutical</div>
+                      <div className="text-sm text-gray-400">Drug Development</div>
+                    </div>
+                  </a>
+                  <a href="/solutions/biotechnology" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Dna className="w-5 h-5 text-orange-400" />
+                    <div>
+                      <div className="text-white font-medium">Biotechnology</div>
+                      <div className="text-sm text-gray-400">Biotech Research</div>
+                    </div>
+                  </a>
+                  <a href="/solutions/enterprise" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Crown className="w-5 h-5 text-yellow-400" />
+                    <div>
+                      <div className="text-white font-medium">Academic Institutions</div>
+                      <div className="text-sm text-gray-400">Universities & Colleges</div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Resources Dropdown */}
+            <div className="relative group">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 flex items-center space-x-1"
+                onMouseEnter={() => setActiveDropdown('resources')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <span>Resources</span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              <div 
+                className={`absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-200 ${
+                  activeDropdown === 'resources' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}
+                onMouseEnter={() => setActiveDropdown('resources')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <div className="p-4 space-y-2">
+                  <a href="/resources/documentation" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <FileText className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <div className="text-white font-medium">Documentation</div>
+                      <div className="text-sm text-gray-400">User Guides & API Docs</div>
+                    </div>
+                  </a>
+                  <a href="/resources/case-studies" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <BarChart3 className="w-5 h-5 text-green-400" />
+                    <div>
+                      <div className="text-white font-medium">Case Studies</div>
+                      <div className="text-sm text-gray-400">Success Stories</div>
+                    </div>
+                  </a>
+                  <a href="/blog" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Globe className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <div className="text-white font-medium">Blog</div>
+                      <div className="text-sm text-gray-400">Latest Updates</div>
+                    </div>
+                  </a>
+                  <a href="/support" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Users className="w-5 h-5 text-orange-400" />
+                    <div>
+                      <div className="text-white font-medium">Support Center</div>
+                      <div className="text-sm text-gray-400">Help & Resources</div>
+                    </div>
+                  </a>
+                  <a href="/resources/api" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Code className="w-5 h-5 text-cyan-400" />
+                    <div>
+                      <div className="text-white font-medium">API Reference</div>
+                      <div className="text-sm text-gray-400">Developer Resources</div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Company Dropdown */}
+            <div className="relative group">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10 flex items-center space-x-1"
+                onMouseEnter={() => setActiveDropdown('company')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <span>Company</span>
+                <ChevronDown className="w-4 h-4" />
+              </Button>
+              <div 
+                className={`absolute top-full left-0 mt-2 w-64 bg-slate-800/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl transition-all duration-200 ${
+                  activeDropdown === 'company' ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}
+                onMouseEnter={() => setActiveDropdown('company')}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <div className="p-4 space-y-2">
+                  <a href="/about" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Users className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <div className="text-white font-medium">About Us</div>
+                      <div className="text-sm text-gray-400">Our Mission & Team</div>
+                    </div>
+                  </a>
+                  <a href="/careers" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Star className="w-5 h-5 text-green-400" />
+                    <div>
+                      <div className="text-white font-medium">Careers</div>
+                      <div className="text-sm text-gray-400">Join Our Team</div>
+                    </div>
+                  </a>
+                  <a href="/contact" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Mail className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <div className="text-white font-medium">Contact</div>
+                      <div className="text-sm text-gray-400">Get in Touch</div>
+                    </div>
+                  </a>
+                  <a href="/partners" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Users className="w-5 h-5 text-orange-400" />
+                    <div>
+                      <div className="text-white font-medium">Partners</div>
+                      <div className="text-sm text-gray-400">Strategic Alliances</div>
+                    </div>
+                  </a>
+                  <a href="/press" className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Globe className="w-5 h-5 text-cyan-400" />
+                    <div>
+                      <div className="text-white font-medium">Press</div>
+                      <div className="text-sm text-gray-400">Media & News</div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
+              onClick={() => window.location.href = '/auth/login'}
+            >
+              Sign In
             </Button>
             <Button 
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              onClick={() => {
-                const event = new CustomEvent('toggle-assistant')
-                window.dispatchEvent(event)
-              }}
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
+              onClick={() => window.location.href = '/dashboard'}
             >
-              <Bot className="w-4 h-4 mr-2" />
-              Try AI Assistant
+              Dashboard
+            </Button>
+            <Button 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+              onClick={() => window.location.href = '/auth/register'}
+            >
+              Start Free Trial
             </Button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative px-6 py-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <Badge className="mb-6 bg-blue-500/20 text-blue-400 border-blue-500/30">
-            <Sparkles className="w-3 h-3 mr-1" />
-            Powered by Stanford Biomni AI
-          </Badge>
-          
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            Laboratory Intelligence
-            <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Reimagined
-            </span>
-          </h1>
-          
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            Transform your laboratory with AI-powered compliance automation, real-time monitoring, 
-            and Stanford's cutting-edge Biomni research platform. Accelerate your research by 100x.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
-            <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-lg px-8 py-4">
-              <Zap className="w-5 h-5 mr-2" />
-              Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 text-lg px-8 py-4">
-              <Play className="w-5 h-5 mr-2" />
-              Watch Demo
-            </Button>
-          </div>
-        </motion.div>
+      <section className="relative py-20 overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 rounded-full backdrop-blur-sm mb-6"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium">Laboratory Intelligence Platform</span>
+            </motion.div>
 
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.8 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
-        >
-          {stats.map((stat, index) => (
-            <Card key={index} className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  {stat.icon}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="text-4xl lg:text-6xl font-bold text-white mb-6"
+            >
+              The Future of{' '}
+              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                Laboratory Management
+              </span>{' '}
+              is Here
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-xl text-gray-300 max-w-3xl mx-auto mb-8"
+            >
+              Powered by Stanford's cutting-edge Biomni AI, LabGuard Pro revolutionizes laboratory operations 
+              with intelligent compliance monitoring, automated equipment management, and AI-driven insights.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Button 
+                className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                onClick={() => window.location.href = '/ai-demo'}
+              >
+                <Bot className="w-5 h-5 mr-2" />
+                Try AI Assistant
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                variant="outline"
+                className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all duration-300 backdrop-blur-sm"
+                onClick={() => window.location.href = '/demo'}
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Watch Demo
+              </Button>
+            </motion.div>
+          </div>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-8"
+          >
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <stat.icon className="w-8 h-8 text-blue-400" />
                 </div>
-                <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
-                <p className="text-sm text-gray-300">{stat.label}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </motion.div>
+                <div className="text-3xl lg:text-4xl font-bold text-white mb-2">{stat.value}</div>
+                <div className="text-sm text-gray-400">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* Features Section */}
-      <section className="px-6 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Why Choose LabGuard Pro?
-          </h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            The only laboratory platform powered by Stanford's Biomni AI, offering unprecedented 
-            research acceleration and compliance automation.
-          </p>
-        </motion.div>
+      <section className="py-20 bg-gradient-to-b from-slate-900 to-blue-900 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 rounded-full backdrop-blur-sm mb-6">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium">Key Features</span>
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+              Built for{' '}
+              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                Laboratory Excellence
+              </span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Comprehensive solutions designed specifically for modern laboratory operations and research.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
-                <CardContent className="p-6">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-lg flex items-center justify-center mb-4`}>
+          <div className="grid lg:grid-cols-2 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all duration-300"
+              >
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                  <p className="text-gray-300">{feature.description}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* AI Assistant Showcase */}
-      <section className="px-6 py-20 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center"
-        >
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Meet Your AI Laboratory Partner
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Powered by Stanford's Biomni AI system with access to 150+ tools, 59 databases, 
-            and 106 software packages for unprecedented research acceleration.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Beaker className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Protocol Design</h3>
-                <p className="text-gray-300 text-sm">
-                  AI-powered experimental protocol generation with optimization
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <TestTube className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Data Analysis</h3>
-                <p className="text-gray-300 text-sm">
-                  Advanced bioinformatics analysis with genomic data processing
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Compliance</h3>
-                <p className="text-gray-300 text-sm">
-                  Automated compliance checking and audit trail generation
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-lg px-8 py-4"
-            onClick={() => {
-              const event = new CustomEvent('toggle-assistant')
-              window.dispatchEvent(event)
-            }}
-          >
-            <Bot className="w-5 h-5 mr-2" />
-            Try AI Assistant Now
-          </Button>
-        </motion.div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="px-6 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Trusted by Leading Laboratories
-          </h2>
-          <p className="text-xl text-gray-300">
-            See what researchers and laboratory professionals are saying about LabGuard Pro
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.2, duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <Card className="bg-white/10 backdrop-blur-md border-white/20">
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-300 mb-4">"{testimonial.content}"</p>
                   <div>
-                    <p className="font-semibold text-white">{testimonial.name}</p>
-                    <p className="text-sm text-gray-400">{testimonial.role}</p>
+                    <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
+                    <p className="text-gray-300">{feature.description}</p>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                </div>
+                
+                <Button 
+                  variant="ghost"
+                  className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                  onClick={() => window.location.href = '/ai-demo'}
+                >
+                  <span className="text-sm font-medium">Learn More</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="px-6 py-20 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center max-w-4xl mx-auto"
-        >
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to Transform Your Laboratory?
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Join thousands of researchers and laboratory professionals who have already 
-            accelerated their work with LabGuard Pro and Stanford Biomni AI.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-lg px-8 py-4">
-              Start Free Trial
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 text-lg px-8 py-4">
-              Schedule Demo
-            </Button>
+      {/* Pricing Section */}
+      <section className="py-20 bg-gradient-to-b from-blue-900 to-slate-900 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 rounded-full backdrop-blur-sm mb-6">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium">Pricing Plans</span>
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+              Choose Your{' '}
+              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                Plan
+              </span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+              Flexible pricing designed to scale with your laboratory needs.
+            </p>
+
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <span className={`text-sm ${!isYearly ? 'text-white' : 'text-gray-400'}`}>Monthly</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsYearly(!isYearly)}
+                className="relative bg-white/10 hover:bg-white/20"
+              >
+                <div className={`w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-transform ${isYearly ? 'translate-x-4' : 'translate-x-0'}`}></div>
+              </Button>
+              <span className={`text-sm ${isYearly ? 'text-white' : 'text-gray-400'}`}>Yearly <span className="text-green-400">(Save 20%)</span></span>
+            </div>
           </div>
-        </motion.div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {pricingPlans.map((plan, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+                className={`relative bg-white/5 backdrop-blur-xl border rounded-2xl p-8 hover:bg-white/10 transition-all duration-300 ${
+                  plan.popular 
+                    ? 'border-purple-500/50 bg-gradient-to-b from-purple-500/10 to-transparent' 
+                    : 'border-white/10'
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-1">
+                      Most Popular
+                    </Badge>
+                  </div>
+                )}
+                
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                  <p className="text-gray-400 mb-4">{plan.description}</p>
+                  <div className="text-4xl font-bold text-white mb-2">
+                    ${plan.price}
+                    <span className="text-lg text-gray-400">/month</span>
+                  </div>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  {plan.features.map((feature, featureIndex) => (
+                    <div key={featureIndex} className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-300">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button 
+                  className={`w-full ${
+                    plan.popular 
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700' 
+                      : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
+                  } text-white`}
+                >
+                  Get Started
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="px-6 py-12 border-t border-white/10">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="px-4 sm:px-6 lg:px-8 py-12 sm:py-16 border-t border-white/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-white">LabGuard Pro</span>
               </div>
-              <p className="text-gray-300 text-sm">
-                The future of laboratory intelligence, powered by Stanford Biomni AI.
+              <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-6">
+                The future of laboratory intelligence, powered by Stanford's cutting-edge research and AI technology.
               </p>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Youtube className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  <Facebook className="w-5 h-5" />
+                </a>
+              </div>
             </div>
-            
+
             <div>
-              <h3 className="text-white font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white">Features</a></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-white">Integrations</a></li>
-                <li><a href="#" className="hover:text-white">API</a></li>
-              </ul>
+              <h3 className="text-lg font-semibold text-white mb-6">Product</h3>
+              <div className="space-y-3">
+                <a href="/solutions" className="block text-gray-300 hover:text-white transition-colors">Solutions</a>
+                <a href="/pricing" className="block text-gray-300 hover:text-white transition-colors">Pricing</a>
+                <a href="/resources/api" className="block text-gray-300 hover:text-white transition-colors">API</a>
+                <a href="/ai-demo" className="block text-gray-300 hover:text-white transition-colors">AI Demo</a>
+              </div>
             </div>
-            
+
             <div>
-              <h3 className="text-white font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white">About</a></li>
-                <li><a href="#" className="hover:text-white">Blog</a></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
-              </ul>
+              <h3 className="text-lg font-semibold text-white mb-6">Company</h3>
+              <div className="space-y-3">
+                <a href="/about" className="block text-gray-300 hover:text-white transition-colors">About</a>
+                <a href="/blog" className="block text-gray-300 hover:text-white transition-colors">Blog</a>
+                <a href="/careers" className="block text-gray-300 hover:text-white transition-colors">Careers</a>
+                <a href="/contact" className="block text-gray-300 hover:text-white transition-colors">Contact</a>
+              </div>
             </div>
-            
+
             <div>
-              <h3 className="text-white font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-white">Documentation</a></li>
-                <li><a href="#" className="hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-white">Community</a></li>
-                <li><a href="#" className="hover:text-white">Status</a></li>
-              </ul>
+              <h3 className="text-lg font-semibold text-white mb-6">Support</h3>
+              <div className="space-y-3">
+                <a href="/resources/documentation" className="block text-gray-300 hover:text-white transition-colors">Documentation</a>
+                <a href="/support" className="block text-gray-300 hover:text-white transition-colors">Help Center</a>
+                <a href="/resources/case-studies" className="block text-gray-300 hover:text-white transition-colors">Case Studies</a>
+                <a href="/partners" className="block text-gray-300 hover:text-white transition-colors">Partners</a>
+              </div>
             </div>
           </div>
-          
-          <div className="border-t border-white/10 mt-8 pt-8 text-center">
-            <p className="text-gray-400 text-sm">
-              © 2024 LabGuard Pro. Powered by Stanford Biomni AI. All rights reserved.
-            </p>
+
+          <div className="border-t border-white/10 mt-12 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <p className="text-gray-400 text-sm">
+                © 2024 LabGuard Pro. All rights reserved.
+              </p>
+              <div className="flex space-x-6 mt-4 md:mt-0">
+                <a href="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy</a>
+                <a href="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">Terms</a>
+                <a href="/cookies" className="text-gray-400 hover:text-white text-sm transition-colors">Cookies</a>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
-
-      {/* AI Assistant */}
-              {showAIAssistant && <EnhancedBiomniAssistant />}
     </div>
   )
 } 

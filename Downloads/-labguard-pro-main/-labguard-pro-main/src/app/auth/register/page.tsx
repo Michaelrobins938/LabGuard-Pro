@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
+import { apiClient } from '@/lib/api';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -19,39 +21,80 @@ export default function RegisterPage() {
     laboratoryName: '',
     role: 'ADMIN'
   });
+  
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   
   const router = useRouter();
-  const { register, loading } = useAuth();
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     setError('');
+    setSuccess('');
 
+    // Client-side validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
       return;
     }
 
-    const result = await register({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      password: formData.password,
-      laboratoryName: formData.laboratoryName,
-      role: formData.role
-    });
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      setLoading(false);
+      return;
+    }
 
-    if (result.success) {
-      router.push('/dashboard');
-    } else {
-      setError(result.error || 'Registration failed');
+    try {
+      console.log('🔄 Starting registration process...');
+      
+      const response = await apiClient.register({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.toLowerCase().trim(),
+        password: formData.password,
+        laboratoryName: formData.laboratoryName.trim(),
+        role: formData.role
+      });
+
+      if (response.success) {
+        console.log('✅ Registration successful');
+        
+        // Store user data
+        if (typeof window !== 'undefined' && response.user) {
+          localStorage.setItem('labguard_user', JSON.stringify(response.user));
+        }
+
+        setSuccess('Account created successfully! Redirecting to dashboard...');
+        
+        // Redirect after success message
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 2000);
+        
+      } else {
+        throw new Error(response.error || 'Registration failed');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Registration failed:', error);
+      setError(error.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear errors when user starts typing
+    if (error) setError('');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
@@ -63,28 +106,46 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {error}
+                  {Array.isArray(error) && (
+                    <ul className="mt-2 list-disc pl-4">
+                      {error.map((err, index) => (
+                        <li key={index} className="text-sm">{err}</li>
+                      ))}
+                    </ul>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {success && (
+              <Alert className="bg-green-50 text-green-800 border-green-200">
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
             )}
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="firstName" className="text-sm font-medium">First Name</label>
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
+                  placeholder="John"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
                   required
                   disabled={loading}
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="lastName" className="text-sm font-medium">Last Name</label>
+                <Label htmlFor="lastName">Last Name</Label>
                 <Input
                   id="lastName"
+                  placeholder="Doe"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
                   required
                   disabled={loading}
                 />
@@ -92,36 +153,39 @@ export default function RegisterPage() {
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">Email</label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
+                placeholder="john@example.com"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 required
                 disabled={loading}
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="laboratoryName" className="text-sm font-medium">Laboratory Name</label>
+              <Label htmlFor="laboratoryName">Laboratory Name</Label>
               <Input
                 id="laboratoryName"
+                placeholder="Acme Research Lab"
                 value={formData.laboratoryName}
-                onChange={(e) => setFormData({ ...formData, laboratoryName: e.target.value })}
+                onChange={(e) => handleInputChange('laboratoryName', e.target.value)}
                 required
                 disabled={loading}
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Password</label>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
+                  placeholder="Minimum 8 characters"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
                   required
                   disabled={loading}
                   minLength={8}
@@ -134,36 +198,50 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={loading}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</label>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
+                placeholder="Confirm your password"
                 value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                 required
                 disabled={loading}
                 minLength={8}
               />
             </div>
-            
-            <Button type="submit" className="w-full" disabled={loading}>
+          </CardContent>
+          
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading}
+            >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Account
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
             
             <div className="text-sm text-center">
               Already have an account?{' '}
-              <Link href="/auth/login" className="text-blue-600 hover:underline">
+              <Link 
+                href="/auth/login" 
+                className="text-blue-600 hover:underline"
+              >
                 Sign in
               </Link>
             </div>
-          </CardContent>
+          </CardFooter>
         </form>
       </Card>
     </div>

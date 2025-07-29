@@ -131,16 +131,16 @@ const nextConfig = {
     ];
   },
 
-  // Redirects
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/dashboard',
-        permanent: false,
-      },
-    ];
-  },
+  // Redirects - DISABLED TO FIX REDIRECT LOOP
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/',
+  //       destination: '/dashboard',
+  //       permanent: false,
+  //     },
+  //   ];
+  // },
 
   // Rewrites for API proxy
   async rewrites() {

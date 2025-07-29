@@ -1,283 +1,229 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios'
+// src/lib/api.ts
+const API_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:3000'
+  : '';
 
-// Create axios instance with base configuration
-const api: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    // Add auth token if available
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('auth-token')
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-
-// Response interceptor for error handling
-api.interceptors.response.use(
-  (response: AxiosResponse) => {
-    return response
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-token')
-        window.location.href = '/login'
-      }
-    }
-    return Promise.reject(error)
-  }
-)
-
-// API service functions
-export const apiService = {
-  // Auth endpoints
-  auth: {
-    login: (credentials: { email: string; password: string }) =>
-      api.post('/auth/login', credentials),
-    register: (userData: {
-      email: string
-      password: string
-      firstName: string
-      lastName: string
-      laboratoryName: string
-    }) => api.post('/auth/register', userData),
-    logout: () => api.post('/auth/logout'),
-    refreshToken: () => api.post('/auth/refresh'),
-    getProfile: () => api.get('/auth/profile'),
-    updateProfile: (profileData: any) => api.put('/auth/profile', profileData),
-    updatePassword: (passwordData: { currentPassword: string; newPassword: string }) =>
-      api.put('/auth/password', passwordData),
-  },
-
-  // Equipment endpoints
-  equipment: {
-    getAll: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
-      api.get('/equipment', { params }),
-    getById: (id: string) => api.get(`/equipment/${id}`),
-    create: (equipmentData: any) => api.post('/equipment', equipmentData),
-    update: (id: string, equipmentData: any) => api.put(`/equipment/${id}`, equipmentData),
-    delete: (id: string) => api.delete(`/equipment/${id}`),
-    getStats: () => api.get('/equipment/stats'),
-    getCalibrationHistory: (id: string) => api.get(`/equipment/${id}/calibrations`),
-  },
-
-  // Calibration endpoints
-  calibration: {
-    getAll: (params?: { page?: number; limit?: number; status?: string; equipmentId?: string }) =>
-      api.get('/calibration', { params }),
-    getById: (id: string) => api.get(`/calibration/${id}`),
-    create: (calibrationData: any) => api.post('/calibration', calibrationData),
-    update: (id: string, calibrationData: any) => api.put(`/calibration/${id}`, calibrationData),
-    delete: (id: string) => api.delete(`/calibration/${id}`),
-    validate: (validationData: any) => api.post('/calibration/validate', validationData),
-    generateReport: (id: string) => api.post(`/calibration/${id}/report`),
-    getDue: () => api.get('/calibration/due'),
-    getOverdue: () => api.get('/calibration/overdue'),
-  },
-
-  // Reports endpoints
-  reports: {
-    getAll: (params?: { page?: number; limit?: number; type?: string; status?: string }) =>
-      api.get('/reports', { params }),
-    getById: (id: string) => api.get(`/reports/${id}`),
-    generate: (reportData: any) => api.post('/reports/generate', reportData),
-    export: (id: string, format: 'pdf' | 'excel' = 'pdf') =>
-      api.get(`/reports/${id}/export`, { params: { format } }),
-    getTemplates: () => api.get('/reports/templates'),
-    getAnalytics: (params?: { startDate?: string; endDate?: string; type?: string }) =>
-      api.get('/reports/analytics', { params }),
-  },
-
-  // Dashboard endpoints
-  dashboard: {
-    getStats: () => api.get('/dashboard/stats'),
-    getRecentActivity: (limit: number = 10) => api.get('/dashboard/activity', { params: { limit } }),
-    getComplianceOverview: () => api.get('/dashboard/compliance'),
-    getEquipmentStatus: () => api.get('/dashboard/equipment-status'),
-    getCalibrationSchedule: () => api.get('/dashboard/calibration-schedule'),
-  },
-
-  // Notifications endpoints
-  notifications: {
-    getAll: (params?: { page?: number; limit?: number; unread?: boolean }) =>
-      api.get('/notifications', { params }),
-    getById: (id: string) => api.get(`/notifications/${id}`),
-    markAsRead: (id: string) => api.put(`/notifications/${id}/read`),
-    markAllAsRead: () => api.put('/notifications/read-all'),
-    delete: (id: string) => api.delete(`/notifications/${id}`),
-    getUnreadCount: () => api.get('/notifications/unread-count'),
-    updatePreferences: (preferences: any) => api.put('/notifications/preferences', preferences),
-  },
-
-  // Team management endpoints
-  team: {
-    getAll: (params?: { page?: number; limit?: number; role?: string }) =>
-      api.get('/team', { params }),
-    getById: (id: string) => api.get(`/team/${id}`),
-    invite: (inviteData: { email: string; role: string; message?: string }) =>
-      api.post('/team/invite', inviteData),
-    updateRole: (id: string, role: string) => api.put(`/team/${id}/role`, { role }),
-    remove: (id: string) => api.delete(`/team/${id}`),
-    getInvitations: () => api.get('/team/invitations'),
-    acceptInvitation: (token: string) => api.post('/team/invitations/accept', { token }),
-    declineInvitation: (token: string) => api.post('/team/invitations/decline', { token }),
-  },
-
-  // Billing endpoints
-  billing: {
-    getSubscription: () => api.get('/billing/subscription'),
-    updateSubscription: (planId: string) => api.put('/billing/subscription', { planId }),
-    cancelSubscription: () => api.post('/billing/subscription/cancel'),
-    getInvoices: (params?: { page?: number; limit?: number }) =>
-      api.get('/billing/invoices', { params }),
-    getInvoice: (id: string) => api.get(`/billing/invoices/${id}`),
-    downloadInvoice: (id: string) => api.get(`/billing/invoices/${id}/download`),
-    getPaymentMethods: () => api.get('/billing/payment-methods'),
-    addPaymentMethod: (paymentMethodData: any) =>
-      api.post('/billing/payment-methods', paymentMethodData),
-    removePaymentMethod: (id: string) => api.delete(`/billing/payment-methods/${id}`),
-    getUsage: (params?: { startDate?: string; endDate?: string }) =>
-      api.get('/billing/usage', { params }),
-  },
-
-  // Settings endpoints
-  settings: {
-    getLaboratory: () => api.get('/settings/laboratory'),
-    updateLaboratory: (laboratoryData: any) => api.put('/settings/laboratory', laboratoryData),
-    getBranding: () => api.get('/settings/branding'),
-    updateBranding: (brandingData: any) => api.put('/settings/branding', brandingData),
-    getIntegrations: () => api.get('/settings/integrations'),
-    updateIntegrations: (integrationsData: any) =>
-      api.put('/settings/integrations', integrationsData),
-    getEmailTemplates: () => api.get('/settings/email-templates'),
-    updateEmailTemplate: (id: string, templateData: any) =>
-      api.put(`/settings/email-templates/${id}`, templateData),
-  },
-
-  // AI/Compliance endpoints
-  ai: {
-    validateCalibration: (validationData: any) =>
-      api.post('/ai/calibration/validate', validationData),
-    generateReport: (reportData: any) => api.post('/ai/reports/generate', reportData),
-    analyzeCompliance: (complianceData: any) =>
-      api.post('/ai/compliance/analyze', complianceData),
-    getTemplates: () => api.get('/ai/templates'),
-    getUsage: (params?: { startDate?: string; endDate?: string }) =>
-      api.get('/ai/usage', { params }),
-  },
-
-  // Analytics endpoints
-  analytics: {
-    getEquipmentAnalytics: (params?: { startDate?: string; endDate?: string }) =>
-      api.get('/analytics/equipment', { params }),
-    getCalibrationAnalytics: (params?: { startDate?: string; endDate?: string }) =>
-      api.get('/analytics/calibration', { params }),
-    getComplianceAnalytics: (params?: { startDate?: string; endDate?: string }) =>
-      api.get('/analytics/compliance', { params }),
-    getUserAnalytics: (params?: { startDate?: string; endDate?: string }) =>
-      api.get('/analytics/users', { params }),
-    getCustomReport: (reportData: any) => api.post('/analytics/custom-report', reportData),
-  },
-
-  // File upload endpoints
-  files: {
-    upload: (file: File, type: string) => {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('type', type)
-      return api.post('/files/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-    },
-    delete: (id: string) => api.delete(`/files/${id}`),
-    getById: (id: string) => api.get(`/files/${id}`),
-  },
-
-  // Audit log endpoints
-  audit: {
-    getLogs: (params?: { page?: number; limit?: number; action?: string; userId?: string }) =>
-      api.get('/audit/logs', { params }),
-    exportLogs: (params?: { startDate?: string; endDate?: string; format?: string }) =>
-      api.get('/audit/logs/export', { params }),
-  },
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  user?: any;
+  token?: string;
+  error?: string;
+  message?: string;
+  details?: string[];
 }
 
-// Utility functions for common API operations
-export const apiUtils = {
-  // Handle API errors consistently
-  handleError: (error: any) => {
-    if (error.response?.data?.message) {
-      return error.response.data.message
-    }
-    if (error.message) {
-      return error.message
-    }
-    return 'An unexpected error occurred'
-  },
+class ApiClient {
+  private baseURL: string;
 
-  // Format API response data
-  formatResponse: (response: AxiosResponse) => {
-    return response.data
-  },
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
+  }
 
-  // Check if response is successful
-  isSuccess: (response: AxiosResponse) => {
-    return response.status >= 200 && response.status < 300
-  },
+  private getAuthHeaders(): Record<string, string> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('labguard_token') : null;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
 
-  // Get pagination info from response headers
-  getPaginationInfo: (response: AxiosResponse) => {
-    const total = response.headers['x-total-count']
-    const page = response.headers['x-page']
-    const limit = response.headers['x-limit']
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    const url = `${this.baseURL}${endpoint}`;
     
-    return {
-      total: total ? parseInt(total) : 0,
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
+    const config: RequestInit = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      console.log(`🔄 API Request: ${options.method || 'GET'} ${url}`);
+      
+      const response = await fetch(url, config);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error(`❌ API Error (${response.status}):`, data);
+        return {
+          success: false,
+          error: data.error || `HTTP error! status: ${response.status}`,
+          details: data.details
+        };
+      }
+
+      console.log(`✅ API Success: ${options.method || 'GET'} ${url}`);
+      return {
+        success: true,
+        ...data
+      };
+
+    } catch (error) {
+      console.error('❌ Network Error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Network error occurred',
+      };
     }
-  },
-}
+  }
 
-// Export the axios instance for direct use if needed
-export { api }
+  // Authentication methods
+  async register(userData: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    laboratoryName: string;
+    role?: string;
+  }): Promise<ApiResponse> {
+    const response = await this.request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
 
-// Export types for better TypeScript support
-export interface ApiResponse<T = any> {
-  data: T
-  message?: string
-  success: boolean
-}
+    // Store token if registration successful
+    if (response.success && response.token) {
+      this.setAuthToken(response.token);
+    }
 
-export interface PaginatedResponse<T = any> {
-  data: T[]
-  pagination: {
-    total: number
-    page: number
-    limit: number
-    totalPages: number
+    return response;
+  }
+
+  async login(credentials: { 
+    email: string; 
+    password: string;
+  }): Promise<ApiResponse> {
+    const response = await this.request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+
+    // Store token if login successful
+    if (response.success && response.token) {
+      this.setAuthToken(response.token);
+    }
+
+    return response;
+  }
+
+  async logout(): Promise<ApiResponse> {
+    const response = await this.request('/api/auth/logout', {
+      method: 'POST',
+    });
+
+    // Remove token regardless of response
+    this.removeAuthToken();
+
+    return response;
+  }
+
+  async getProfile(): Promise<ApiResponse> {
+    return this.request('/api/auth/profile');
+  }
+
+  async testConnection(): Promise<ApiResponse> {
+    return this.request('/api/health');
+  }
+
+  // Dashboard
+  async getDashboardStats(): Promise<ApiResponse> {
+    return this.request('/api/dashboard/stats')
+  }
+
+  async getRecentActivity(limit: number = 10): Promise<ApiResponse> {
+    return this.request(`/api/dashboard/activity?limit=${limit}`)
+  }
+
+  // Token management
+  setAuthToken(token: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('labguard_token', token);
+    }
+  }
+
+  getAuthToken(): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('labguard_token');
+    }
+    return null;
+  }
+
+  removeAuthToken(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('labguard_token');
+      localStorage.removeItem('labguard_user');
+    }
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.getAuthToken();
+  }
+
+  async getEquipmentAnalytics(params: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/equipment', { method: 'POST', body: JSON.stringify(params) })
+  }
+  async getCalibrationAnalytics(params: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/calibration', { method: 'POST', body: JSON.stringify(params) })
+  }
+  async getComplianceAnalytics(params: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/compliance', { method: 'POST', body: JSON.stringify(params) })
+  }
+  async getUserAnalytics(params: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/users', { method: 'POST', body: JSON.stringify(params) })
+  }
+
+  get analytics() {
+    return {
+      getEquipmentAnalytics: this.getEquipmentAnalytics.bind(this),
+      getCalibrationAnalytics: this.getCalibrationAnalytics.bind(this),
+      getComplianceAnalytics: this.getComplianceAnalytics.bind(this),
+      getUserAnalytics: this.getUserAnalytics.bind(this),
+    }
+  }
+
+  get dashboard() {
+    return {
+      getStats: this.getDashboardStats.bind(this),
+      getRecentActivity: this.getRecentActivity.bind(this)
+    }
   }
 }
 
-export interface ApiError {
-  message: string
-  code?: string
-  details?: any
-} 
+export const apiClient = new ApiClient(API_BASE_URL);
+export const apiService = apiClient; // Alias for compatibility
+export default apiClient;
+
+// API utilities
+export const apiUtils = {
+  getAuthHeaders: () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('labguard_token') : null;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  },
+  
+  setAuthToken: (token: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('labguard_token', token);
+    }
+  },
+  
+  getAuthToken: () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('labguard_token');
+    }
+    return null;
+  },
+  
+  removeAuthToken: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('labguard_token');
+      localStorage.removeItem('labguard_user');
+    }
+  },
+  
+  isAuthenticated: () => {
+    return !!apiUtils.getAuthToken();
+  }
+}; 

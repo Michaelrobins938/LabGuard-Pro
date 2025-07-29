@@ -1,307 +1,216 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useSession, signOut } from 'next-auth/react'
-import { 
-  Bell, 
-  Search, 
-  Settings, 
-  LogOut, 
-  User, 
-  ChevronDown,
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Bell,
+  Search,
+  Menu,
+  LogOut,
+  User,
+  Settings,
   HelpCircle,
-  MessageSquare,
-  Calendar,
-  AlertTriangle
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+  Moon,
+  Sun,
+  ChevronDown,
+  Zap,
+  Shield,
+  Crown
+} from 'lucide-react';
 
-interface Notification {
-  id: string
-  title: string
-  message: string
-  type: 'info' | 'warning' | 'error' | 'success'
-  time: string
-  read: boolean
+interface UserData {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  laboratory: {
+    id: string;
+    name: string;
+    planType: string;
+    subscriptionStatus: string;
+  };
 }
 
-export function DashboardHeader() {
-  const { data: session } = useSession()
-  const [showUserMenu, setShowUserMenu] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+interface DashboardHeaderProps {
+  user: UserData | null;
+  onLogout: () => void;
+  onMenuClick: () => void;
+  loggingOut: boolean;
+}
 
-  const notifications: Notification[] = [
-    {
-      id: '1',
-      title: 'Calibration Due',
-      message: 'Balance PB-220 calibration due in 2 days',
-      type: 'warning',
-      time: '2 hours ago',
-      read: false
-    },
-    {
-      id: '2',
-      title: 'Calibration Completed',
-      message: 'Centrifuge CF-16 calibration completed successfully',
-      type: 'success',
-      time: '4 hours ago',
-      read: true
-    },
-    {
-      id: '3',
-      title: 'Equipment Alert',
-      message: 'Incubator IC-200 temperature variance detected',
-      type: 'error',
-      time: '6 hours ago',
-      read: false
-    },
-    {
-      id: '4',
-      title: 'AI Analysis Complete',
-      message: 'Biomni AI analysis completed for sample #1234',
-      type: 'info',
-      time: '1 day ago',
-      read: true
-    }
-  ]
+export function DashboardHeader({ user, onLogout, onMenuClick, loggingOut }: DashboardHeaderProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notifications] = useState([
+    { id: 1, title: 'Equipment calibration due', time: '2 min ago', unread: true },
+    { id: 2, title: 'New AI insights available', time: '5 min ago', unread: true },
+    { id: 3, title: 'Team member joined', time: '1 hour ago', unread: false },
+  ]);
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadCount = notifications.filter(n => n.unread).length;
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/login' })
-  }
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'success':
-        return <div className="w-2 h-2 bg-green-500 rounded-full" />
-      case 'warning':
-        return <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-      case 'error':
-        return <div className="w-2 h-2 bg-red-500 rounded-full" />
+  const getRoleIcon = (role: string) => {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        return <Crown className="h-4 w-4 text-amber-400" />;
+      case 'manager':
+        return <Shield className="h-4 w-4 text-blue-400" />;
       default:
-        return <div className="w-2 h-2 bg-blue-500 rounded-full" />
+        return <User className="h-4 w-4 text-green-400" />;
     }
-  }
+  };
 
-  const getNotificationColor = (type: string) => {
-    switch (type) {
-      case 'success':
-        return 'border-green-200 bg-green-50'
-      case 'warning':
-        return 'border-yellow-200 bg-yellow-50'
-      case 'error':
-        return 'border-red-200 bg-red-50'
-      default:
-        return 'border-blue-200 bg-blue-50'
-    }
-  }
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
 
   return (
-    <div className="bg-white border-b border-gray-200 px-4 py-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between">
-        {/* Search */}
-        <div className="flex-1 max-w-lg">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <Input
-              type="text"
-              placeholder="Search equipment, calibrations, reports..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Right side actions */}
-        <div className="flex items-center space-x-4">
-          {/* Help */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="relative"
-            onClick={() => console.log('Help')}
-          >
-            <HelpCircle className="h-5 w-5 text-gray-500" />
-          </Button>
-
-          {/* Messages */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="relative"
-            onClick={() => console.log('Messages')}
-          >
-            <MessageSquare className="h-5 w-5 text-gray-500" />
-          </Button>
-
-          {/* Notifications */}
-          <div className="relative">
+    <header className="bg-slate-900/90 backdrop-blur-xl border-b border-slate-700/50 sticky top-0 z-30">
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Left Section */}
+          <div className="flex items-center space-x-4">
+            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="sm"
-              className="relative"
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={onMenuClick}
+              className="lg:hidden p-2 hover:bg-slate-800/50"
             >
-              <Bell className="h-5 w-5 text-gray-500" />
-              {unreadCount > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center p-0">
-                  {unreadCount}
-                </Badge>
-              )}
+              <Menu className="h-5 w-5 text-slate-300" />
             </Button>
 
-            {/* Notifications Dropdown */}
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => console.log('Mark all read')}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      Mark all read
-                    </Button>
-                  </div>
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                        !notification.read ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="mt-1">
-                          {getNotificationIcon(notification.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-900">
-                              {notification.title}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {notification.time}
-                            </p>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {notification.message}
-                          </p>
-                        </div>
-                        {!notification.read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-4 border-t border-gray-200">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-blue-600 hover:text-blue-800"
-                    onClick={() => console.log('View all notifications')}
-                  >
-                    View all notifications
-                  </Button>
-                </div>
+            {/* Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg">
+                <Zap className="h-6 w-6 text-blue-400" />
               </div>
-            )}
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600 bg-clip-text text-transparent">
+                  LabGuard Pro
+                </h1>
+                <p className="text-xs text-slate-400">Laboratory Intelligence</p>
+              </div>
+            </div>
           </div>
 
-          {/* User menu */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-2 text-sm"
-            >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {session?.user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                </span>
-              </div>
-              <div className="hidden md:block text-left">
-                <div className="text-sm font-medium text-gray-900">
-                  {session?.user?.name}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {session?.user?.email}
-                </div>
-              </div>
-              <ChevronDown className="h-4 w-4 text-gray-400" />
-            </Button>
+          {/* Center Section - Search */}
+          <div className="hidden md:flex flex-1 max-w-md mx-8">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Search equipment, calibrations, reports, AI insights..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-slate-800/50 border-slate-700/50 text-slate-200 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+          </div>
 
-            {/* User Dropdown */}
-            {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-                <div className="py-1">
-                  <div className="px-4 py-2 border-b border-gray-100">
-                    <div className="text-sm font-medium text-gray-900">
-                      {session?.user?.name}
+          {/* Right Section */}
+          <div className="flex items-center space-x-4">
+            {/* Notifications */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="relative p-2 hover:bg-slate-800/50">
+                  <Bell className="h-5 w-5 text-slate-300" />
+                  {unreadCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 border-0">
+                      {unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 bg-slate-800/90 backdrop-blur-xl border border-slate-700/50">
+                <DropdownMenuLabel className="text-slate-200">Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-slate-700/50" />
+                {notifications.map((notification) => (
+                  <DropdownMenuItem key={notification.id} className="p-3 hover:bg-slate-700/50">
+                    <div className="flex items-start space-x-3 w-full">
+                      <div className={`w-2 h-2 rounded-full mt-2 ${notification.unread ? 'bg-blue-400' : 'bg-slate-600'}`} />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-200">{notification.title}</p>
+                        <p className="text-xs text-slate-400">{notification.time}</p>
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {session?.user?.email}
-                    </div>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator className="bg-slate-700/50" />
+                <DropdownMenuItem className="text-center text-blue-400 hover:text-blue-300">
+                  View all notifications
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2 p-2 hover:bg-slate-800/50">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="" alt={user?.firstName} />
+                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-semibold">
+                      {user ? getInitials(user.firstName, user.lastName) : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-sm font-medium text-slate-200">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-xs text-slate-400 capitalize">{user?.role}</p>
                   </div>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => console.log('Profile')}
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => console.log('Settings')}
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => console.log('Help')}
-                  >
-                    <HelpCircle className="w-4 h-4 mr-2" />
-                    Help & Support
-                  </Button>
-                  
-                  <div className="border-t border-gray-100">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      onClick={handleSignOut}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign out
-                    </Button>
+                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-slate-800/90 backdrop-blur-xl border border-slate-700/50">
+                <DropdownMenuLabel className="text-slate-200">
+                  <div className="flex items-center space-x-2">
+                    {getRoleIcon(user?.role || '')}
+                    <span>Account</span>
                   </div>
-                </div>
-              </div>
-            )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-slate-700/50" />
+                
+                <DropdownMenuItem className="hover:bg-slate-700/50">
+                  <User className="h-4 w-4 mr-2 text-slate-400" />
+                  <span className="text-slate-200">Profile</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem className="hover:bg-slate-700/50">
+                  <Settings className="h-4 w-4 mr-2 text-slate-400" />
+                  <span className="text-slate-200">Settings</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem className="hover:bg-slate-700/50">
+                  <HelpCircle className="h-4 w-4 mr-2 text-slate-400" />
+                  <span className="text-slate-200">Help & Support</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator className="bg-slate-700/50" />
+                
+                <DropdownMenuItem 
+                  onClick={onLogout}
+                  disabled={loggingOut}
+                  className="hover:bg-red-500/20 text-red-400 hover:text-red-300"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  <span>{loggingOut ? 'Signing out...' : 'Sign out'}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
-    </div>
-  )
+    </header>
+  );
 } 

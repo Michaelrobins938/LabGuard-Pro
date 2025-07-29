@@ -104,8 +104,55 @@ export function AdvancedAnalytics() {
   }
 
   useEffect(() => {
-    loadData()
-  }, [timeRange])
+    const fetchAnalyticsData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch analytics data from API
+        const response = await fetch('/api/analytics', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            timeRange: selectedTimeRange,
+            laboratory: user?.laboratory?.id
+          })
+        });
+
+        if (response.ok) {
+          const analyticsData = await response.json();
+          setData(analyticsData);
+        } else {
+          // Fallback to calculated data from store
+          const calculatedData: AnalyticsData = {
+            equipmentPerformance: calculateEquipmentPerformance(),
+            calibrationMetrics: calculateCalibrationMetrics(),
+            complianceTrends: calculateComplianceTrends(),
+            aiUsage: calculateAIUsage(),
+            costSavings: calculateCostSavings(),
+            timeEfficiency: calculateTimeEfficiency()
+          };
+          setData(calculatedData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch analytics data:', error);
+        // Fallback to calculated data from store
+        const calculatedData: AnalyticsData = {
+          equipmentPerformance: calculateEquipmentPerformance(),
+          calibrationMetrics: calculateCalibrationMetrics(),
+          complianceTrends: calculateComplianceTrends(),
+          aiUsage: calculateAIUsage(),
+          costSavings: calculateCostSavings(),
+          timeEfficiency: calculateTimeEfficiency()
+        };
+        setData(calculatedData);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAnalyticsData();
+  }, [selectedTimeRange, equipment, calibrations, aiInsights, user]);
 
   const loadData = async () => {
     setIsLoading(true)
@@ -120,10 +167,29 @@ export function AdvancedAnalytics() {
     }
   }
 
-  const exportData = () => {
-    // Implement data export functionality
-    console.log('Exporting analytics data...')
-  }
+  const handleExport = () => {
+    // Export analytics data to various formats
+    const exportData = {
+      analytics: data,
+      exportDate: new Date().toISOString(),
+      laboratory: 'Advanced Research Laboratory',
+      timeRange: timeRange,
+      format: 'json',
+      reportType: 'advanced-analytics'
+    };
+    
+    // Create downloadable file
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `advanced-analytics-${timeRange}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -174,7 +240,7 @@ export function AdvancedAnalytics() {
           <Button variant="outline" onClick={loadData} disabled={isLoading}>
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
-          <Button variant="outline" onClick={exportData}>
+          <Button variant="outline" onClick={handleExport}>
             <Download className="w-4 h-4" />
             Export
           </Button>

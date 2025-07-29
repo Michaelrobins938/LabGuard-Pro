@@ -45,39 +45,116 @@ export function BiomniInsights() {
   const [openRouterAvailable, setOpenRouterAvailable] = useState(false)
 
   useEffect(() => {
-    initializeInsights()
-  }, [])
+    const fetchBiomniInsights = async () => {
+      setLoading(true);
+      try {
+        // Fetch Biomni insights from API
+        const response = await fetch('/api/biomni/insights', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            laboratory: user?.laboratory?.id,
+            equipment: equipment,
+            calibrations: calibrations
+          })
+        });
 
-  const initializeInsights = async () => {
-    try {
-      // Check OpenRouter availability
-      const isAvailable = await openRouterClient.checkAvailability()
-      setOpenRouterAvailable(isAvailable)
-
-      if (isAvailable) {
-        await generateAIInsights()
-      } else {
-        // Fallback to mock data
-        setInsights(generateMockInsights())
+        if (response.ok) {
+          const insightsData = await response.json();
+          setInsights(insightsData.insights);
+          setLabMetrics(insightsData.labMetrics);
+        } else {
+          // Fallback to calculated insights from store data
+          const calculatedInsights = calculateInsightsFromData();
+          setInsights(calculatedInsights);
+          setLabMetrics(calculateLabMetrics());
+        }
+      } catch (error) {
+        console.error('Failed to fetch Biomni insights:', error);
+        // Fallback to calculated insights from store data
+        const calculatedInsights = calculateInsightsFromData();
+        setInsights(calculatedInsights);
+        setLabMetrics(calculateLabMetrics());
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Set mock lab metrics
-      setLabMetrics({
-        totalEquipment: 47,
-        compliantEquipment: 44,
-        overdueCalibrations: 3,
-        complianceScore: 93.6,
-        recentAlerts: 2,
-        aiRecommendations: 8
-      })
+    fetchBiomniInsights();
+  }, [equipment, calibrations, user]);
 
-    } catch (error) {
-      console.error('Failed to initialize insights:', error)
-      setInsights(generateMockInsights())
-    } finally {
-      setLoading(false)
+  const calculateInsightsFromData = (): BiomniInsight[] => {
+    // Calculate insights based on real equipment and calibration data
+    const insights: BiomniInsight[] = [];
+    
+    // Equipment optimization insights
+    const lowHealthEquipment = equipment.filter(eq => eq.healthScore < 70);
+    if (lowHealthEquipment.length > 0) {
+      insights.push({
+        id: 'health-optimization',
+        type: 'equipment_optimization',
+        title: 'Equipment Health Optimization',
+        description: `${lowHealthEquipment.length} equipment items require immediate attention to prevent failures.`,
+        priority: 'high',
+        confidence: 92.5,
+        impact: {
+          cost: -500 * lowHealthEquipment.length,
+          time: -8 * lowHealthEquipment.length,
+          accuracy: 15
+        },
+        recommendations: [
+          'Schedule preventive maintenance',
+          'Replace aging components',
+          'Update maintenance protocols'
+        ],
+        createdAt: new Date().toISOString()
+      });
     }
-  }
+
+    // Calibration optimization insights
+    const overdueCalibrations = calibrations.filter(cal => cal.status === 'overdue');
+    if (overdueCalibrations.length > 0) {
+      insights.push({
+        id: 'calibration-optimization',
+        type: 'compliance_alert',
+        title: 'Calibration Schedule Optimization',
+        description: `${overdueCalibrations.length} calibrations are overdue, affecting compliance.`,
+        priority: 'critical',
+        confidence: 98.2,
+        impact: {
+          cost: -200 * overdueCalibrations.length,
+          time: -4 * overdueCalibrations.length,
+          accuracy: 25
+        },
+        recommendations: [
+          'Schedule immediate calibrations',
+          'Implement automated reminders',
+          'Review calibration intervals'
+        ],
+        createdAt: new Date().toISOString()
+      });
+    }
+
+    return insights;
+  };
+
+  const calculateLabMetrics = () => {
+    // Calculate real lab metrics from store data
+    const totalEquipment = equipment.length;
+    const operationalEquipment = equipment.filter(eq => eq.status === 'operational').length;
+    const completedCalibrations = calibrations.filter(cal => cal.status === 'completed').length;
+    const totalCalibrations = calibrations.length;
+
+    return {
+      equipmentUptime: totalEquipment > 0 ? (operationalEquipment / totalEquipment) * 100 : 0,
+      calibrationCompliance: totalCalibrations > 0 ? (completedCalibrations / totalCalibrations) * 100 : 0,
+      aiInsightsGenerated: aiInsights.length,
+      costSavings: calculateCostSavings(),
+      timeEfficiency: calculateTimeEfficiency()
+    };
+  };
 
   const generateAIInsights = async () => {
     try {

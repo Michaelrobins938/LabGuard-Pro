@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom';
 import { setupServer } from 'msw/node';
-import { rest } from 'msw';
 
 // Mock server setup
 export const server = setupServer();
