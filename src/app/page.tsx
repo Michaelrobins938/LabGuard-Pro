@@ -18,17 +18,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-900">
       <HeroUINavigation />
       
-      {/* Test section - MOVED TO TOP */}
-      <div className="py-20 text-center bg-red-900/20 border border-red-500/30 rounded-lg mx-4 mt-20">
-        <h2 className="text-2xl font-bold text-white mb-4">🧪 TEST LINKS SECTION 🧪</h2>
-        <p className="text-gray-300 mb-4">If you can see this, the page is updated!</p>
-        <div className="space-y-4">
-          <a href="/test-link" className="text-blue-400 hover:text-blue-300 block text-lg font-bold">🔗 Test Link (Anchor)</a>
-          <a href="/solutions/research" className="text-green-400 hover:text-green-300 block text-lg font-bold">🔗 Research Page (Anchor)</a>
-          <a href="/about" className="text-yellow-400 hover:text-yellow-300 block text-lg font-bold">🔗 About Page (Anchor)</a>
-        </div>
-      </div>
-      
       <main>
         <HeroUIHeroSection />
         <HeroUIFeaturesSection />
