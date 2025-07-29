@@ -179,16 +179,20 @@ export const apiService = {
       const response = await apiClient.get('/api/billing/plans')
       return response.data
     },
+    createPaymentIntent: async (data: any) => {
+      const response = await apiClient.post('/api/billing/payment-intent', data)
+      return response.data
+    },
     createSubscription: async (data: any) => {
-      const response = await apiClient.post('/api/billing/subscriptions', data)
+      const response = await apiClient.post('/api/billing/subscription', data)
       return response.data
     },
     upgradeSubscription: async (planId: string) => {
-      const response = await apiClient.put(`/api/billing/subscriptions/${planId}`)
+      const response = await apiClient.post('/api/billing/subscription/upgrade', { planId })
       return response.data
     },
     cancelSubscription: async (id: string) => {
-      const response = await apiClient.post(`/api/billing/subscriptions/${id}/cancel`)
+      const response = await apiClient.delete(`/api/billing/subscription/${id}`)
       return response.data
     },
     getInvoices: async (params?: any) => {
@@ -219,8 +223,28 @@ export const apiService = {
       const response = await apiClient.delete(`/api/billing/payment-methods/${methodId}`)
       return response.data
     },
-    getUsageAnalytics: async (period: string = 'current_month') => {
-      const response = await apiClient.get(`/api/billing/usage?period=${period}`)
+    getUsage: async () => {
+      const response = await apiClient.get('/api/billing/usage')
+      return response.data
+    },
+    getUsageHistory: async (params: any) => {
+      const response = await apiClient.get('/api/billing/usage/history', { params })
+      return response.data
+    },
+    trackUsageEvents: async (events: any[]) => {
+      const response = await apiClient.post('/api/billing/usage/events', { events })
+      return response.data
+    },
+    getUsageAnalytics: async (period: string) => {
+      const response = await apiClient.get('/api/billing/usage/analytics', { params: { period } })
+      return response.data
+    },
+    getBillingPortal: async (data: any) => {
+      const response = await apiClient.post('/api/billing/customer-portal', data)
+      return response.data
+    },
+    updateSubscription: async (data: any) => {
+      const response = await apiClient.put('/api/billing/subscription', data)
       return response.data
     },
     getBillingSettings: async () => {
@@ -230,7 +254,7 @@ export const apiService = {
     updateBillingSettings: async (data: any) => {
       const response = await apiClient.put('/api/billing/settings', data)
       return response.data
-    },
+    }
   },
 
   // Search endpoints

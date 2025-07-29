@@ -346,35 +346,6 @@ export function ModernLandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="px-6 py-20 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center max-w-4xl mx-auto"
-        >
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to Transform Your Laboratory?
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Join thousands of researchers and laboratory professionals who have already 
-            accelerated their work with LabGuard Pro and Stanford Biomni AI.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-lg px-8 py-4">
-              Start Free Trial
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 text-lg px-8 py-4">
-              Schedule Demo
-            </Button>
-          </div>
-        </motion.div>
-      </section>
-
       {/* Footer */}
       <footer className="px-6 py-12 border-t border-white/10">
         <div className="max-w-6xl mx-auto">

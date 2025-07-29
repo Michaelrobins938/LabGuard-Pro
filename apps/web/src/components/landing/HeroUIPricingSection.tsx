@@ -23,10 +23,11 @@ export function HeroUIPricingSection() {
 
   const plans = [
     {
+      id: 'starter',
       name: 'Starter',
       description: 'Perfect for small research teams getting started with AI-powered laboratory management.',
-      monthlyPrice: 99,
-      yearlyPrice: 79,
+      monthlyPrice: 29900, // $299.00
+      yearlyPrice: 23900, // $239.00 (20% discount)
       icon: Users,
       features: [
         'AI-powered protocol design',
@@ -41,13 +42,20 @@ export function HeroUIPricingSection() {
         'Priority support',
         'Custom integrations',
         'Advanced reporting'
-      ]
+      ],
+      limits: {
+        equipment: 10,
+        aiChecks: 100,
+        teamMembers: 2,
+        storage: 10
+      }
     },
     {
+      id: 'professional',
       name: 'Professional',
       description: 'Ideal for growing laboratories that need advanced features and team collaboration.',
-      monthlyPrice: 299,
-      yearlyPrice: 239,
+      monthlyPrice: 59900, // $599.00
+      yearlyPrice: 47900, // $479.00 (20% discount)
       icon: Crown,
       popular: true,
       features: [
@@ -59,13 +67,20 @@ export function HeroUIPricingSection() {
         'Custom integrations',
         'Advanced reporting',
         'Equipment optimization'
-      ]
+      ],
+      limits: {
+        equipment: 50,
+        aiChecks: 500,
+        teamMembers: 10,
+        storage: 100
+      }
     },
     {
+      id: 'enterprise',
       name: 'Enterprise',
       description: 'Complete solution for large institutions with complex requirements and custom needs.',
-      monthlyPrice: 999,
-      yearlyPrice: 799,
+      monthlyPrice: 129900, // $1,299.00
+      yearlyPrice: 103900, // $1,039.00 (20% discount)
       icon: Globe,
       features: [
         'Everything in Professional',
@@ -76,28 +91,20 @@ export function HeroUIPricingSection() {
         'Advanced security',
         'SLA guarantees',
         'Training & consultation'
-      ]
-    }
+      ],
+      limits: {
+        equipment: -1, // Unlimited
+        aiChecks: 2000,
+        teamMembers: -1, // Unlimited
+        storage: 500
+      }
   ]
 
   const features = [
-    'AI-powered protocol design',
-    'Real-time compliance monitoring',
-    'Advanced analytics dashboard',
-    'Equipment management',
-    'Team collaboration tools',
-    'Custom integrations',
-    'Priority support',
-    'Advanced security',
-    'Training & consultation',
-    'SLA guarantees'
-  ]
-
-  const benefits = [
-    { icon: Zap, title: '10x Faster Workflows', description: 'Accelerate your research with AI-powered automation' },
-    { icon: Shield, title: '100% Compliance', description: 'Ensure regulatory compliance with automated monitoring' },
-    { icon: Brain, title: 'AI-Powered Insights', description: 'Get intelligent recommendations and predictions' },
-    { icon: BarChart3, title: 'Advanced Analytics', description: 'Comprehensive data analysis and visualization' }
+    { icon: Brain, title: 'Stanford Biomni AI', description: 'Advanced AI-powered laboratory management' },
+    { icon: Shield, title: 'Compliance Automation', description: 'Automated regulatory compliance monitoring' },
+    { icon: BarChart3, title: 'Real-time Analytics', description: 'Comprehensive data analysis and visualization' },
+    { icon: Clock, title: '24/7 Support', description: 'Round-the-clock customer support' }
   ]
 
   return (
@@ -185,84 +192,79 @@ export function HeroUIPricingSection() {
                 {/* Price */}
                 <div className="mb-6">
                   <div className="text-4xl font-bold text-white">
-                    ${isYearly ? plan.yearlyPrice : plan.monthlyPrice}
+                    ${isYearly ? plan.yearlyPrice / 100 : plan.monthlyPrice / 100}
                     <span className="text-lg text-gray-400">/month</span>
                   </div>
                   {isYearly && (
                     <div className="text-sm text-green-400 mt-2">
-                      Save ${(plan.monthlyPrice - plan.yearlyPrice) * 12} annually
+                      Save ${((plan.monthlyPrice - plan.yearlyPrice) / 100).toFixed(0)} annually
                     </div>
                   )}
                 </div>
 
                 {/* CTA Button */}
-                <Link href="/dashboard?bypass=true" className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center ${
-                  plan.popular
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
-                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                }`}>
+                <Link 
+                  href={`/checkout?plan=${plan.id}&yearly=${isYearly}`} 
+                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center ${
+                    plan.popular
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
+                      : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                  }`}>
                   {plan.popular ? 'Start Free Trial' : 'Get Started'}
                   <ArrowRight className="w-4 h-4 ml-2 inline" />
                 </Link>
               </div>
 
               {/* Features */}
-              <div className="space-y-3">
-                {plan.features.map((feature, featureIndex) => (
-                  <div key={featureIndex} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
-                    <span className="text-gray-300">{feature}</span>
+              <div className="space-y-4">
+                <h4 className="text-white font-semibold mb-4">What's included:</h4>
+                <ul className="space-y-3">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-400 mt-1 flex-shrink-0" />
+                      <span className="text-gray-300 text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Plan Limits */}
+              <div className="mt-6 pt-6 border-t border-white/10">
+                <h4 className="text-white font-semibold mb-3">Plan Limits:</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-4 h-4 text-blue-400" />
+                    <span className="text-gray-300">
+                      {plan.limits.equipment === -1 ? '∞' : plan.limits.equipment} Equipment
+                    </span>
                   </div>
-                ))}
+                  <div className="flex items-center space-x-2">
+                    <Brain className="w-4 h-4 text-purple-400" />
+                    <span className="text-gray-300">
+                      {plan.limits.aiChecks === -1 ? '∞' : plan.limits.aiChecks} AI Checks
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-4 h-4 text-green-400" />
+                    <span className="text-gray-300">
+                      {plan.limits.teamMembers === -1 ? '∞' : plan.limits.teamMembers} Team Members
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <BarChart3 className="w-4 h-4 text-orange-400" />
+                    <span className="text-gray-300">
+                      {plan.limits.storage} GB Storage
+                    </span>
+                  </div>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Feature Comparison */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 mb-16">
-          <h3 className="text-2xl font-bold text-white text-center mb-8">Feature Comparison</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left py-4 text-gray-400">Feature</th>
-                  <th className="text-center py-4 text-gray-400">Starter</th>
-                  <th className="text-center py-4 text-gray-400">Professional</th>
-                  <th className="text-center py-4 text-gray-400">Enterprise</th>
-                </tr>
-              </thead>
-              <tbody>
-                {features.map((feature, index) => (
-                  <tr key={index} className="border-b border-white/5">
-                    <td className="py-4 text-white">{feature}</td>
-                    <td className="py-4 text-center">
-                      {index < 6 ? (
-                        <CheckCircle className="w-5 h-5 text-green-400 mx-auto" />
-                      ) : (
-                        <span className="text-gray-500">—</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-center">
-                      {index < 8 ? (
-                        <CheckCircle className="w-5 h-5 text-green-400 mx-auto" />
-                      ) : (
-                        <span className="text-gray-500">—</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-center">
-                      <CheckCircle className="w-5 h-5 text-green-400 mx-auto" />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Benefits Section */}
-        <div className="grid lg:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
-          {benefits.map((benefit, index) => (
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {features.map((feature, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -270,11 +272,11 @@ export function HeroUIPricingSection() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="text-center"
             >
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <benefit.icon className="w-8 h-8 text-blue-400" />
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <feature.icon className="w-6 h-6 text-white" />
               </div>
-              <h4 className="text-lg font-semibold text-white mb-2">{benefit.title}</h4>
-              <p className="text-sm text-gray-400">{benefit.description}</p>
+              <h3 className="text-white font-semibold mb-2">{feature.title}</h3>
+              <p className="text-gray-300 text-sm">{feature.description}</p>
             </motion.div>
           ))}
         </div>
@@ -290,7 +292,7 @@ export function HeroUIPricingSection() {
               No credit card required, cancel anytime.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/dashboard?bypass=true" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <Link href="/checkout?plan=professional&yearly=false" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
                 <Sparkles className="w-5 h-5 mr-2" />
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />

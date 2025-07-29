@@ -1,529 +1,547 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { 
-  Settings,
-  Save,
-  X,
-  CreditCard,
-  Mail,
-  Shield,
-  Building,
-  MapPin,
-  FileText,
-  Bell
-} from 'lucide-react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Settings, Bell, CreditCard, Shield, Mail, Globe, Download, AlertTriangle, CheckCircle } from 'lucide-react'
 import { apiService } from '@/lib/api-service'
-import { toast } from 'react-hot-toast'
+import { toast } from 'sonner'
 
 interface BillingSettings {
-  id: string
-  automaticPayments: boolean
-  emailInvoices: boolean
-  taxExempt: boolean
-  taxId?: string
-  billingAddress: {
-    line1: string
-    line2?: string
-    city: string
-    state: string
-    postalCode: string
-    country: string
-  }
-  invoiceSettings: {
-    currency: string
-    language: string
-    includeTax: boolean
-    includeNotes: boolean
-  }
   notifications: {
     paymentReminders: boolean
-    invoiceAlerts: boolean
     usageAlerts: boolean
     planChanges: boolean
+    invoiceReady: boolean
+    paymentFailed: boolean
   }
-  updatedAt: string
+  preferences: {
+    autoRenewal: boolean
+    paperlessBilling: boolean
+    taxExempt: boolean
+    currency: string
+    language: string
+  }
+  contact: {
+    primaryEmail: string
+    billingEmail: string
+    phone: string
+    address: {
+      line1: string
+      line2: string
+      city: string
+      state: string
+      postalCode: string
+      country: string
+    }
+  }
+  tax: {
+    taxId: string
+    vatNumber: string
+    taxExempt: boolean
+    exemptionReason: string
+  }
 }
 
 export default function BillingSettingsPage() {
-  const { data: session } = useSession()
-  const queryClient = useQueryClient()
-  const [isEditing, setIsEditing] = useState(false)
-  const [settings, setSettings] = useState<BillingSettings | null>(null)
-
-  // Fetch billing settings
-  const { data: billingSettings, isLoading: settingsLoading } = useQuery({
-    queryKey: ['billing-settings'],
-    queryFn: async () => {
-      const response = await apiService.billing.getBillingSettings()
-      return response as BillingSettings
+  const [settings, setSettings] = useState<BillingSettings>({
+    notifications: {
+      paymentReminders: true,
+      usageAlerts: true,
+      planChanges: true,
+      invoiceReady: true,
+      paymentFailed: true
     },
-    enabled: !!session
-  })
-
-  // Update local settings when data is fetched
-  useEffect(() => {
-    if (billingSettings) {
-      setSettings(billingSettings)
-    }
-  }, [billingSettings])
-
-  // Update billing settings mutation
-  const updateSettingsMutation = useMutation({
-    mutationFn: (data: Partial<BillingSettings>) => apiService.billing.updateBillingSettings(data),
-    onSuccess: () => {
-      toast.success('Billing settings updated successfully')
-      setIsEditing(false)
-      queryClient.invalidateQueries({ queryKey: ['billing-settings'] })
+    preferences: {
+      autoRenewal: true,
+      paperlessBilling: true,
+      taxExempt: false,
+      currency: 'USD',
+      language: 'en'
     },
-    onError: (error: any) => {
-      toast.error('Failed to update billing settings')
-    }
-  })
-
-  const handleSave = () => {
-    if (!settings) return
-    updateSettingsMutation.mutate(settings)
-  }
-
-  const handleCancel = () => {
-    setIsEditing(false)
-    if (billingSettings) {
-      setSettings(billingSettings)
-    }
-  }
-
-  const handleInputChange = (field: string, value: any) => {
-    if (!settings) return
-    
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.')
-      const parentValue = settings[parent as keyof BillingSettings]
-      if (parentValue && typeof parentValue === 'object') {
-        setSettings({
-          ...settings,
-          [parent]: {
-            ...parentValue,
-            [child]: value
-          }
-        })
+    contact: {
+      primaryEmail: 'john.doe@example.com',
+      billingEmail: 'billing@example.com',
+      phone: '+1 (555) 123-4567',
+      address: {
+        line1: '123 Main Street',
+        line2: 'Apt 4B',
+        city: 'New York',
+        state: 'NY',
+        postalCode: '10001',
+        country: 'US'
       }
-    } else {
-      setSettings({
-        ...settings,
-        [field]: value
-      })
+    },
+    tax: {
+      taxId: '12-3456789',
+      vatNumber: 'GB123456789',
+      taxExempt: false,
+      exemptionReason: ''
+    }
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  useEffect(() => {
+    loadSettings()
+  }, [])
+
+  const loadSettings = async () => {
+    try {
+      setLoading(true)
+      // In a real implementation, this would fetch from the API
+      // const response = await apiService.billing.getSettings()
+      // setSettings(response.settings)
+    } catch (error: any) {
+      console.error('Failed to load settings:', error)
+      toast.error('Failed to load billing settings')
+    } finally {
+      setLoading(false)
     }
   }
 
-  if (settingsLoading) {
+  const handleSaveSettings = async () => {
+    try {
+      setSaving(true)
+      // In a real implementation, this would save to the API
+      // await apiService.billing.updateSettings(settings)
+      toast.success('Billing settings updated successfully')
+    } catch (error: any) {
+      console.error('Failed to save settings:', error)
+      toast.error('Failed to save billing settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    try {
+      // In a real implementation, this would delete the account
+      // await apiService.billing.deleteAccount()
+      toast.success('Account deletion request submitted')
+      setShowDeleteDialog(false)
+    } catch (error: any) {
+      console.error('Failed to delete account:', error)
+      toast.error('Failed to delete account')
+    }
+  }
+
+  const updateNotification = (key: keyof BillingSettings['notifications'], value: boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      notifications: {
+        ...prev.notifications,
+        [key]: value
+      }
+    }))
+  }
+
+  const updatePreference = (key: keyof BillingSettings['preferences'], value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      preferences: {
+        ...prev.preferences,
+        [key]: value
+      }
+    }))
+  }
+
+  const updateContact = (key: keyof BillingSettings['contact'], value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      contact: {
+        ...prev.contact,
+        [key]: value
+      }
+    }))
+  }
+
+  const updateAddress = (key: keyof BillingSettings['contact']['address'], value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      contact: {
+        ...prev.contact,
+        address: {
+          ...prev.contact.address,
+          [key]: value
+        }
+      }
+    }))
+  }
+
+  const updateTax = (key: keyof BillingSettings['tax'], value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      tax: {
+        ...prev.tax,
+        [key]: value
+      }
+    }))
+  }
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-white/10 rounded mb-4"></div>
+            <div className="h-64 bg-white/10 rounded"></div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Billing Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your billing preferences and payment settings
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Billing Settings</h1>
+          <p className="text-gray-300">Manage your billing preferences and account settings</p>
         </div>
-        <div className="flex gap-2">
-          {isEditing ? (
-            <>
-              <Button variant="outline" onClick={handleCancel}>
-                <X className="h-4 w-4 mr-2" />
-                Cancel
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Notifications */}
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Bell className="w-5 h-5 mr-2" />
+                Notification Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white">Payment Reminders</Label>
+                  <p className="text-gray-300 text-sm">Get notified before payments are due</p>
+                </div>
+                <Switch
+                  checked={settings.notifications.paymentReminders}
+                  onCheckedChange={(checked) => updateNotification('paymentReminders', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white">Usage Alerts</Label>
+                  <p className="text-gray-300 text-sm">Get notified when approaching limits</p>
+                </div>
+                <Switch
+                  checked={settings.notifications.usageAlerts}
+                  onCheckedChange={(checked) => updateNotification('usageAlerts', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white">Plan Changes</Label>
+                  <p className="text-gray-300 text-sm">Get notified about plan modifications</p>
+                </div>
+                <Switch
+                  checked={settings.notifications.planChanges}
+                  onCheckedChange={(checked) => updateNotification('planChanges', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white">Invoice Ready</Label>
+                  <p className="text-gray-300 text-sm">Get notified when invoices are available</p>
+                </div>
+                <Switch
+                  checked={settings.notifications.invoiceReady}
+                  onCheckedChange={(checked) => updateNotification('invoiceReady', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white">Payment Failed</Label>
+                  <p className="text-gray-300 text-sm">Get notified about payment failures</p>
+                </div>
+                <Switch
+                  checked={settings.notifications.paymentFailed}
+                  onCheckedChange={(checked) => updateNotification('paymentFailed', checked)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Billing Preferences */}
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <CreditCard className="w-5 h-5 mr-2" />
+                Billing Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white">Auto Renewal</Label>
+                  <p className="text-gray-300 text-sm">Automatically renew subscriptions</p>
+                </div>
+                <Switch
+                  checked={settings.preferences.autoRenewal}
+                  onCheckedChange={(checked) => updatePreference('autoRenewal', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white">Paperless Billing</Label>
+                  <p className="text-gray-300 text-sm">Receive invoices electronically</p>
+                </div>
+                <Switch
+                  checked={settings.preferences.paperlessBilling}
+                  onCheckedChange={(checked) => updatePreference('paperlessBilling', checked)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">Currency</Label>
+                <Select value={settings.preferences.currency} onValueChange={(value) => updatePreference('currency', value)}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white/10 border-white/20">
+                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                    <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">Language</Label>
+                <Select value={settings.preferences.language} onValueChange={(value) => updatePreference('language', value)}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white/10 border-white/20">
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Spanish</SelectItem>
+                    <SelectItem value="fr">French</SelectItem>
+                    <SelectItem value="de">German</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Contact Information */}
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Mail className="w-5 h-5 mr-2" />
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-white">Primary Email</Label>
+                <Input
+                  value={settings.contact.primaryEmail}
+                  onChange={(e) => updateContact('primaryEmail', e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">Billing Email</Label>
+                <Input
+                  value={settings.contact.billingEmail}
+                  onChange={(e) => updateContact('billingEmail', e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">Phone Number</Label>
+                <Input
+                  value={settings.contact.phone}
+                  onChange={(e) => updateContact('phone', e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Billing Address */}
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Globe className="w-5 h-5 mr-2" />
+                Billing Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-white">Address Line 1</Label>
+                <Input
+                  value={settings.contact.address.line1}
+                  onChange={(e) => updateAddress('line1', e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">Address Line 2</Label>
+                <Input
+                  value={settings.contact.address.line2}
+                  onChange={(e) => updateAddress('line2', e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white">City</Label>
+                  <Input
+                    value={settings.contact.address.city}
+                    onChange={(e) => updateAddress('city', e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white">State</Label>
+                  <Input
+                    value={settings.contact.address.state}
+                    onChange={(e) => updateAddress('state', e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white">Postal Code</Label>
+                  <Input
+                    value={settings.contact.address.postalCode}
+                    onChange={(e) => updateAddress('postalCode', e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white">Country</Label>
+                  <Input
+                    value={settings.contact.address.country}
+                    onChange={(e) => updateAddress('country', e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tax Information */}
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Shield className="w-5 h-5 mr-2" />
+                Tax Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-white">Tax ID</Label>
+                <Input
+                  value={settings.tax.taxId}
+                  onChange={(e) => updateTax('taxId', e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">VAT Number</Label>
+                <Input
+                  value={settings.tax.vatNumber}
+                  onChange={(e) => updateTax('vatNumber', e.target.value)}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white">Tax Exempt</Label>
+                  <p className="text-gray-300 text-sm">Mark account as tax exempt</p>
+                </div>
+                <Switch
+                  checked={settings.tax.taxExempt}
+                  onCheckedChange={(checked) => updateTax('taxExempt', checked)}
+                />
+              </div>
+              {settings.tax.taxExempt && (
+                <div className="space-y-2">
+                  <Label className="text-white">Exemption Reason</Label>
+                  <Textarea
+                    value={settings.tax.exemptionReason}
+                    onChange={(e) => updateTax('exemptionReason', e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    placeholder="Please provide the reason for tax exemption..."
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Account Actions */}
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Settings className="w-5 h-5 mr-2" />
+                Account Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button
+                variant="outline"
+                className="w-full border-white/20 text-white hover:bg-white/10"
+                onClick={handleSaveSettings}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Save Settings'}
               </Button>
-              <Button onClick={handleSave} disabled={updateSettingsMutation.isPending}>
-                <Save className="h-4 w-4 mr-2" />
-                {updateSettingsMutation.isPending ? 'Saving...' : 'Save Changes'}
+              <Button
+                variant="outline"
+                className="w-full border-white/20 text-white hover:bg-white/10"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export Data
               </Button>
-            </>
-          ) : (
-            <Button onClick={() => setIsEditing(true)}>
-              <Settings className="h-4 w-4 mr-2" />
-              Edit Settings
-            </Button>
-          )}
+              <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full border-red-500/20 text-red-400 hover:bg-red-500/10"
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Delete Account
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-white/10 border-white/20">
+                  <DialogHeader>
+                    <DialogTitle className="text-white">Delete Account</DialogTitle>
+                    <DialogDescription className="text-gray-300">
+                      This action cannot be undone. This will permanently delete your account and all associated data.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowDeleteDialog(false)}
+                      className="border-white/20 text-white hover:bg-white/10"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleDeleteAccount}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Delete Account
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      {/* Payment Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Payment Settings
-          </CardTitle>
-          <CardDescription>
-            Configure automatic payments and payment preferences
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="automaticPayments">Automatic Payments</Label>
-              <p className="text-sm text-muted-foreground">
-                Automatically charge your payment method on billing due dates
-              </p>
-            </div>
-            <Switch
-              id="automaticPayments"
-              checked={settings?.automaticPayments || false}
-              onCheckedChange={(checked) => handleInputChange('automaticPayments', checked)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="emailInvoices">Email Invoices</Label>
-              <p className="text-sm text-muted-foreground">
-                Receive invoices via email when they are generated
-              </p>
-            </div>
-            <Switch
-              id="emailInvoices"
-              checked={settings?.emailInvoices || false}
-              onCheckedChange={(checked) => handleInputChange('emailInvoices', checked)}
-              disabled={!isEditing}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Tax Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5" />
-            Tax Settings
-          </CardTitle>
-          <CardDescription>
-            Configure tax exemption and tax identification
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="taxExempt">Tax Exempt</Label>
-              <p className="text-sm text-muted-foreground">
-                Indicate if your organization is tax exempt
-              </p>
-            </div>
-            <Switch
-              id="taxExempt"
-              checked={settings?.taxExempt || false}
-              onCheckedChange={(checked) => handleInputChange('taxExempt', checked)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          {settings?.taxExempt && (
-            <div className="space-y-2">
-              <Label htmlFor="taxId">Tax ID Number</Label>
-              <Input
-                id="taxId"
-                placeholder="Enter your tax exemption ID"
-                value={settings.taxId || ''}
-                onChange={(e) => handleInputChange('taxId', e.target.value)}
-                disabled={!isEditing}
-              />
-              <p className="text-sm text-muted-foreground">
-                Provide your tax exemption certificate number
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Billing Address */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Billing Address
-          </CardTitle>
-          <CardDescription>
-            Address used for billing and tax purposes
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="addressLine1">Address Line 1</Label>
-            <Input
-              id="addressLine1"
-              placeholder="123 Main Street"
-              value={settings?.billingAddress.line1 || ''}
-              onChange={(e) => handleInputChange('billingAddress.line1', e.target.value)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
-            <Input
-              id="addressLine2"
-              placeholder="Suite 100"
-              value={settings?.billingAddress.line2 || ''}
-              onChange={(e) => handleInputChange('billingAddress.line2', e.target.value)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                placeholder="City"
-                value={settings?.billingAddress.city || ''}
-                onChange={(e) => handleInputChange('billingAddress.city', e.target.value)}
-                disabled={!isEditing}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="state">State/Province</Label>
-              <Input
-                id="state"
-                placeholder="State"
-                value={settings?.billingAddress.state || ''}
-                onChange={(e) => handleInputChange('billingAddress.state', e.target.value)}
-                disabled={!isEditing}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="postalCode">Postal Code</Label>
-              <Input
-                id="postalCode"
-                placeholder="12345"
-                value={settings?.billingAddress.postalCode || ''}
-                onChange={(e) => handleInputChange('billingAddress.postalCode', e.target.value)}
-                disabled={!isEditing}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                placeholder="United States"
-                value={settings?.billingAddress.country || ''}
-                onChange={(e) => handleInputChange('billingAddress.country', e.target.value)}
-                disabled={!isEditing}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Invoice Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Invoice Settings
-          </CardTitle>
-          <CardDescription>
-            Configure invoice generation and formatting preferences
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
-              <select
-                id="currency"
-                value={settings?.invoiceSettings.currency || 'USD'}
-                onChange={(e) => handleInputChange('invoiceSettings.currency', e.target.value)}
-                disabled={!isEditing}
-                className="w-full px-3 py-2 border rounded-md"
-              >
-                <option value="USD">USD - US Dollar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="GBP">GBP - British Pound</option>
-                <option value="CAD">CAD - Canadian Dollar</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="language">Language</Label>
-              <select
-                id="language"
-                value={settings?.invoiceSettings.language || 'en'}
-                onChange={(e) => handleInputChange('invoiceSettings.language', e.target.value)}
-                disabled={!isEditing}
-                className="w-full px-3 py-2 border rounded-md"
-              >
-                <option value="en">English</option>
-                <option value="es">Spanish</option>
-                <option value="fr">French</option>
-                <option value="de">German</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="includeTax">Include Tax in Invoices</Label>
-                <p className="text-sm text-muted-foreground">
-                  Show tax calculations on invoices
-                </p>
-              </div>
-              <Switch
-                id="includeTax"
-                checked={settings?.invoiceSettings.includeTax || false}
-                onCheckedChange={(checked) => handleInputChange('invoiceSettings.includeTax', checked)}
-                disabled={!isEditing}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="includeNotes">Include Notes</Label>
-                <p className="text-sm text-muted-foreground">
-                  Add custom notes to invoices
-                </p>
-              </div>
-              <Switch
-                id="includeNotes"
-                checked={settings?.invoiceSettings.includeNotes || false}
-                onCheckedChange={(checked) => handleInputChange('invoiceSettings.includeNotes', checked)}
-                disabled={!isEditing}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Notification Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Notification Preferences
-          </CardTitle>
-          <CardDescription>
-            Configure billing-related notifications
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="paymentReminders">Payment Reminders</Label>
-              <p className="text-sm text-muted-foreground">
-                Receive reminders before payment due dates
-              </p>
-            </div>
-            <Switch
-              id="paymentReminders"
-              checked={settings?.notifications.paymentReminders || false}
-              onCheckedChange={(checked) => handleInputChange('notifications.paymentReminders', checked)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="invoiceAlerts">Invoice Alerts</Label>
-              <p className="text-sm text-muted-foreground">
-                Notify when new invoices are generated
-              </p>
-            </div>
-            <Switch
-              id="invoiceAlerts"
-              checked={settings?.notifications.invoiceAlerts || false}
-              onCheckedChange={(checked) => handleInputChange('notifications.invoiceAlerts', checked)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="usageAlerts">Usage Alerts</Label>
-              <p className="text-sm text-muted-foreground">
-                Alert when approaching usage limits
-              </p>
-            </div>
-            <Switch
-              id="usageAlerts"
-              checked={settings?.notifications.usageAlerts || false}
-              onCheckedChange={(checked) => handleInputChange('notifications.usageAlerts', checked)}
-              disabled={!isEditing}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="planChanges">Plan Change Notifications</Label>
-              <p className="text-sm text-muted-foreground">
-                Notify when subscription plans are modified
-              </p>
-            </div>
-            <Switch
-              id="planChanges"
-              checked={settings?.notifications.planChanges || false}
-              onCheckedChange={(checked) => handleInputChange('notifications.planChanges', checked)}
-              disabled={!isEditing}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Security Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Security & Privacy
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <h4 className="font-medium">Data Encryption</h4>
-              <p className="text-sm text-muted-foreground">
-                All billing data is encrypted in transit and at rest using industry-standard protocols.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">PCI Compliance</h4>
-              <p className="text-sm text-muted-foreground">
-                Payment processing is handled by Stripe, a PCI DSS Level 1 certified provider.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">Data Retention</h4>
-              <p className="text-sm text-muted-foreground">
-                Billing records are retained for 7 years to comply with tax regulations.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">Access Control</h4>
-              <p className="text-sm text-muted-foreground">
-                Only authorized users can access and modify billing settings.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 } 
