@@ -12,6 +12,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:auth": "node scripts/test-auth.js",
+    "test:compliance": "node scripts/test-compliance-assistant.js",
+    "test:e2e": "npm run test:compliance && npm run test:auth",
     "db:seed": "tsx prisma/seed.ts",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
