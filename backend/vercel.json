@@ -1,11 +1,22 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "src/server.ts",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "memory": 1024
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "src/server.ts" }
+  ],
   "functions": {
-    "api/health.ts": {
-      "maxDuration": 10
-    },
-    "api/auth/register.ts": {
-      "maxDuration": 30
+    "src/server.ts": {
+      "maxDuration": 60,
+      "memory": 1024
     }
   }
 } 

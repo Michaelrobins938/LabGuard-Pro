@@ -1,3 +1,18 @@
+// Memory optimization for Vercel
+if (process.env.NODE_ENV === 'production') {
+  process.env.NODE_OPTIONS = '--max-old-space-size=1024'
+}
+
+// Ensure Prisma client is generated
+if (process.env.NODE_ENV === 'production') {
+  const { execSync } = require('child_process')
+  try {
+    execSync('npx prisma generate', { stdio: 'inherit' })
+  } catch (error) {
+    console.log('Prisma generate already completed')
+  }
+}
+
 import express from 'express'
 import { PrismaClient } from '@prisma/client'
 import cors from 'cors'
@@ -47,7 +62,8 @@ const getPrisma = () => {
           db: {
             url: process.env.database_PRISMA_DATABASE_URL
           }
-        }
+        },
+        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
       })
     } catch (error) {
       logger.error('Failed to initialize Prisma:', error)
