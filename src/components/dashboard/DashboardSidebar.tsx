@@ -127,6 +127,13 @@ export function DashboardSidebar({ onLogout, user }: DashboardSidebarProps) {
       badge: null
     },
     {
+      name: 'Notifications',
+      href: '/dashboard/notifications',
+      icon: Bell,
+      current: pathname.startsWith('/dashboard/notifications'),
+      badge: '2'
+    },
+    {
       name: 'Billing',
       href: '/dashboard/billing',
       icon: DollarSign,
@@ -138,6 +145,13 @@ export function DashboardSidebar({ onLogout, user }: DashboardSidebarProps) {
       href: '/dashboard/settings',
       icon: Settings,
       current: pathname.startsWith('/dashboard/settings'),
+      badge: null
+    },
+    {
+      name: 'Admin',
+      href: '/dashboard/admin',
+      icon: Crown,
+      current: pathname.startsWith('/dashboard/admin'),
       badge: null
     }
   ]
@@ -174,6 +188,22 @@ export function DashboardSidebar({ onLogout, user }: DashboardSidebarProps) {
       icon: <FileText className="h-4 w-4" />,
       href: '/dashboard/reports/generate',
       color: 'from-orange-500 to-orange-600'
+    },
+    {
+      id: '5',
+      title: 'View Analytics',
+      description: 'Check performance metrics',
+      icon: <BarChart3 className="h-4 w-4" />,
+      href: '/dashboard/analytics',
+      color: 'from-indigo-500 to-indigo-600'
+    },
+    {
+      id: '6',
+      title: 'Manage Team',
+      description: 'Update team members',
+      icon: <Users className="h-4 w-4" />,
+      href: '/dashboard/team',
+      color: 'from-pink-500 to-pink-600'
     }
   ]
 
