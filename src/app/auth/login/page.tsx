@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { apiClient } from '@/lib/api';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -31,28 +31,30 @@ export default function LoginPage() {
     setSuccess('');
 
     try {
-      console.log('🔄 Starting login process with NextAuth...');
+      console.log('🔄 Starting login process...');
       
-      const result = await signIn('credentials', {
+      const response = await apiClient.login({
         email: formData.email.toLowerCase().trim(),
-        password: formData.password,
-        redirect: false,
+        password: formData.password
       });
 
-      if (result?.error) {
-        throw new Error(result.error);
-      }
+      if (response.success) {
+        console.log('✅ Login successful');
+        
+        // Store user data
+        if (typeof window !== 'undefined' && response.user) {
+          localStorage.setItem('labguard_user', JSON.stringify(response.user));
+        }
 
-      if (result?.ok) {
-        console.log('✅ Login successful with NextAuth');
         setSuccess('Login successful! Redirecting to dashboard...');
         
         // Redirect after success message
         setTimeout(() => {
           router.push('/dashboard');
         }, 1500);
+        
       } else {
-        throw new Error('Login failed. Please check your credentials.');
+        throw new Error(response.error || 'Login failed');
       }
       
     } catch (error: any) {
