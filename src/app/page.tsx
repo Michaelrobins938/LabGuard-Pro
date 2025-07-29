@@ -18,15 +18,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-900">
       <HeroUINavigation />
       
-      <main>
-        <HeroUIHeroSection />
-        <HeroUIFeaturesSection />
-        <HeroUITestimonialsSection />
-        <HeroUIPricingSection />
-      </main>
-      
-      {/* Test section */}
-      <div className="py-20 text-center bg-red-900/20 border border-red-500/30 rounded-lg mx-4">
+      {/* Test section - MOVED TO TOP */}
+      <div className="py-20 text-center bg-red-900/20 border border-red-500/30 rounded-lg mx-4 mt-20">
         <h2 className="text-2xl font-bold text-white mb-4">🧪 TEST LINKS SECTION 🧪</h2>
         <p className="text-gray-300 mb-4">If you can see this, the page is updated!</p>
         <div className="space-y-4">
@@ -35,6 +28,13 @@ export default function HomePage() {
           <a href="/about" className="text-yellow-400 hover:text-yellow-300 block text-lg font-bold">🔗 About Page (Anchor)</a>
         </div>
       </div>
+      
+      <main>
+        <HeroUIHeroSection />
+        <HeroUIFeaturesSection />
+        <HeroUITestimonialsSection />
+        <HeroUIPricingSection />
+      </main>
       
       <HeroUIFooter />
       <EnhancedBiomniAssistant />
