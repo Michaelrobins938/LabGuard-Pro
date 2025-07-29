@@ -7,15 +7,15 @@ export async function GET(request: NextRequest) {
          id: 'starter',
          name: 'Starter',
          description: 'Perfect for small laboratories getting started with compliance automation',
-         monthlyPrice: 3900, // $39.00
-         yearlyPrice: 3120, // $31.20 (20% discount)
+         monthlyPrice: 29900, // $299.00
+         yearlyPrice: 23900, // $239.00 (20% discount)
          currency: 'USD',
          interval: 'month',
          features: [
            'Up to 10 equipment items',
-           'Basic compliance monitoring',
+           '100 AI compliance checks per month',
+           'Basic reporting and analytics',
            'Email support',
-           'Standard reports',
            '2 team members',
            'Standard calibration workflows',
            'Basic audit trail',
@@ -40,16 +40,15 @@ export async function GET(request: NextRequest) {
          id: 'professional',
          name: 'Professional',
          description: 'Ideal for growing laboratories with advanced compliance needs',
-         monthlyPrice: 9900, // $99.00
-         yearlyPrice: 7920, // $79.20 (20% discount)
+         monthlyPrice: 59900, // $599.00
+         yearlyPrice: 47900, // $479.00 (20% discount)
          currency: 'USD',
          interval: 'month',
          features: [
            'Up to 50 equipment items',
-           'Advanced compliance monitoring',
-           'AI-powered insights',
+           '500 AI compliance checks per month',
+           'Advanced analytics and reporting',
            'Priority support',
-           'Custom reports',
            '10 team members',
            'Custom branding',
            'Advanced audit trails',
@@ -77,17 +76,15 @@ export async function GET(request: NextRequest) {
          id: 'enterprise',
          name: 'Enterprise',
          description: 'Complete solution for large laboratories and enterprise deployments',
-         monthlyPrice: 24900, // $249.00
-         yearlyPrice: 19920, // $199.20 (20% discount)
+         monthlyPrice: 129900, // $1,299.00
+         yearlyPrice: 103900, // $1,039.00 (20% discount)
          currency: 'USD',
          interval: 'month',
          features: [
-           'Unlimited equipment',
-           'Full compliance automation',
-           'Advanced AI features',
-           '24/7 support',
-           'Custom integrations',
-           'Dedicated account manager',
+           'Unlimited equipment items',
+           '2,000 AI compliance checks per month',
+           'White-label options',
+           'Dedicated support',
            'Unlimited team members',
            'Advanced API access',
            'Custom integrations',
