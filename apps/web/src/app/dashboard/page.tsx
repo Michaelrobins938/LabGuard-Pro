@@ -18,7 +18,13 @@ import {
   Microscope,
   Database,
   Zap,
-  Sparkles
+  Sparkles,
+  Calendar,
+  Target,
+  CreditCard,
+  TestTube,
+  FileText,
+  Search
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -97,6 +103,62 @@ export default function DashboardPage() {
       icon: BarChart3,
       href: '/dashboard/analytics',
       color: 'from-orange-500 to-red-600'
+    },
+    {
+      title: 'Calibrations',
+      description: 'Schedule and track calibrations',
+      icon: Calendar,
+      href: '/dashboard/calibrations',
+      color: 'from-cyan-500 to-blue-600'
+    },
+    {
+      title: 'Team Management',
+      description: 'Manage laboratory staff',
+      icon: Users,
+      href: '/dashboard/team',
+      color: 'from-indigo-500 to-purple-600'
+    },
+    {
+      title: 'QC Monitoring',
+      description: 'Quality control monitoring',
+      icon: Target,
+      href: '/dashboard/qc-monitoring',
+      color: 'from-emerald-500 to-teal-600'
+    },
+    {
+      title: 'Billing',
+      description: 'Manage subscriptions and payments',
+      icon: CreditCard,
+      href: '/dashboard/billing',
+      color: 'from-yellow-500 to-orange-600'
+    },
+    {
+      title: 'Biomni',
+      description: 'Stanford Biomni AI integration',
+      icon: TestTube,
+      href: '/dashboard/biomni',
+      color: 'from-pink-500 to-rose-600'
+    },
+    {
+      title: 'Reports',
+      description: 'Generate and view reports',
+      icon: FileText,
+      href: '/dashboard/reports',
+      color: 'from-slate-500 to-gray-600'
+    },
+    {
+      title: 'Settings',
+      description: 'Configure laboratory settings',
+      icon: Settings,
+      href: '/dashboard/settings',
+      color: 'from-gray-500 to-slate-600'
+    },
+    {
+      title: 'Search',
+      description: 'Search across all data',
+      icon: Search,
+      href: '/dashboard/search',
+      color: 'from-violet-500 to-purple-600'
     }
   ];
 
@@ -217,7 +279,7 @@ export default function DashboardPage() {
           className="mb-8"
         >
           <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {quickActions.map((action, index) => (
               <motion.div
                 key={index}
