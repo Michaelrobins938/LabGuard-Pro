@@ -1,5 +1,6 @@
 import { PrismaClient, VectorTest, VectorType, VectorPriority, VectorTestStatus, QCStatus, VectorAlert, VectorAlertType, AlertPriority } from '@prisma/client';
 import { AuditLogService } from './AuditLogService';
+import type { AuditMeta } from './AuditLogService'
 
 const prisma = new PrismaClient();
 const auditLogService = new AuditLogService(prisma);
@@ -20,7 +21,7 @@ export interface CreateVectorTestData {
   }[];
 }
 
-export interface UpdateVectorTestData {
+export interface UpdateVectorTestData extends AuditMeta {
   status?: VectorTestStatus;
   qcStatus?: QCStatus;
   actualCompletion?: Date;

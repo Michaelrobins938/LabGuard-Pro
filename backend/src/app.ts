@@ -105,7 +105,6 @@ app.use(express.json({
     try {
       JSON.parse(buf.toString())
     } catch (e) {
-      res.status(400).json({ error: 'Invalid JSON' })
       throw new Error('Invalid JSON')
     }
   }

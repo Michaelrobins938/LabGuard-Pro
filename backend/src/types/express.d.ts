@@ -9,6 +9,7 @@ declare global {
         role: string
         laboratoryId: string
       }
+      id?: string
     }
   }
 }

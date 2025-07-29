@@ -1,15 +1,18 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "src/server.ts",
-      "use": "@vercel/node"
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/auth/(.*)",
-      "dest": "src/server.ts",
+      "dest": "/api/auth/$1",
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -18,16 +21,12 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "src/server.ts",
+      "dest": "/api/$1",
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
       }
-    },
-    {
-      "src": "/(.*)",
-      "dest": "src/server.ts"
     }
   ],
   "env": {
@@ -36,7 +35,9 @@
   "public": true,
   "protectionBypass": {
     "api": {
-      "bypass": true
+      "auth": {
+        "bypass": true
+      }
     }
   }
-} 
+}
