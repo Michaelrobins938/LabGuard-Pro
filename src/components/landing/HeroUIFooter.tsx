@@ -105,15 +105,15 @@ export function HeroUIFooter() {
               and accelerate their research with AI-powered technology.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <Link href="/dashboard?bypass=true" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
                 <Sparkles className="w-5 h-5 mr-2" />
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </button>
-              <button className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all duration-300 backdrop-blur-sm">
+              </Link>
+              <Link href="/contact" className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all duration-300 backdrop-blur-sm">
                 <Users className="w-5 h-5 mr-2" />
                 Schedule Demo
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -231,9 +231,9 @@ export function HeroUIFooter() {
               transition={{ duration: 0.5 }}
               className="flex items-center gap-6 text-sm text-gray-400"
             >
-              <button className="hover:text-white transition-colors">Privacy Policy</button>
-              <button className="hover:text-white transition-colors">Terms of Service</button>
-              <button className="hover:text-white transition-colors">Cookie Policy</button>
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <Link href="/cookies" className="hover:text-white transition-colors">Cookie Policy</Link>
             </motion.div>
           </div>
         </div>
