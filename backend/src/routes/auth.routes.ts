@@ -2,7 +2,6 @@ import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client'
-import { authMiddleware } from '../middleware/auth.middleware'
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -10,11 +9,11 @@ const prisma = new PrismaClient()
 // Register new user
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name, role = 'USER', laboratoryId } = req.body
+    const { email, password, firstName, lastName, role = 'USER' } = req.body
 
     // Validate input
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Email, password, and name are required' })
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({ error: 'Email, password, firstName, and lastName are required' })
     }
 
     // Check if user already exists
@@ -34,18 +33,16 @@ router.post('/register', async (req, res) => {
       data: {
         email,
         password: hashedPassword,
-        firstName: name.split(' ')[0] || name,
-        lastName: name.split(' ').slice(1).join(' ') || '',
-        name,
-        role,
-        laboratoryId
+        firstName,
+        lastName,
+        role
       },
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         role: true,
-        laboratoryId: true,
         createdAt: true
       }
     })
@@ -80,10 +77,7 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        laboratory: true
-      }
+      where: { email }
     })
 
     if (!user) {
@@ -118,14 +112,28 @@ router.post('/login', async (req, res) => {
 })
 
 // Get current user profile
-router.get('/profile', authMiddleware, async (req, res) => {
+router.get('/profile', async (req, res) => {
   try {
-    const userId = (req as any).user.userId
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' })
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const userId = decoded.userId
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        laboratory: true
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true
       }
     })
 
@@ -141,23 +149,31 @@ router.get('/profile', authMiddleware, async (req, res) => {
 })
 
 // Update user profile
-router.put('/profile', authMiddleware, async (req, res) => {
+router.put('/profile', async (req, res) => {
   try {
-    const userId = (req as any).user.userId
-    const { name, email } = req.body
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' })
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const userId = decoded.userId
+    const { firstName, lastName, email } = req.body
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        name,
+        firstName,
+        lastName,
         email
       },
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         role: true,
-        laboratoryId: true,
         updatedAt: true
       }
     })
@@ -173,9 +189,16 @@ router.put('/profile', authMiddleware, async (req, res) => {
 })
 
 // Change password
-router.put('/change-password', authMiddleware, async (req, res) => {
+router.put('/change-password', async (req, res) => {
   try {
-    const userId = (req as any).user.userId
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' })
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const userId = decoded.userId
     const { currentPassword, newPassword } = req.body
 
     // Get current user
@@ -210,9 +233,16 @@ router.put('/change-password', authMiddleware, async (req, res) => {
 })
 
 // Refresh token
-router.post('/refresh', authMiddleware, async (req, res) => {
+router.post('/refresh', async (req, res) => {
   try {
-    const userId = (req as any).user.userId
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' })
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const userId = decoded.userId
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -228,7 +258,7 @@ router.post('/refresh', authMiddleware, async (req, res) => {
     }
 
     // Generate new token
-    const token = jwt.sign(
+    const newToken = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
@@ -236,7 +266,7 @@ router.post('/refresh', authMiddleware, async (req, res) => {
 
     res.json({
       message: 'Token refreshed successfully',
-      token
+      token: newToken
     })
   } catch (error) {
     console.error('Token refresh error:', error)
@@ -245,7 +275,7 @@ router.post('/refresh', authMiddleware, async (req, res) => {
 })
 
 // Logout (client-side token removal)
-router.post('/logout', authMiddleware, async (req, res) => {
+router.post('/logout', async (req, res) => {
   try {
     // In a real application, you might want to blacklist the token
     // For now, we'll just return a success message
