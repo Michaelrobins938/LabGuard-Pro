@@ -33,10 +33,5 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "public": true,
-  "protectionBypass": {
-    "api": {
-      "bypass": true
-    }
-  }
+  "public": true
 } 
