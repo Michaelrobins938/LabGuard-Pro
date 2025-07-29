@@ -27,32 +27,32 @@ import Link from 'next/link'
 export function HeroUIFooter() {
   const footerLinks = {
     product: [
-      { name: 'AI Assistant', href: '#' },
-      { name: 'Analytics', href: '#' },
-      { name: 'Compliance', href: '#' },
-      { name: 'Equipment Management', href: '#' },
-      { name: 'Protocol Design', href: '#' }
+      { name: 'AI Assistant', href: '/dashboard?bypass=true' },
+      { name: 'Analytics', href: '/dashboard?bypass=true' },
+      { name: 'Compliance', href: '/dashboard/compliance' },
+      { name: 'Equipment Management', href: '/dashboard/equipment' },
+      { name: 'Protocol Design', href: '/dashboard?bypass=true' }
     ],
     solutions: [
-      { name: 'Research Labs', href: '#' },
-      { name: 'Clinical Labs', href: '#' },
-      { name: 'Pharmaceutical', href: '#' },
-      { name: 'Biotechnology', href: '#' },
-      { name: 'Academic Institutions', href: '#' }
+      { name: 'Research Labs', href: '/solutions/research' },
+      { name: 'Clinical Labs', href: '/solutions/clinical' },
+      { name: 'Pharmaceutical', href: '/solutions/pharmaceutical' },
+      { name: 'Biotechnology', href: '/solutions/biotechnology' },
+      { name: 'Academic Institutions', href: '/solutions/research' }
     ],
     resources: [
-      { name: 'Documentation', href: '#' },
-      { name: 'Case Studies', href: '#' },
-      { name: 'Blog', href: '#' },
-      { name: 'Support Center', href: '#' },
-      { name: 'API Reference', href: '#' }
+      { name: 'Documentation', href: '/resources/documentation' },
+      { name: 'Case Studies', href: '/resources/case-studies' },
+      { name: 'Blog', href: '/blog' },
+      { name: 'Support Center', href: '/support' },
+      { name: 'API Reference', href: '/resources/api' }
     ],
     company: [
-      { name: 'About Us', href: '#' },
-      { name: 'Careers', href: '#' },
-      { name: 'Contact', href: '#' },
-      { name: 'Partners', href: '#' },
-      { name: 'Press Kit', href: '#' }
+      { name: 'About Us', href: '/about' },
+      { name: 'Careers', href: '/careers' },
+      { name: 'Contact', href: '/contact' },
+      { name: 'Partners', href: '/partners' },
+      { name: 'Press Kit', href: '/press' }
     ]
   }
 
@@ -105,15 +105,15 @@ export function HeroUIFooter() {
               and accelerate their research with AI-powered technology.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <Link href="/dashboard?bypass=true" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
                 <Sparkles className="w-5 h-5 mr-2" />
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </button>
-              <button className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all duration-300 backdrop-blur-sm">
+              </Link>
+              <Link href="/contact" className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all duration-300 backdrop-blur-sm">
                 <Users className="w-5 h-5 mr-2" />
                 Schedule Demo
-              </button>
+              </Link>
             </div>
           </div>
         </div>
