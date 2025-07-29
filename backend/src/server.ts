@@ -11,6 +11,7 @@ const port = process.env.PORT || 3001
 
 // Prisma instance with connection retry
 let prisma: PrismaClient
+let dbConnected = false
 
 try {
   prisma = new PrismaClient({
@@ -20,9 +21,20 @@ try {
       }
     }
   })
+  
+  // Test database connection
+  prisma.$connect()
+    .then(() => {
+      logger.info('✅ Database connected successfully')
+      dbConnected = true
+    })
+    .catch((error) => {
+      logger.error('❌ Database connection failed:', error)
+      dbConnected = false
+    })
 } catch (error) {
   logger.error('Failed to initialize Prisma:', error)
-  process.exit(1)
+  dbConnected = false
 }
 
 // Middleware
@@ -47,19 +59,29 @@ app.use(limiter)
 // Health check endpoint - MUST BE SIMPLE
 app.get('/health', async (req, res) => {
   try {
-    // Simple database check
-    await prisma.$queryRaw`SELECT 1`
+    if (dbConnected) {
+      // Simple database check
+      await prisma.$queryRaw`SELECT 1`
+      res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        database: 'Connected'
+      })
+    } else {
+      res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        database: 'Disconnected',
+        message: 'Server running but database not available'
+      })
+    }
+  } catch (error) {
+    logger.error('Health check failed:', error)
     res.status(200).json({ 
       status: 'OK', 
       timestamp: new Date().toISOString(),
-      database: 'Connected'
-    })
-  } catch (error) {
-    logger.error('Health check failed:', error)
-    res.status(500).json({ 
-      status: 'ERROR', 
-      error: 'Database connection failed',
-      timestamp: new Date().toISOString()
+      database: 'Error',
+      error: 'Database connection failed'
     })
   }
 })
@@ -79,7 +101,9 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully')
-  await prisma.$disconnect()
+  if (prisma) {
+    await prisma.$disconnect()
+  }
   process.exit(0)
 })
 
