@@ -4,7 +4,15 @@ import jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client'
 
 const router = express.Router()
-const prisma = new PrismaClient()
+
+// Extend Request to include prisma
+declare global {
+  namespace Express {
+    interface Request {
+      prisma: PrismaClient
+    }
+  }
+}
 
 // Register new user
 router.post('/register', async (req, res) => {
@@ -17,7 +25,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await req.prisma.user.findUnique({
       where: { email }
     })
 
@@ -29,7 +37,7 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12)
 
     // Create user
-    const user = await prisma.user.create({
+    const user = await req.prisma.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -76,7 +84,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await req.prisma.user.findUnique({
       where: { email }
     })
 
@@ -123,7 +131,7 @@ router.get('/profile', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
     const userId = decoded.userId
 
-    const user = await prisma.user.findUnique({
+    const user = await req.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -161,7 +169,7 @@ router.put('/profile', async (req, res) => {
     const userId = decoded.userId
     const { firstName, lastName, email } = req.body
 
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await req.prisma.user.update({
       where: { id: userId },
       data: {
         firstName,
@@ -202,7 +210,7 @@ router.put('/change-password', async (req, res) => {
     const { currentPassword, newPassword } = req.body
 
     // Get current user
-    const user = await prisma.user.findUnique({
+    const user = await req.prisma.user.findUnique({
       where: { id: userId }
     })
 
@@ -220,7 +228,7 @@ router.put('/change-password', async (req, res) => {
     const hashedNewPassword = await bcrypt.hash(newPassword, 12)
 
     // Update password
-    await prisma.user.update({
+    await req.prisma.user.update({
       where: { id: userId },
       data: { password: hashedNewPassword }
     })
@@ -244,7 +252,7 @@ router.post('/refresh', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
     const userId = decoded.userId
 
-    const user = await prisma.user.findUnique({
+    const user = await req.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,

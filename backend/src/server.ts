@@ -7,35 +7,6 @@ import authRoutes from './routes/auth.routes'
 import { logger } from './utils/logger'
 
 const app = express()
-const port = process.env.PORT || 3001
-
-// Prisma instance with connection retry
-let prisma: PrismaClient
-let dbConnected = false
-
-try {
-  prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.database_PRISMA_DATABASE_URL
-      }
-    }
-  })
-  
-  // Test database connection
-  prisma.$connect()
-    .then(() => {
-      logger.info('✅ Database connected successfully')
-      dbConnected = true
-    })
-    .catch((error) => {
-      logger.error('❌ Database connection failed:', error)
-      dbConnected = false
-    })
-} catch (error) {
-  logger.error('Failed to initialize Prisma:', error)
-  dbConnected = false
-}
 
 // Middleware
 app.use(helmet())
@@ -56,38 +27,47 @@ const limiter = rateLimit({
 })
 app.use(limiter)
 
-// Health check endpoint - MUST BE SIMPLE
-app.get('/health', async (req, res) => {
-  try {
-    if (dbConnected) {
-      // Simple database check
-      await prisma.$queryRaw`SELECT 1`
-      res.status(200).json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        database: 'Connected'
-      })
-    } else {
-      res.status(200).json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        database: 'Disconnected',
-        message: 'Server running but database not available'
-      })
-    }
-  } catch (error) {
-    logger.error('Health check failed:', error)
-    res.status(200).json({ 
-      status: 'OK', 
-      timestamp: new Date().toISOString(),
-      database: 'Error',
-      error: 'Database connection failed'
-    })
-  }
+// Simple health check endpoint - NO DATABASE DEPENDENCY
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    message: 'Server is running'
+  })
 })
 
-// Routes
-app.use('/api/auth', authRoutes)
+// Initialize Prisma only when needed
+let prisma: PrismaClient | null = null
+
+const getPrisma = () => {
+  if (!prisma) {
+    try {
+      prisma = new PrismaClient({
+        datasources: {
+          db: {
+            url: process.env.database_PRISMA_DATABASE_URL
+          }
+        }
+      })
+    } catch (error) {
+      logger.error('Failed to initialize Prisma:', error)
+      return null
+    }
+  }
+  return prisma
+}
+
+// Routes with database connection
+app.use('/api/auth', (req, res, next) => {
+  const prismaInstance = getPrisma()
+  if (!prismaInstance) {
+    return res.status(503).json({ 
+      error: 'Database connection not available' 
+    })
+  }
+  req.prisma = prismaInstance
+  next()
+}, authRoutes)
 
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -98,16 +78,4 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
   })
 })
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received, shutting down gracefully')
-  if (prisma) {
-    await prisma.$disconnect()
-  }
-  process.exit(0)
-})
-
-export default app
-
-// For Vercel serverless
-export { prisma } 
+export default app 
