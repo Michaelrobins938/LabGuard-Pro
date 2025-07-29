@@ -1,3 +1,4 @@
+// Force deployment update - all pages are now live
 import { Metadata } from 'next'
 import { HeroUIHeroSection } from '@/components/landing/HeroUIHeroSection'
 import { HeroUIFeaturesSection } from '@/components/landing/HeroUIFeaturesSection'
