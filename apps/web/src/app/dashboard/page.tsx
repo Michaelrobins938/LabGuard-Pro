@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { ComplianceAssistant } from '@/components/ai/ComplianceAssistant';
 
 export default function DashboardPage() {
   // Mock data for demonstration
@@ -91,8 +92,8 @@ export default function DashboardPage() {
       color: 'from-green-500 to-blue-600'
     },
     {
-      title: 'Compliance Reports',
-      description: 'Generate compliance documentation',
+      title: 'Compliance Assistant',
+      description: 'AI-powered compliance validation',
       icon: Shield,
       href: '/dashboard/compliance',
       color: 'from-purple-500 to-pink-600'
@@ -304,13 +305,23 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
+        {/* Compliance Assistant */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="mb-8"
+        >
+          <ComplianceAssistant />
+        </motion.div>
+
         {/* Recent Activity and Alerts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Activity */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
           >
             <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
               <CardHeader>
@@ -360,7 +371,7 @@ export default function DashboardPage() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
           >
             <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
               <CardHeader>

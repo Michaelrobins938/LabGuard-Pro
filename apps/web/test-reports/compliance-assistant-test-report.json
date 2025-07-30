@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-07-29T22:45:25.062Z",
+  "baseUrl": "http://localhost:3000",
+  "results": {
+    "passed": 10,
+    "failed": 0,
+    "errors": [],
+    "performance": {
+      "AI Assistant Integration": 53,
+      "PCR Verification System": 23,
+      "Media Validation System": 25,
+      "Result Validation System": 24,
+      "Audit Preparation System": 24,
+      "Error Handling": 44,
+      "Performance Testing": 82,
+      "Security Testing": 17,
+      "Expired Media Detection": 20,
+      "Compliance Score Calculation": 57
+    },
+    "startTime": 1753829124685
+  },
+  "performance": {
+    "AI Assistant Integration": 53,
+    "PCR Verification System": 23,
+    "Media Validation System": 25,
+    "Result Validation System": 24,
+    "Audit Preparation System": 24,
+    "Error Handling": 44,
+    "Performance Testing": 82,
+    "Security Testing": 17,
+    "Expired Media Detection": 20,
+    "Compliance Score Calculation": 57
+  },
+  "summary": {
+    "totalTests": 10,
+    "passed": 10,
+    "failed": 0,
+    "successRate": "100.00%",
+    "totalDuration": 375
+  }
+}
