@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { ModernLandingPage } from '@/components/landing/ModernLandingPage'
+import LabGuardProLanding from '@/components/landing/LabGuardProLanding'
 
 export const metadata: Metadata = {
   title: 'LabGuard Pro - AI-Powered Laboratory Compliance Platform',
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function LandingPage() {
-  return <ModernLandingPage />
+  return <LabGuardProLanding />
 } 

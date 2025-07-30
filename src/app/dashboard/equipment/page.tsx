@@ -1,564 +1,381 @@
-"use client";
+'use client'
 
-import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useDashboardStore } from '@/stores/dashboardStore';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { 
   Plus, 
   Search, 
   Filter, 
-  Download, 
-  Upload, 
-  Settings,
-  Microscope,
+  MoreHorizontal, 
+  Edit, 
+  Trash2, 
+  Calendar,
   AlertTriangle,
   CheckCircle,
   Clock,
-  Calendar,
-  MapPin,
-  BarChart3,
-  Eye,
-  Edit,
-  Trash2,
-  MoreHorizontal,
-  RefreshCw,
-  QrCode,
-  Camera,
-  FileText,
-  Users,
-  Zap,
-  TrendingUp,
-  TrendingDown,
-  Brain,
-  Sparkles
-} from 'lucide-react';
+  Microscope
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 interface Equipment {
-  id: string;
-  name: string;
-  type: string;
-  model: string;
-  serialNumber: string;
-  status: 'operational' | 'maintenance' | 'offline' | 'calibration';
-  location: string;
-  health: number;
-  lastCalibration?: string;
-  nextCalibration?: string;
-  assignedTo?: string;
-  department: string;
-  purchaseDate: string;
-  warrantyExpiry?: string;
-  cost: number;
-  manufacturer: string;
-  specifications: Record<string, any>;
-  maintenanceHistory: Array<{
-    date: string;
-    type: string;
-    description: string;
-    technician: string;
-  }>;
-}
-
-interface FilterState {
-  status: string;
-  type: string;
-  location: string;
-  department: string;
-  healthRange: [number, number];
-  search: string;
+  id: string
+  name: string
+  model: string
+  serialNumber: string
+  manufacturer: string
+  equipmentType: string
+  location: string
+  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'CALIBRATION_DUE' | 'OUT_OF_SERVICE' | 'RETIRED'
+  installDate: string
+  warrantyExpiry: string
+  lastCalibration: {
+    id: string
+    status: string
+    complianceStatus: string
+    dueDate: string
+    performedDate: string
+  } | null
+  _count: {
+    calibrationRecords: number
+    maintenanceRecords: number
+  }
 }
 
 export default function EquipmentPage() {
-  const router = useRouter();
-  const { equipment, fetchEquipment } = useDashboardStore();
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
-  const [sortBy, setSortBy] = useState<string>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showAIBanner, setShowAIBanner] = useState(true);
-  const [filters, setFilters] = useState<FilterState>({
-    status: 'all',
-    type: 'all',
-    location: 'all',
-    department: 'all',
-    healthRange: [0, 100],
-    search: ''
-  });
+  const { data: session } = useSession()
+  const [equipment, setEquipment] = useState<Equipment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [showFilters, setShowFilters] = useState(false)
 
-  // Generate sample equipment data
-  const generateEquipmentData = (): Equipment[] => {
-    const equipmentTypes = ['Microscope', 'Centrifuge', 'Spectrophotometer', 'PCR Machine', 'Incubator', 'Autoclave'];
-    const locations = ['Lab A', 'Lab B', 'Lab C', 'Storage Room', 'Maintenance Bay'];
-    const departments = ['Research', 'Quality Control', 'Production', 'Development'];
-    const manufacturers = ['Thermo Fisher', 'Beckman Coulter', 'Eppendorf', 'Bio-Rad', 'Agilent'];
+  useEffect(() => {
+    fetchEquipment()
+  }, [])
 
-    return Array.from({ length: 25 }, (_, i) => {
-      const type = equipmentTypes[Math.floor(Math.random() * equipmentTypes.length)];
-      const status = ['operational', 'maintenance', 'offline', 'calibration'][Math.floor(Math.random() * 4)] as Equipment['status'];
-      const health = Math.floor(Math.random() * 40) + 60; // 60-100
+  const fetchEquipment = async () => {
+    try {
+      // Simulate API call - replace with actual API
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      return {
-        id: `EQ-2024-${String(i + 1).padStart(3, '0')}`,
-        name: `${type} ${i + 1}`,
-        type,
-        model: `${manufacturers[Math.floor(Math.random() * manufacturers.length)]} ${Math.floor(Math.random() * 1000)}`,
-        serialNumber: `SN${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
-        status,
-        location: locations[Math.floor(Math.random() * locations.length)],
-        health,
-        lastCalibration: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
-        nextCalibration: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-        assignedTo: Math.random() > 0.3 ? `Technician ${Math.floor(Math.random() * 5) + 1}` : undefined,
-        department: departments[Math.floor(Math.random() * departments.length)],
-        purchaseDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-        warrantyExpiry: Math.random() > 0.5 ? new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString() : undefined,
-        cost: Math.floor(Math.random() * 50000) + 5000,
-        manufacturer: manufacturers[Math.floor(Math.random() * manufacturers.length)],
-        specifications: {
-          power: `${Math.floor(Math.random() * 1000) + 100}W`,
-          dimensions: `${Math.floor(Math.random() * 50) + 20}x${Math.floor(Math.random() * 50) + 20}x${Math.floor(Math.random() * 50) + 20}cm`,
-          weight: `${Math.floor(Math.random() * 50) + 10}kg`
+      const mockEquipment: Equipment[] = [
+        {
+          id: '1',
+          name: 'Precision Balance PB-220',
+          model: 'PB-220',
+          serialNumber: 'PB220-2024-001',
+          manufacturer: 'Mettler Toledo',
+          equipmentType: 'ANALYTICAL_BALANCE',
+          location: 'Chemistry Lab - Bench 1',
+          status: 'ACTIVE',
+          installDate: '2024-01-15T00:00:00Z',
+          warrantyExpiry: '2027-01-15T00:00:00Z',
+          lastCalibration: {
+            id: 'cal-1',
+            status: 'COMPLETED',
+            complianceStatus: 'COMPLIANT',
+            dueDate: '2024-04-15T00:00:00Z',
+            performedDate: '2024-01-15T00:00:00Z'
+          },
+          _count: {
+            calibrationRecords: 4,
+            maintenanceRecords: 2
+          }
         },
-        maintenanceHistory: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, (_, j) => ({
-          date: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-          type: ['Preventive', 'Corrective', 'Calibration'][Math.floor(Math.random() * 3)],
-          description: `Maintenance activity ${j + 1}`,
-          technician: `Tech ${Math.floor(Math.random() * 5) + 1}`
-        }))
-      };
-    });
-  };
-
-  const equipmentData = useMemo(() => generateEquipmentData(), []);
-
-  // Filter and sort equipment
-  const filteredEquipment = useMemo(() => {
-    let filtered = equipmentData.filter(item => {
-      const matchesStatus = filters.status === 'all' || item.status === filters.status;
-      const matchesType = filters.type === 'all' || item.type === filters.type;
-      const matchesLocation = filters.location === 'all' || item.location === filters.location;
-      const matchesDepartment = filters.department === 'all' || item.department === filters.department;
-      const matchesHealth = item.health >= filters.healthRange[0] && item.health <= filters.healthRange[1];
-      const matchesSearch = item.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                          item.model.toLowerCase().includes(filters.search.toLowerCase()) ||
-                          item.serialNumber.toLowerCase().includes(filters.search.toLowerCase());
-
-      return matchesStatus && matchesType && matchesLocation && matchesDepartment && matchesHealth && matchesSearch;
-    });
-
-    // Sort equipment
-    filtered.sort((a, b) => {
-      let aValue = a[sortBy as keyof Equipment];
-      let bValue = b[sortBy as keyof Equipment];
+        {
+          id: '2',
+          name: 'High-Speed Centrifuge CF-16',
+          model: 'CF-16',
+          serialNumber: 'CF16-2024-002',
+          manufacturer: 'Eppendorf',
+          equipmentType: 'CENTRIFUGE',
+          location: 'Processing Room - Station 2',
+          status: 'CALIBRATION_DUE',
+          installDate: '2024-01-20T00:00:00Z',
+          warrantyExpiry: '2027-01-20T00:00:00Z',
+          lastCalibration: {
+            id: 'cal-2',
+            status: 'COMPLETED',
+            complianceStatus: 'CONDITIONAL',
+            dueDate: '2024-02-20T00:00:00Z',
+            performedDate: '2023-11-20T00:00:00Z'
+          },
+          _count: {
+            calibrationRecords: 3,
+            maintenanceRecords: 1
+          }
+        },
+        {
+          id: '3',
+          name: 'CO2 Incubator IC-200',
+          model: 'IC-200',
+          serialNumber: 'IC200-2024-003',
+          manufacturer: 'Thermo Fisher',
+          equipmentType: 'INCUBATOR',
+          location: 'Microbiology Lab - Corner Unit',
+          status: 'MAINTENANCE',
+          installDate: '2024-01-25T00:00:00Z',
+          warrantyExpiry: '2027-01-25T00:00:00Z',
+          lastCalibration: null,
+          _count: {
+            calibrationRecords: 0,
+            maintenanceRecords: 0
+          }
+        }
+      ]
       
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-      
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
-    });
+      setEquipment(mockEquipment)
+    } catch (error) {
+      console.error('Failed to fetch equipment:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    return filtered;
-  }, [equipmentData, filters, sortBy, sortOrder]);
-
-  const getStatusColor = (status: Equipment['status']) => {
+  const getStatusBadge = (status: Equipment['status']) => {
     switch (status) {
-      case 'operational':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'maintenance':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'offline':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case 'calibration':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'ACTIVE':
+        return <Badge className="bg-green-100 text-green-800">Active</Badge>
+      case 'CALIBRATION_DUE':
+        return <Badge className="bg-yellow-100 text-yellow-800">Calibration Due</Badge>
+      case 'MAINTENANCE':
+        return <Badge className="bg-blue-100 text-blue-800">Maintenance</Badge>
+      case 'OUT_OF_SERVICE':
+        return <Badge className="bg-red-100 text-red-800">Out of Service</Badge>
+      case 'INACTIVE':
+        return <Badge className="bg-gray-100 text-gray-800">Inactive</Badge>
+      case 'RETIRED':
+        return <Badge className="bg-gray-100 text-gray-800">Retired</Badge>
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>
     }
-  };
+  }
 
-  const getHealthColor = (health: number) => {
-    if (health >= 90) return 'text-green-600';
-    if (health >= 75) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  const getComplianceIcon = (complianceStatus: string | null) => {
+    switch (complianceStatus) {
+      case 'COMPLIANT':
+        return <CheckCircle className="w-4 h-4 text-green-500" />
+      case 'NON_COMPLIANT':
+        return <AlertTriangle className="w-4 h-4 text-red-500" />
+      case 'CONDITIONAL':
+        return <Clock className="w-4 h-4 text-yellow-500" />
+      default:
+        return <AlertTriangle className="w-4 h-4 text-gray-400" />
+    }
+  }
 
-  const handleBulkAction = (action: string) => {
-    if (selectedEquipment.length === 0) return;
+  const filteredEquipment = equipment.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
     
-    switch (action) {
-      case 'export':
-        console.log('Exporting selected equipment:', selectedEquipment);
-        break;
-      case 'maintenance':
-        console.log('Scheduling maintenance for:', selectedEquipment);
-        break;
-      case 'calibration':
-        console.log('Scheduling calibration for:', selectedEquipment);
-        break;
-      case 'delete':
-        console.log('Deleting equipment:', selectedEquipment);
-        break;
-    }
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedEquipment(filteredEquipment.map(item => item.id));
-    } else {
-      setSelectedEquipment([]);
-    }
-  };
-
-  const handleSelectEquipment = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedEquipment(prev => [...prev, id]);
-    } else {
-      setSelectedEquipment(prev => prev.filter(item => item !== id));
-    }
-  };
-
-  const EquipmentCard = ({ item }: { item: Equipment }) => {
-    const isSelected = selectedEquipment.includes(item.id);
+    const matchesStatus = statusFilter === 'all' || item.status === statusFilter
+    const matchesType = typeFilter === 'all' || item.equipmentType === typeFilter
     
+    return matchesSearch && matchesStatus && matchesType
+  })
+
+  const equipmentTypes = [
+    'ANALYTICAL_BALANCE',
+    'CENTRIFUGE',
+    'INCUBATOR',
+    'AUTOCLAVE',
+    'SPECTROPHOTOMETER',
+    'PCR_MACHINE',
+    'MICROSCOPE',
+    'PIPETTE'
+  ]
+
+  const statusOptions = [
+    'ACTIVE',
+    'CALIBRATION_DUE',
+    'MAINTENANCE',
+    'OUT_OF_SERVICE',
+    'INACTIVE',
+    'RETIRED'
+  ]
+
+  if (loading) {
     return (
-      <Card className={`relative transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={(checked) => handleSelectEquipment(item.id, checked as boolean)}
-              />
-              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                <Microscope className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white p-6 rounded-lg border border-gray-200">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
               </div>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Badge className={`text-xs ${getStatusColor(item.status)}`}>
-                {item.status}
-              </Badge>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <MoreHorizontal className="h-3 w-3" />
-              </Button>
-            </div>
+            ))}
           </div>
-          
-          <div className="space-y-2">
-            <div>
-              <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                {item.name}
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {item.model}
-              </p>
-            </div>
-            
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500 dark:text-gray-400">Health</span>
-              <span className={`font-medium ${getHealthColor(item.health)}`}>
-                {item.health}%
-              </span>
-            </div>
-            
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-              <div 
-                className={`h-1.5 rounded-full ${getHealthColor(item.health).replace('text-', 'bg-')}`}
-                style={{ width: `${item.health}%` }}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-1">
-                <MapPin className="h-3 w-3 text-gray-400" />
-                <span className="text-gray-500 dark:text-gray-400">{item.location}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Calendar className="h-3 w-3 text-gray-400" />
-                <span className="text-gray-500 dark:text-gray-400">
-                  {item.nextCalibration ? new Date(item.nextCalibration).toLocaleDateString() : 'N/A'}
-                </span>
-              </div>
-            </div>
-            
-            {item.assignedTo && (
-              <div className="flex items-center space-x-1 text-xs">
-                <Users className="h-3 w-3 text-gray-400" />
-                <span className="text-gray-500 dark:text-gray-400">{item.assignedTo}</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              ${item.cost.toLocaleString()}
-            </div>
-            <div className="flex items-center space-x-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push(`/dashboard/equipment/${item.id}`)}
-                className="h-6 w-6 p-0"
-              >
-                <Eye className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push(`/dashboard/equipment/${item.id}/edit`)}
-                className="h-6 w-6 p-0"
-              >
-                <Edit className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const stats = useMemo(() => {
-    const total = equipmentData.length;
-    const operational = equipmentData.filter(eq => eq.status === 'operational').length;
-    const maintenance = equipmentData.filter(eq => eq.status === 'maintenance').length;
-    const offline = equipmentData.filter(eq => eq.status === 'offline').length;
-    const avgHealth = Math.round(equipmentData.reduce((sum, eq) => sum + eq.health, 0) / total);
-
-    return { total, operational, maintenance, offline, avgHealth };
-  }, [equipmentData]);
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Equipment Management</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage laboratory equipment, track status, and schedule maintenance
+          <h1 className="text-2xl font-bold text-gray-900">Equipment Management</h1>
+          <p className="text-sm text-gray-600">
+            Manage and monitor all laboratory equipment
           </p>
         </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Upload className="h-4 w-4 mr-2" />
-            Import
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button onClick={() => router.push('/dashboard/equipment/new')}>
-            <Plus className="h-4 w-4 mr-2" />
+        <Link href="/dashboard/equipment/new">
+          <Button className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
             Add Equipment
           </Button>
-        </div>
+        </Link>
       </div>
-
-      {/* AI Integration Banner */}
-      {showAIBanner && (
-        <Alert className="mb-4">
-          <Sparkles className="h-4 w-4 mr-2" />
-          <AlertDescription>
-            <strong>AI Integration Available!</strong> Try our new AI-powered features to optimize equipment management.
-            <Button variant="outline" size="sm" className="ml-2" onClick={() => setShowAIBanner(false)}>
-              Dismiss
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Microscope className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-xs text-gray-500">Total Equipment</p>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Microscope className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-2xl font-bold">{equipment.length}</p>
+                <p className="text-sm text-gray-600">Total Equipment</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-2xl font-bold">{stats.operational}</p>
-                <p className="text-xs text-gray-500">Operational</p>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-2xl font-bold">
+                  {equipment.filter(e => e.status === 'ACTIVE').length}
+                </p>
+                <p className="text-sm text-gray-600">Active</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
-              <div>
-                <p className="text-2xl font-bold">{stats.maintenance}</p>
-                <p className="text-xs text-gray-500">Maintenance</p>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Clock className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-2xl font-bold">
+                  {equipment.filter(e => e.status === 'CALIBRATION_DUE').length}
+                </p>
+                <p className="text-sm text-gray-600">Due for Calibration</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-red-600" />
-              <div>
-                <p className="text-2xl font-bold">{stats.offline}</p>
-                <p className="text-xs text-gray-500">Offline</p>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-purple-600" />
-              <div>
-                <p className="text-2xl font-bold">{stats.avgHealth}%</p>
-                <p className="text-xs text-gray-500">Avg Health</p>
+              <div className="ml-4">
+                <p className="text-2xl font-bold">
+                  {equipment.filter(e => e.status === 'OUT_OF_SERVICE').length}
+                </p>
+                <p className="text-sm text-gray-600">Out of Service</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Controls */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search equipment..."
-                  value={filters.search}
-                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            {/* Filters */}
-            <div className="flex items-center space-x-2">
-              <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="operational">Operational</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="offline">Offline</SelectItem>
-                  <SelectItem value="calibration">Calibration</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="Microscope">Microscope</SelectItem>
-                  <SelectItem value="Centrifuge">Centrifuge</SelectItem>
-                  <SelectItem value="Spectrophotometer">Spectrophotometer</SelectItem>
-                  <SelectItem value="PCR Machine">PCR Machine</SelectItem>
-                  <SelectItem value="Incubator">Incubator</SelectItem>
-                  <SelectItem value="Autoclave">Autoclave</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={filters.location} onValueChange={(value) => setFilters(prev => ({ ...prev, location: value }))}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  <SelectItem value="Lab A">Lab A</SelectItem>
-                  <SelectItem value="Lab B">Lab B</SelectItem>
-                  <SelectItem value="Lab C">Lab C</SelectItem>
-                  <SelectItem value="Storage Room">Storage Room</SelectItem>
-                  <SelectItem value="Maintenance Bay">Maintenance Bay</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* View Mode */}
-            <div className="flex items-center space-x-1">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <BarChart3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                <FileText className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'map' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('map')}
-              >
-                <MapPin className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search equipment..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setShowFilters(!showFilters)}
+          className="whitespace-nowrap"
+        >
+          <Filter className="w-4 h-4 mr-2" />
+          Filters
+        </Button>
+      </div>
 
-      {/* Bulk Actions */}
-      {selectedEquipment.length > 0 && (
+      {/* Filter Panel */}
+      {showFilters && (
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  checked={selectedEquipment.length === filteredEquipment.length}
-                  onCheckedChange={handleSelectAll}
-                />
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedEquipment.length} equipment selected
-                </span>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Statuses</option>
+                  {statusOptions.map(status => (
+                    <option key={status} value={status}>
+                      {status.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                    </option>
+                  ))}
+                </select>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" onClick={() => handleBulkAction('export')}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleBulkAction('maintenance')}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Schedule Maintenance
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleBulkAction('calibration')}>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule Calibration
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleBulkAction('delete')}>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Equipment Type
+                </label>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Types</option>
+                  {equipmentTypes.map(type => (
+                    <option key={type} value={type}>
+                      {type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStatusFilter('all')
+                    setTypeFilter('all')
+                    setSearchTerm('')
+                  }}
+                  className="w-full"
+                >
+                  Clear Filters
                 </Button>
               </div>
             </div>
@@ -567,30 +384,115 @@ export default function EquipmentPage() {
       )}
 
       {/* Equipment Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredEquipment.map((item) => (
-          <EquipmentCard key={item.id} item={item} />
+          <Card key={item.id} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
+                    {item.name}
+                  </CardTitle>
+                  <CardDescription className="text-sm text-gray-600">
+                    {item.manufacturer} • {item.model}
+                  </CardDescription>
+                </div>
+                <div className="relative">
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {/* Status and Compliance */}
+              <div className="flex justify-between items-center">
+                {getStatusBadge(item.status)}
+                <div className="flex items-center space-x-1">
+                  {getComplianceIcon(item.lastCalibration?.complianceStatus || null)}
+                  <span className="text-xs text-gray-600">
+                    {item.lastCalibration?.complianceStatus || 'No Data'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Serial Number:</span>
+                  <span className="font-medium">{item.serialNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Location:</span>
+                  <span className="font-medium">{item.location}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Last Calibration:</span>
+                  <span className="font-medium">
+                    {item.lastCalibration?.performedDate 
+                      ? new Date(item.lastCalibration.performedDate).toLocaleDateString()
+                      : 'Never'
+                    }
+                  </span>
+                </div>
+              </div>
+
+              {/* Next Calibration Due */}
+              {item.lastCalibration?.dueDate && (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Next Calibration Due:</span>
+                    <span className="text-sm font-semibold text-blue-600">
+                      {new Date(item.lastCalibration.dueDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex space-x-2 pt-2">
+                <Link href={`/dashboard/equipment/${item.id}`} className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Edit className="w-3 h-3 mr-1" />
+                    View
+                  </Button>
+                </Link>
+                <Link href={`/dashboard/calibrations/new?equipmentId=${item.id}`} className="flex-1">
+                  <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
+                    <Calendar className="w-3 h-3 mr-1" />
+                    Calibrate
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Empty State */}
-      {filteredEquipment.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Microscope className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No equipment found
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Try adjusting your filters or add new equipment to get started.
+      {filteredEquipment.length === 0 && !loading && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Microscope className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No equipment found</h3>
+            <p className="text-gray-600 mb-6">
+              {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
+                ? 'Try adjusting your search or filters.'
+                : 'Get started by adding your first piece of equipment.'
+              }
             </p>
-            <Button onClick={() => router.push('/dashboard/equipment/new')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Equipment
-            </Button>
+            {!(searchTerm || statusFilter !== 'all' || typeFilter !== 'all') && (
+              <Link href="/dashboard/equipment/new">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Equipment
+                </Button>
+              </Link>
+            )}
           </CardContent>
         </Card>
       )}
     </div>
-  );
+  )
 } 

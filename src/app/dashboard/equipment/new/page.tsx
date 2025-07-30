@@ -2,404 +2,292 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import Link from 'next/link'
-import {
-  ArrowLeft,
-  Save,
-  X,
-  AlertCircle,
-  CheckCircle
-} from 'lucide-react'
-
-interface EquipmentFormData {
-  name: string
-  model: string
-  serialNumber: string
-  manufacturer: string
-  equipmentType: string
-  location: string
-  description: string
-  installDate: string
-  warrantyExpiry: string
-  purchaseDate: string
-  purchasePrice: string
-  supplier: string
-}
 
 export default function NewEquipmentPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  
-  const [formData, setFormData] = useState<EquipmentFormData>({
+  const [error, setError] = useState('')
+  const [formData, setFormData] = useState({
     name: '',
     model: '',
     serialNumber: '',
     manufacturer: '',
-    equipmentType: 'ANALYTICAL_BALANCE',
+    equipmentType: '',
     location: '',
-    description: '',
     installDate: '',
     warrantyExpiry: '',
-    purchaseDate: '',
-    purchasePrice: '',
-    supplier: ''
+    specifications: {
+      capacity: '',
+      accuracy: '',
+      operatingRange: '',
+      powerRequirement: ''
+    }
   })
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const validateForm = () => {
-    if (!formData.name.trim()) return 'Equipment name is required'
-    if (!formData.model.trim()) return 'Model is required'
-    if (!formData.serialNumber.trim()) return 'Serial number is required'
-    if (!formData.manufacturer.trim()) return 'Manufacturer is required'
-    if (!formData.location.trim()) return 'Location is required'
-    return null
-  }
+  const equipmentTypes = [
+    { value: 'ANALYTICAL_BALANCE', label: 'Analytical Balance' },
+    { value: 'CENTRIFUGE', label: 'Centrifuge' },
+    { value: 'INCUBATOR', label: 'Incubator' },
+    { value: 'AUTOCLAVE', label: 'Autoclave' },
+    { value: 'SPECTROPHOTOMETER', label: 'Spectrophotometer' },
+    { value: 'PCR_MACHINE', label: 'PCR Machine' },
+    { value: 'MICROSCOPE', label: 'Microscope' },
+    { value: 'PIPETTE', label: 'Pipette' },
+    { value: 'WATER_BATH', label: 'Water Bath' },
+    { value: 'REFRIGERATOR', label: 'Refrigerator' },
+    { value: 'FREEZER', label: 'Freezer' },
+    { value: 'OTHER', label: 'Other' }
+  ]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    const validationError = validateForm()
-    if (validationError) {
-      setError(validationError)
-      return
-    }
-
     setLoading(true)
-    setError(null)
+    setError('')
 
     try {
-      const response = await fetch('/api/equipment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          model: formData.model.trim(),
-          serialNumber: formData.serialNumber.trim(),
-          manufacturer: formData.manufacturer.trim(),
-          equipmentType: formData.equipmentType,
-          location: formData.location.trim(),
-          description: formData.description.trim() || undefined,
-          installDate: formData.installDate || undefined,
-          warrantyExpiry: formData.warrantyExpiry || undefined,
-          purchaseDate: formData.purchaseDate || undefined,
-          purchasePrice: formData.purchasePrice ? parseFloat(formData.purchasePrice) : undefined,
-          supplier: formData.supplier.trim() || undefined
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create equipment')
-      }
-
-      setSuccess(true)
-      setTimeout(() => {
-        router.push('/dashboard/equipment')
-      }, 1500)
-    } catch (err) {
-      console.error('Error creating equipment:', err)
-      setError(err instanceof Error ? err.message : 'Failed to create equipment')
+      // Simulate API call - replace with actual API endpoint
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Redirect to equipment list on success
+      router.push('/dashboard/equipment')
+    } catch (error) {
+      setError('Failed to create equipment. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
+  const updateFormData = (field: string, value: string) => {
+    if (field.startsWith('specifications.')) {
+      const specField = field.replace('specifications.', '')
+      setFormData(prev => ({
+        ...prev,
+        specifications: {
+          ...prev.specifications,
+          [specField]: value
+        }
+      }))
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }))
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard/equipment"
-                className="inline-flex items-center text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Equipment
-              </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Add New Equipment</h1>
-                <p className="text-gray-600 mt-2">
-                  Register a new piece of laboratory equipment for tracking and compliance
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center space-x-4">
+        <Link href="/dashboard/equipment">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Equipment
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Add New Equipment</h1>
+          <p className="text-sm text-gray-600">
+            Add a new piece of laboratory equipment to your inventory
+          </p>
         </div>
+      </div>
 
-        {/* Success Message */}
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
-              <div>
-                <h3 className="text-sm font-medium text-green-800">Equipment Created Successfully</h3>
-                <p className="text-sm text-green-700 mt-1">
-                  Redirecting to equipment list...
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Form */}
+      <div className="max-w-2xl">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertDescription className="text-red-800">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
-              <div>
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
-              </div>
-              <button
-                onClick={() => setError(null)}
-                className="ml-auto text-red-400 hover:text-red-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Form */}
-        <div className="bg-white rounded-lg shadow">
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Basic Information */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+              <CardDescription>
+                Enter the basic details about the equipment
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Equipment Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
+                  <Label htmlFor="name">Equipment Name *</Label>
+                  <Input
+                    id="name"
                     value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., Analytical Balance AB-001"
+                    onChange={(e) => updateFormData('name', e.target.value)}
+                    placeholder="e.g., Precision Balance PB-220"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Model *
-                  </label>
-                  <input
-                    type="text"
-                    name="model"
-                    value={formData.model}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., Sartorius ME36S"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Serial Number *
-                  </label>
-                  <input
-                    type="text"
-                    name="serialNumber"
-                    value={formData.serialNumber}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., AB-001"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Manufacturer *
-                  </label>
-                  <input
-                    type="text"
-                    name="manufacturer"
-                    value={formData.manufacturer}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., Sartorius"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Equipment Type *
-                  </label>
+                  <Label htmlFor="equipmentType">Equipment Type *</Label>
                   <select
-                    name="equipmentType"
+                    id="equipmentType"
                     value={formData.equipmentType}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onChange={(e) => updateFormData('equipmentType', e.target.value)}
                     required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="ANALYTICAL_BALANCE">Analytical Balance</option>
-                    <option value="PIPETTE">Pipette</option>
-                    <option value="CENTRIFUGE">Centrifuge</option>
-                    <option value="INCUBATOR">Incubator</option>
-                    <option value="AUTOCLAVE">Autoclave</option>
-                    <option value="SPECTROPHOTOMETER">Spectrophotometer</option>
-                    <option value="PCR_MACHINE">PCR Machine</option>
-                    <option value="MICROSCOPE">Microscope</option>
-                    <option value="WATER_BATH">Water Bath</option>
-                    <option value="REFRIGERATOR">Refrigerator</option>
-                    <option value="FREEZER">Freezer</option>
-                    <option value="OTHER">Other</option>
+                    <option value="">Select equipment type</option>
+                    {equipmentTypes.map(type => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location *
-                  </label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., Lab A - Room 101"
+                  <Label htmlFor="manufacturer">Manufacturer *</Label>
+                  <Input
+                    id="manufacturer"
+                    value={formData.manufacturer}
+                    onChange={(e) => updateFormData('manufacturer', e.target.value)}
+                    placeholder="e.g., Mettler Toledo"
                     required
                   />
                 </div>
-              </div>
-            </div>
 
-            {/* Additional Information */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Brief description of the equipment..."
+                  <Label htmlFor="model">Model *</Label>
+                  <Input
+                    id="model"
+                    value={formData.model}
+                    onChange={(e) => updateFormData('model', e.target.value)}
+                    placeholder="e.g., PB-220"
+                    required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Supplier
-                  </label>
-                  <input
-                    type="text"
-                    name="supplier"
-                    value={formData.supplier}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Equipment supplier"
+                  <Label htmlFor="serialNumber">Serial Number *</Label>
+                  <Input
+                    id="serialNumber"
+                    value={formData.serialNumber}
+                    onChange={(e) => updateFormData('serialNumber', e.target.value)}
+                    placeholder="e.g., PB220-2024-001"
+                    required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Purchase Price
-                  </label>
-                  <input
-                    type="number"
-                    name="purchasePrice"
-                    value={formData.purchasePrice}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="0.00"
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => updateFormData('location', e.target.value)}
+                    placeholder="e.g., Chemistry Lab - Bench 1"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Purchase Date
-                  </label>
-                  <input
+                  <Label htmlFor="installDate">Install Date</Label>
+                  <Input
+                    id="installDate"
                     type="date"
-                    name="purchaseDate"
-                    value={formData.purchaseDate}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Installation Date
-                  </label>
-                  <input
-                    type="date"
-                    name="installDate"
                     value={formData.installDate}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onChange={(e) => updateFormData('installDate', e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Warranty Expiry
-                  </label>
-                  <input
+                  <Label htmlFor="warrantyExpiry">Warranty Expiry</Label>
+                  <Input
+                    id="warrantyExpiry"
                     type="date"
-                    name="warrantyExpiry"
                     value={formData.warrantyExpiry}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onChange={(e) => updateFormData('warrantyExpiry', e.target.value)}
                   />
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Form Actions */}
-            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-              <Link
-                href="/dashboard/equipment"
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              >
+          {/* Specifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Technical Specifications</CardTitle>
+              <CardDescription>
+                Add technical specifications for calibration and maintenance
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="capacity">Capacity/Range</Label>
+                  <Input
+                    id="capacity"
+                    value={formData.specifications.capacity}
+                    onChange={(e) => updateFormData('specifications.capacity', e.target.value)}
+                    placeholder="e.g., 0-220g"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="accuracy">Accuracy</Label>
+                  <Input
+                    id="accuracy"
+                    value={formData.specifications.accuracy}
+                    onChange={(e) => updateFormData('specifications.accuracy', e.target.value)}
+                    placeholder="e.g., ±0.1mg"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="operatingRange">Operating Range</Label>
+                  <Input
+                    id="operatingRange"
+                    value={formData.specifications.operatingRange}
+                    onChange={(e) => updateFormData('specifications.operatingRange', e.target.value)}
+                    placeholder="e.g., 18-25°C, 45-75% RH"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="powerRequirement">Power Requirement</Label>
+                  <Input
+                    id="powerRequirement"
+                    value={formData.specifications.powerRequirement}
+                    onChange={(e) => updateFormData('specifications.powerRequirement', e.target.value)}
+                    placeholder="e.g., 120V/60Hz"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Submit Buttons */}
+          <div className="flex justify-end space-x-4">
+            <Link href="/dashboard/equipment">
+              <Button variant="outline" type="button">
                 Cancel
-              </Link>
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Create Equipment
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
+              </Button>
+            </Link>
+            <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Create Equipment
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   )

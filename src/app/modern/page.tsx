@@ -1,5 +1,5 @@
-import { ModernLandingPage } from '@/components/landing/ModernLandingPage'
+import LabGuardProLanding from '@/components/landing/LabGuardProLanding'
 
 export default function ModernPage() {
-  return <ModernLandingPage />
+  return <LabGuardProLanding />
 } 

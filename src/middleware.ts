@@ -5,48 +5,21 @@ export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token
     const isAuth = !!token
-    const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
+    const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
+                      req.nextUrl.pathname.startsWith('/register')
     const isDashboard = req.nextUrl.pathname.startsWith('/dashboard')
-    
-    // Define public routes that don't need authentication
-    const publicRoutes = [
-      '/',
-      '/about',
-      '/pricing',
-      '/contact',
-      '/blog',
-      '/support',
-      '/partners',
-      '/careers',
-      '/demo',
-      '/biomni-demo',
-      '/modern',
-      '/test',
-      '/solutions',
-      '/resources'
-    ]
-    
-    const isPublicRoute = publicRoutes.some(route => 
-      req.nextUrl.pathname === route || 
-      req.nextUrl.pathname.startsWith(route + '/')
-    )
-
-    // Allow access to public routes without authentication
-    if (isPublicRoute && !isDashboard) {
-      return NextResponse.next()
-    }
 
     // Redirect authenticated users away from auth pages
     if (isAuthPage && isAuth) {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
 
-    // Redirect unauthenticated users to login for protected routes
+    // Redirect unauthenticated users to login
     if (isDashboard && !isAuth) {
-      return NextResponse.redirect(new URL('/auth/login', req.url))
+      return NextResponse.redirect(new URL('/login', req.url))
     }
 
-    // Role-based access control for dashboard
+    // Role-based access control
     if (isDashboard && isAuth) {
       const userRole = token?.role as string
       const pathname = req.nextUrl.pathname
@@ -68,42 +41,19 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
-        const isDashboard = req.nextUrl.pathname.startsWith('/dashboard')
+        const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
+                          req.nextUrl.pathname.startsWith('/register')
         
-        // Define public routes
-        const publicRoutes = [
-          '/',
-          '/about',
-          '/pricing',
-          '/contact',
-          '/blog',
-          '/support',
-          '/partners',
-          '/careers',
-          '/demo',
-          '/biomni-demo',
-          '/modern',
-          '/test',
-          '/solutions',
-          '/resources'
-        ]
-        
-        const isPublicRoute = publicRoutes.some(route => 
-          req.nextUrl.pathname === route || 
-          req.nextUrl.pathname.startsWith(route + '/')
-        )
+        // Allow access to auth pages without token
+        if (isAuthPage) {
+          return true
+        }
 
-        // Allow access to auth pages
-        if (isAuthPage) return true
-        
-        // Allow access to public routes
-        if (isPublicRoute) return true
+        // Require token for dashboard pages
+        if (req.nextUrl.pathname.startsWith('/dashboard')) {
+          return !!token
+        }
 
-        // Require authentication for dashboard
-        if (isDashboard) return !!token
-
-        // Allow access to other pages by default
         return true
       }
     }
@@ -113,6 +63,8 @@ export default withAuth(
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/auth/:path*'
+    '/login',
+    '/register',
+    '/api/auth/:path*'
   ]
 } 
