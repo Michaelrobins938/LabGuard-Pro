@@ -377,7 +377,7 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
 *Optimization powered by Stanford's Biomni AI with access to 150+ analytical tools.*`,
         sender: 'assistant',
         timestamp: new Date(),
-        type: 'optimization',
+        type: 'analysis',
         metadata: {
           equipmentStatus: 'optimized',
           aiConfidence: 97.8,
