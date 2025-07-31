@@ -74,21 +74,33 @@ export default function AnalyticsPage() {
   const [selectedMetric, setSelectedMetric] = useState('overview')
   const [isLoading, setIsLoading] = useState(false)
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchAnalyticsData()
   }, [timeRange, equipment, calibrations, aiInsights])
 
+  // Initialize data if empty
+  useEffect(() => {
+    if (equipment.length === 0 || calibrations.length === 0 || aiInsights.length === 0) {
+      const { fetchEquipment, fetchCalibrations, fetchAIInsights } = useDashboardStore.getState()
+      fetchEquipment()
+      fetchCalibrations()
+      fetchAIInsights()
+    }
+  }, [equipment.length, calibrations.length, aiInsights.length])
+
   const fetchAnalyticsData = async () => {
     setIsLoading(true)
+    setError(null)
     try {
       // Calculate analytics from store data
       const equipmentPerformance = {
         total: equipment.length,
         operational: equipment.filter(eq => eq.status === 'operational').length,
         maintenance: equipment.filter(eq => eq.status === 'maintenance').length,
-        offline: equipment.filter(eq => eq.status === 'offline').length,
-        avgHealth: Math.round(equipment.reduce((sum, eq) => sum + eq.health, 0) / equipment.length)
+        offline: equipment.filter(eq => eq.status === 'inactive').length,
+        avgHealth: Math.round(equipment.reduce((sum, eq) => sum + eq.healthScore, 0) / Math.max(equipment.length, 1))
       }
 
       const calibrationMetrics = {
@@ -99,21 +111,21 @@ export default function AnalyticsPage() {
         avgAccuracy: Math.round(calibrations
           .filter(cal => cal.results)
           .reduce((sum, cal) => sum + (cal.results?.accuracy || 0), 0) / 
-          calibrations.filter(cal => cal.results).length)
+          Math.max(calibrations.filter(cal => cal.results).length, 1))
       }
 
       const complianceData = {
-        overall: Math.round((equipmentPerformance.operational / equipmentPerformance.total) * 100),
-        uptime: Math.round((equipmentPerformance.operational / equipmentPerformance.total) * 100),
-        calibrationCompliance: Math.round((calibrationMetrics.completed / calibrationMetrics.total) * 100),
+        overall: Math.round((equipmentPerformance.operational / Math.max(equipmentPerformance.total, 1)) * 100),
+        uptime: Math.round((equipmentPerformance.operational / Math.max(equipmentPerformance.total, 1)) * 100),
+        calibrationCompliance: Math.round((calibrationMetrics.completed / Math.max(calibrationMetrics.total, 1)) * 100),
         overdueCalibrations: calibrationMetrics.overdue
       }
 
       const aiInsightsData = {
         total: aiInsights.length,
         implemented: aiInsights.filter(insight => insight.status === 'implemented').length,
-        pending: aiInsights.filter(insight => insight.status === 'pending').length,
-        accuracy: Math.round(aiInsights.reduce((sum, insight) => sum + insight.confidence, 0) / aiInsights.length)
+        pending: aiInsights.filter(insight => insight.status === 'new').length,
+        accuracy: Math.round(aiInsights.reduce((sum, insight) => sum + insight.confidence, 0) / Math.max(aiInsights.length, 1))
       }
 
       // Generate time series data for the last 30 days
@@ -138,6 +150,7 @@ export default function AnalyticsPage() {
       })
     } catch (error) {
       console.error('Error fetching analytics data:', error)
+      setError('Failed to load analytics data. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -185,6 +198,38 @@ export default function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-500 mb-2">Error Loading Analytics</h3>
+          <p className="text-slate-400 mb-4">{error}</p>
+          <Button onClick={fetchAnalyticsData} className="bg-blue-600 hover:bg-blue-700">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!analyticsData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <BarChart3 className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">No Analytics Data</h3>
+          <p className="text-slate-400 mb-4">Analytics data will appear here once equipment and calibration data is available.</p>
+          <Button onClick={fetchAnalyticsData} className="bg-blue-600 hover:bg-blue-700">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
     )
   }
@@ -300,7 +345,7 @@ export default function AnalyticsPage() {
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
                 className="bg-emerald-500 h-2 rounded-full"
-                style={{ width: `${(analyticsData?.equipmentPerformance.operational || 0) / (analyticsData?.equipmentPerformance.total || 1) * 100}%` }}
+                style={{ width: `${(analyticsData?.equipmentPerformance.operational || 0) / Math.max(analyticsData?.equipmentPerformance.total || 1, 1) * 100}%` }}
               />
             </div>
             
@@ -313,7 +358,7 @@ export default function AnalyticsPage() {
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
                 className="bg-yellow-500 h-2 rounded-full"
-                style={{ width: `${(analyticsData?.equipmentPerformance.maintenance || 0) / (analyticsData?.equipmentPerformance.total || 1) * 100}%` }}
+                style={{ width: `${(analyticsData?.equipmentPerformance.maintenance || 0) / Math.max(analyticsData?.equipmentPerformance.total || 1, 1) * 100}%` }}
               />
             </div>
             
@@ -326,7 +371,7 @@ export default function AnalyticsPage() {
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
                 className="bg-red-500 h-2 rounded-full"
-                style={{ width: `${(analyticsData?.equipmentPerformance.offline || 0) / (analyticsData?.equipmentPerformance.total || 1) * 100}%` }}
+                style={{ width: `${(analyticsData?.equipmentPerformance.offline || 0) / Math.max(analyticsData?.equipmentPerformance.total || 1, 1) * 100}%` }}
               />
             </div>
           </div>
@@ -351,7 +396,7 @@ export default function AnalyticsPage() {
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
                 className="bg-blue-500 h-2 rounded-full"
-                style={{ width: `${(analyticsData?.calibrationMetrics.completed || 0) / (analyticsData?.calibrationMetrics.total || 1) * 100}%` }}
+                style={{ width: `${(analyticsData?.calibrationMetrics.completed || 0) / Math.max(analyticsData?.calibrationMetrics.total || 1, 1) * 100}%` }}
               />
             </div>
             
@@ -364,7 +409,7 @@ export default function AnalyticsPage() {
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
                 className="bg-purple-500 h-2 rounded-full"
-                style={{ width: `${(analyticsData?.calibrationMetrics.scheduled || 0) / (analyticsData?.calibrationMetrics.total || 1) * 100}%` }}
+                style={{ width: `${(analyticsData?.calibrationMetrics.scheduled || 0) / Math.max(analyticsData?.calibrationMetrics.total || 1, 1) * 100}%` }}
               />
             </div>
             
@@ -377,7 +422,7 @@ export default function AnalyticsPage() {
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
                 className="bg-red-500 h-2 rounded-full"
-                style={{ width: `${(analyticsData?.calibrationMetrics.overdue || 0) / (analyticsData?.calibrationMetrics.total || 1) * 100}%` }}
+                style={{ width: `${(analyticsData?.calibrationMetrics.overdue || 0) / Math.max(analyticsData?.calibrationMetrics.total || 1, 1) * 100}%` }}
               />
             </div>
           </div>
