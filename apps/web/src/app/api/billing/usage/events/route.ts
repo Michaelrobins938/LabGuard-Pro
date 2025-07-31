@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Events array is required' }, { status: 400 })
     }
 
-    const processedEvents = []
+    const processedEvents: any[] = []
 
     for (const event of events) {
       try {
