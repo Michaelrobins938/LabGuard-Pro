@@ -14,7 +14,7 @@ export async function GET() {
   console.log('🔧 Environment variables:', envInfo)
   
   // Test backend connectivity
-  let backendTest = null
+  let backendTest: any = null
   try {
     const base = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
     const testUrl = `${base}/health`
