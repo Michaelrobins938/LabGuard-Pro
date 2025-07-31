@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Disable SWC minification to avoid binary issues
+  swcMinify: false,
+  
   // Performance optimizations
   experimental: {
     optimizeCss: true,
