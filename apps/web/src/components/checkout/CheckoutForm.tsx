@@ -85,7 +85,7 @@ export function CheckoutForm({ plan, isYearly, isDemoMode = false }: CheckoutFor
         return
       }
 
-      if ('paymentIntent' in result && result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+      if ('paymentIntent' in result && result.paymentIntent && (result.paymentIntent as any).status === 'succeeded') {
         toast.success('Payment successful!')
         router.push('/checkout/success')
       }
