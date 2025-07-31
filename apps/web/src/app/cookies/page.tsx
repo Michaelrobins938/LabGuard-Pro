@@ -392,10 +392,10 @@ export default function CookiePolicyPage() {
                         <div>
                           <h4 className="font-medium text-white mb-2">Browser Settings:</h4>
                           <ul className="text-sm text-gray-300 space-y-1">
-                            <li>• Chrome: Settings > Privacy and security</li>
-                            <li>• Firefox: Options > Privacy & Security</li>
-                            <li>• Safari: Preferences > Privacy</li>
-                            <li>• Edge: Settings > Cookies and permissions</li>
+                            <li>• Chrome: Settings &gt; Privacy and security</li>
+                            <li>• Firefox: Options &gt; Privacy & Security</li>
+                            <li>• Safari: Preferences &gt; Privacy</li>
+                            <li>• Edge: Settings &gt; Cookies and permissions</li>
                           </ul>
                         </div>
                         <div>
