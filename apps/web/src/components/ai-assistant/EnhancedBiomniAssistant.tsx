@@ -134,7 +134,7 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
   }, [messages]);
 
   // Simulate AI processing with realistic delays and confidence scores
-  const simulateAIProcessing = async (query: string, scenario?: string) => {
+  const simulateAIProcessing = async (query: string, scenario?: string | null) => {
     setProcessingSpeed(0);
     const interval = setInterval(() => {
       setProcessingSpeed(prev => {
@@ -154,7 +154,7 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
     setProcessingSpeed(100);
   };
 
-  const generateDemoResponse = async (query: string, scenario?: string): Promise<Message> => {
+  const generateDemoResponse = async (query: string, scenario?: string | null): Promise<Message> => {
     const lowerQuery = query.toLowerCase();
     
     // PCR Protocol Response
