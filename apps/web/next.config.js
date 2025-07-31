@@ -1,15 +1,42 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable SWC completely
-  swcMinify: false,
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
-  
   // Performance optimizations
   experimental: {
     optimizeCss: true,
     optimizePackageImports: ['@heroui/react', 'lucide-react', 'framer-motion'],
+  },
+  
+  // Webpack configuration to handle modern JavaScript features
+  webpack: (config, { isServer }) => {
+    // Ignore sibling applications during build
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: [
+        '**/node_modules/**',
+        '../api/**',
+        '../mobile/**',
+        '../../backend/**',
+        '../../apps/api/**',
+        '../../apps/mobile/**'
+      ]
+    };
+    
+    // Optimize chunk splitting
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+    
+    // SVG optimization
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack'],
+    });
+    
+    return config;
   },
   
   // Webpack optimization for monorepo
