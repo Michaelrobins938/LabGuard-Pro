@@ -62,7 +62,7 @@ export function CheckoutForm({ plan, isYearly, isDemoMode = false }: CheckoutFor
 
     try {
       // Confirm payment
-      const { error, paymentIntent } = await stripe.confirmPayment({
+      const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
           return_url: `${window.location.origin}/checkout/success`,
@@ -79,13 +79,13 @@ export function CheckoutForm({ plan, isYearly, isDemoMode = false }: CheckoutFor
         }
       })
 
-      if (error) {
-        console.error('Payment error:', error)
-        toast.error(error.message || 'Payment failed')
+      if (result.error) {
+        console.error('Payment error:', result.error)
+        toast.error(result.error.message || 'Payment failed')
         return
       }
 
-      if (paymentIntent.status === 'succeeded') {
+      if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
         toast.success('Payment successful!')
         router.push('/checkout/success')
       }
