@@ -17,7 +17,8 @@ import {
   FileText,
   Download,
   ExternalLink,
-  ArrowRight
+  ArrowRight,
+  TrendingUp
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
