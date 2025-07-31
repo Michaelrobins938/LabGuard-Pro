@@ -1,0 +1,30 @@
+{
+  "name": "labguard-cli",
+  "version": "1.0.0",
+  "description": "LabGuard-Pro CLI for equipment calibration validation",
+  "main": "labguard.js",
+  "bin": {
+    "labguard": "./labguard.js"
+  },
+  "scripts": {
+    "start": "node labguard.js",
+    "test": "node test-runner.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "commander": "^11.0.0",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "lab",
+    "compliance",
+    "calibration",
+    "audit",
+    "equipment"
+  ],
+  "author": "LabGuard-Pro Team",
+  "license": "MIT"
+} 

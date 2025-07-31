@@ -1,0 +1,115 @@
+name: "calibration-audit"
+version: "1.0.0"
+description: "Equipment calibration validation agent for lab compliance"
+
+inputs:
+  device:
+    type: "string"
+    description: "Name of the equipment device"
+    required: true
+  last_calibrated:
+    type: "string"
+    description: "Last calibration date in ISO format (YYYY-MM-DD)"
+    required: true
+  tolerance:
+    type: "number"
+    description: "Tolerance period in days"
+    required: true
+    default: 30
+
+outputs:
+  status:
+    type: "string"
+    description: "PASS or FAIL based on calibration status"
+  days_overdue:
+    type: "number"
+    description: "Number of days since last calibration"
+  recommendation:
+    type: "string"
+    description: "Recommendation for recalibration"
+
+logic:
+  - step: "parse_date"
+    action: "parse_iso_date"
+    input: "${last_calibrated}"
+    output: "parsed_date"
+
+  - step: "calculate_days"
+    action: "calculate_days_since"
+    input: 
+      date: "${parsed_date}"
+      reference: "today"
+    output: "days_since_calibration"
+
+  - step: "evaluate_status"
+    action: "conditional"
+    conditions:
+      - if: "${days_since_calibration} > ${tolerance}"
+        then:
+          status: "FAIL"
+          days_overdue: "${days_since_calibration}"
+          recommendation: "Recalibrate"
+      - else:
+          status: "PASS"
+          days_overdue: "${days_since_calibration}"
+          recommendation: "Up to date"
+
+  - step: "format_output"
+    action: "format_result"
+    input:
+      device: "${device}"
+      status: "${status}"
+      days_overdue: "${days_overdue}"
+      recommendation: "${recommendation}"
+    output: "result"
+
+functions:
+  parse_iso_date:
+    description: "Parse ISO date string to Date object"
+    implementation: |
+      function parseIsoDate(dateString) {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          throw new Error(`Invalid date format: ${dateString}`);
+        }
+        return date;
+      }
+
+  calculate_days_since:
+    description: "Calculate days since a given date"
+    implementation: |
+      function calculateDaysSince(date, referenceDate = new Date()) {
+        const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+        const diffTime = Math.abs(referenceDate - date);
+        return Math.ceil(diffTime / oneDay);
+      }
+
+  conditional:
+    description: "Evaluate conditions and return appropriate values"
+    implementation: |
+      function evaluateCondition(conditions, context) {
+        for (const condition of conditions) {
+          if (condition.if && evaluateExpression(condition.if, context)) {
+            return condition.then;
+          } else if (condition.else) {
+            return condition.else;
+          }
+        }
+        return {};
+      }
+
+  format_result:
+    description: "Format the final result with device information"
+    implementation: |
+      function formatResult(data) {
+        return {
+          device: data.device,
+          status: data.status,
+          days_overdue: data.days_overdue,
+          recommendation: data.recommendation,
+          timestamp: new Date().toISOString(),
+          message: data.status === 'PASS' 
+            ? `${data.device} was calibrated ${data.days_overdue} days ago. Within tolerance.`
+            : `${data.device} was calibrated ${data.days_overdue} days ago. Tolerance is ${data.tolerance}. Recommend recalibration.`
+        };
+      } 

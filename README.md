@@ -23,6 +23,13 @@ A comprehensive laboratory management system with AI-powered compliance validati
   - Predictive maintenance insights
   - Natural language report generation
 
+- **🧪 Equipment Calibration Audit System**
+  - YAML-defined agents for equipment validation
+  - CLI interface for automated audits
+  - React-based UI for lab staff
+  - Comprehensive testing framework
+  - Audit logging and compliance tracking
+
 ## Prerequisites
 
 - Node.js 18+ 
@@ -104,25 +111,156 @@ npm run dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## Production Deployment
+## 🧪 Equipment Calibration Audit System
 
-### Vercel Deployment
+### How to Run a Calibration Audit
 
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+#### CLI Interface
+The LabGuard-Pro CLI provides a command-line interface for equipment calibration validation:
 
-### Docker Deployment
-
-1. Build the Docker image:
 ```bash
-docker build -t labguard-pro .
+# Basic usage
+node cli/labguard.js check-calibration --device "Microscope" --last "2025-01-15" --tolerance 30
+
+# Examples
+node cli/labguard.js check-calibration --device "Incubator" --last "2024-11-01" --tolerance 30
+node cli/labguard.js check-calibration --device "PCR Machine" --last "2024-10-01" --tolerance 7
+
+# Help
+node cli/labguard.js --help
 ```
 
-2. Run with environment variables:
-```bash
-docker run -p 3000:3000 --env-file .env.local labguard-pro
+**Output Examples:**
 ```
+✅ PASS: Microscope was calibrated 16 days ago. Within tolerance.
+
+⚠️ FAIL: Incubator was calibrated 91 days ago. Tolerance is 30. Recommend recalibration.
+```
+
+#### Web Interface
+Access the calibration audit interface at `/audit` in your browser:
+
+1. Navigate to `http://localhost:3000/audit`
+2. Enter equipment details:
+   - **Device Name**: Equipment identifier
+   - **Last Calibration Date**: Date in YYYY-MM-DD format
+   - **Tolerance Period**: Maximum days between calibrations
+3. Click "Run Audit" to validate compliance
+4. View results with PASS/FAIL status and recommendations
+
+### How to Add a New Agent
+
+1. Create a new YAML file in `/agents/`:
+```yaml
+name: "your-agent-name"
+version: "1.0.0"
+description: "Your agent description"
+
+inputs:
+  # Define your inputs here
+
+outputs:
+  # Define your outputs here
+
+logic:
+  # Define your logic steps here
+
+functions:
+  # Define your custom functions here
+```
+
+2. Update the CLI to support your new agent:
+   - Add command parsing in `cli/labguard.js`
+   - Implement agent logic execution
+   - Add help documentation
+
+3. Create test cases in `/tests/`:
+   - Add JSON test files for validation
+   - Include edge cases and error scenarios
+
+### Testing Agent Logic
+
+Run the comprehensive test suite:
+
+```bash
+# Run all tests
+node tests/test-runner.js
+
+# Expected output:
+# 🚀 Starting LabGuard-Pro Test Suite
+# =====================================
+# 
+# 📋 Test Suite: calibration-audit
+#    Description: Test cases for equipment calibration validation agent
+#    Version: 1.0.0
+#    Total Tests: 6
+# 
+# 🧪 Running test: recently_calibrated_pass
+#    Description: Device calibrated recently - should PASS
+#    Input: {"device":"Microscope","last_calibrated":"2025-01-15","tolerance":30}
+#    ✅ PASS
+#    Result: Microscope was calibrated 16 days ago. Within tolerance.
+# 
+# 📊 Test Results Summary
+# ========================
+#    Total: 6
+#    ✅ Passed: 6
+#    ❌ Failed: 0
+#    💥 Errors: 0
+#    📈 Success Rate: 100.0%
+```
+
+### Deploying with Vercel
+
+1. **Environment Variables**: Ensure all required environment variables are set in Vercel dashboard
+
+2. **Build Configuration**: The system automatically detects and builds the calibration audit components
+
+3. **API Routes**: The `/api/audit/run` endpoint is automatically deployed
+
+4. **Static Assets**: All UI components and test files are included in the build
+
+5. **CLI Tools**: For production deployment, consider containerizing the CLI tools or using serverless functions
+
+### System Architecture
+
+```
+LabGuard-Pro/
+├── agents/
+│   └── calibration-audit.yaml          # YAML agent definition
+├── cli/
+│   ├── labguard.js                     # CLI wrapper
+│   └── package.json                    # CLI dependencies
+├── logs/
+│   └── audit-results.json              # Audit log storage
+├── tests/
+│   ├── calibration-tests.json          # Test cases
+│   └── test-runner.js                  # Test execution
+├── src/app/
+│   ├── audit/
+│   │   └── page.tsx                    # React UI
+│   └── api/audit/run/
+│       └── route.ts                    # API endpoint
+└── vendor/
+    ├── nerve/                          # Nerve framework
+    ├── mcp-cli-host/                   # MCP CLI host
+    └── tester-mcp-client/              # Testing framework
+```
+
+### Compliance Features
+
+- **Automated Validation**: YAML-defined rules for equipment compliance
+- **Audit Logging**: All audit results are logged with timestamps
+- **Multi-format Output**: CLI and web interfaces for different use cases
+- **Test Coverage**: Comprehensive test suite for validation accuracy
+- **Non-technical Interface**: User-friendly forms for lab staff
+
+### Integration Points
+
+- **Database**: Audit results can be stored in PostgreSQL
+- **Notifications**: Failed audits can trigger email alerts
+- **Reporting**: Generate compliance reports from audit logs
+- **API**: RESTful endpoints for external system integration
 
 ## Authentication System
 

@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Disable SWC completely
+  swcMinify: false,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
   // Performance optimizations
   experimental: {
     optimizeCss: true,
@@ -99,11 +105,4 @@ const nextConfig = {
   },
 }
 
-module.exports = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-} 
+module.exports = nextConfig 

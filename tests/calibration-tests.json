@@ -1,0 +1,148 @@
+{
+  "testSuite": "calibration-audit",
+  "description": "Test cases for equipment calibration validation agent",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "name": "recently_calibrated_pass",
+      "description": "Device calibrated recently - should PASS",
+      "input": {
+        "device": "Microscope",
+        "last_calibrated": "2025-01-15",
+        "tolerance": 30
+      },
+      "expected": {
+        "status": "PASS",
+        "recommendation": "Up to date",
+        "days_overdue": {
+          "type": "number",
+          "min": 0,
+          "max": 30
+        }
+      },
+      "metadata": {
+        "category": "pass_case",
+        "priority": "high"
+      }
+    },
+    {
+      "name": "overdue_calibration_fail",
+      "description": "Device calibrated outside tolerance - should FAIL",
+      "input": {
+        "device": "Incubator",
+        "last_calibrated": "2024-11-01",
+        "tolerance": 30
+      },
+      "expected": {
+        "status": "FAIL",
+        "recommendation": "Recalibrate",
+        "days_overdue": {
+          "type": "number",
+          "min": 60,
+          "max": 120
+        }
+      },
+      "metadata": {
+        "category": "fail_case",
+        "priority": "high"
+      }
+    },
+    {
+      "name": "exact_threshold_edge_case",
+      "description": "Device calibrated exactly on threshold - edge case",
+      "input": {
+        "device": "Centrifuge",
+        "last_calibrated": "2024-12-01",
+        "tolerance": 30
+      },
+      "expected": {
+        "status": "PASS",
+        "recommendation": "Up to date",
+        "days_overdue": {
+          "type": "number",
+          "value": 30
+        }
+      },
+      "metadata": {
+        "category": "edge_case",
+        "priority": "medium"
+      }
+    },
+    {
+      "name": "high_tolerance_pass",
+      "description": "Device with high tolerance - should PASS",
+      "input": {
+        "device": "Autoclave",
+        "last_calibrated": "2024-12-15",
+        "tolerance": 90
+      },
+      "expected": {
+        "status": "PASS",
+        "recommendation": "Up to date",
+        "days_overdue": {
+          "type": "number",
+          "min": 15,
+          "max": 45
+        }
+      },
+      "metadata": {
+        "category": "pass_case",
+        "priority": "medium"
+      }
+    },
+    {
+      "name": "critical_equipment_fail",
+      "description": "Critical equipment overdue - should FAIL",
+      "input": {
+        "device": "PCR Machine",
+        "last_calibrated": "2024-10-01",
+        "tolerance": 7
+      },
+      "expected": {
+        "status": "FAIL",
+        "recommendation": "Recalibrate",
+        "days_overdue": {
+          "type": "number",
+          "min": 90,
+          "max": 120
+        }
+      },
+      "metadata": {
+        "category": "fail_case",
+        "priority": "critical"
+      }
+    },
+    {
+      "name": "today_calibration_pass",
+      "description": "Device calibrated today - should PASS",
+      "input": {
+        "device": "pH Meter",
+        "last_calibrated": "2025-01-31",
+        "tolerance": 30
+      },
+      "expected": {
+        "status": "PASS",
+        "recommendation": "Up to date",
+        "days_overdue": {
+          "type": "number",
+          "value": 0
+        }
+      },
+      "metadata": {
+        "category": "pass_case",
+        "priority": "low"
+      }
+    }
+  ],
+  "config": {
+    "timeout": 5000,
+    "retries": 2,
+    "parallel": false
+  },
+  "hooks": {
+    "beforeAll": "setup_test_environment",
+    "afterAll": "cleanup_test_environment",
+    "beforeEach": "reset_test_state",
+    "afterEach": "log_test_result"
+  }
+} 
