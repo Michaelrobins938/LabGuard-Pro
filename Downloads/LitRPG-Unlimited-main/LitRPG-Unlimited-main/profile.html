@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background: url('https://lh3.googleusercontent.com/pw/AP1GczPiuqVE9FOPc3OYmj9-q32kwhfUe10Q4LcoYlpsQXlIlO243pfz_w0Lx30tP9d-GznkcrRRCsvA2Xut5zMVg00aIOSfclUlKyzrbkWZKYV8qtQKwxHF=w2400?source=screenshot.guru') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 1rem;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .content {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .dashboard {
+            padding: 2rem 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 10px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .dashboard h2 {
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background-color: #ff4500;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: darkorange;
+        }
+
+        .initial-prompt {
+            display: block;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .initial-prompt h2 {
+            margin-bottom: 1rem;
+        }
+
+        .character-carousel {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 60%;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            perspective: 1500px;
+        }
+
+        .carousel {
+            display: flex;
+            transition: transform 0.5s ease;
+            transform-style: preserve-3d;
+        }
+
+        .carousel img {
+            width: auto;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+            margin: 0 15px;
+            transition: transform 0.5s ease, border 0.3s ease;
+            transform-origin: center center -300px;
+            object-fit: contain;
+        }
+
+        .carousel img.selected {
+            border: 2px solid #ff4500;
+        }
+
+        .carousel-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .carousel-buttons button {
+            background-color: #ff4500;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .carousel-buttons button:hover {
+            background-color: darkorange;
+        }
+
+        .model-selection {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 60%;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s;
+        }
+
+        .model-selection img {
+            max-width: 100%;
+            max-height: 150px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .model-selection img:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-page {
+            display: none;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            margin-top: 2rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+        }
+
+        .profile-header img {
+            width: 100px;
+            height: 100px;
+            border-radius: 10px;
+        }
+
+        .profile-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        .profile-details img {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .profile-details h3 {
+            margin: 1rem 0;
+        }
+
+        .profile-attributes, .profile-skills {
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .profile-attributes div, .profile-skills div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .skill-icons img {
+            width: 50px;
+            height: 50px;
+            margin-right: 1rem;
+            border-radius: 5px;
+            transition: transform 0.3s;
+        }
+
+        .skill-icons img:hover {
+            transform: scale(1.1);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            margin-right: 1rem;
+            border-radius: 10px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 69, 0, 0.7);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .sidebar ul li:hover {
+            background: rgba(255, 69, 0, 1);
+        }
+
+        .level-exp {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .level-exp div {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .level-exp div span {
+            flex: 1;
+        }
+
+        .exp-bar {
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            width: 100%;
+            height: 20px;
+            margin-left: 1rem;
+        }
+
+        .exp-bar div {
+            height: 100%;
+            background-color: #ff4500;
+        }
+
+        .quiz-modal, .companion-modal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .quiz-content, .companion-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .companion-options img {
+            cursor: pointer;
+            margin: 0.5rem;
+            max-width: 100px;
+            transition: transform 0.3s;
+        }
+
+        .companion-options img:hover {
+            transform: scale(1.1);
+        }
+
+        footer {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            bottom: 0;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .social-icons a {
+            margin: 0 0.5rem;
+            color: white;
+            font-size: 1.5rem;
+            transition: color 0.3s;
+        }
+
+        .social-icons a:hover {
+            color: #ff4500;
+        }
+
+        .footer-links {
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: white;
+            margin: 0 0.5rem;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #ff4500;
+        }
+
+        /* Add media queries for responsiveness */
+        @media (max-width: 768px) {
+            .dashboard, .profile-page {
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .profile-header img {
+                width: 80px;
+                height: 80px;
+            }
+
+            .profile-details img {
+                max-width: 200px;
+            }
+
+            .sidebar {
+                width: 100%;
+                margin: 1rem 0;
+            }
+
+            .sidebar ul {
+                flex-direction: column;
+            }
+
+            .carousel-buttons button {
+                width: 30%;
+            }
+
+            .model-selection img {
+                max-height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="animate-header">
+        <h1>LitRPG Unlimited</h1>
+        <nav id="navbar" aria-label="Main navigation">
+            <ul>
+                <li><a href="index.html" aria-label="Home Page">Home</a></li>
+                <li><a href="subscription.html" aria-label="Subscription Plans">Subscription Plans</a></li>
+                <li><a href="about.html" aria-label="About Us Page">About Us</a></li>
+                <li><a href="contact.html" aria-label="Contact Us Page">Contact Us</a></li>
+                <li><a href="library.html" aria-label="Library Page">Library</a></li>
+                <li><a href="new-releases.html" aria-label="New Releases Page">New Releases</a></li>
+                <li><a href="music.html" aria-label="Music Page">Music</a></li>
+                <li><a href="testimonials.html" aria-label="Testimonials Page">Testimonials</a></li>
+                <li><a href="forum.html" aria-label="Forum Page">Forum</a></li>
+                <li><a href="profile.html" aria-label="Profile Page">Profile</a></li>
+                <li><a href="login.html" aria-label="Login Page">Login</a></li>
+                <li><a href="register.html" aria-label="Register Page">Register</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="#" class="social-icon" aria-label="Facebook Page"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" aria-label="Twitter Page"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" aria-label="Instagram Page"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon" aria-label="LinkedIn Page"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="content">
+        <div class="initial-prompt">
+            <h2>Welcome to LitRPG Unlimited</h2>
+            <p>Let's get started by creating your character profile.</p>
+            <button class="btn-primary" id="startProfileCreation">Let's Go</button>
+        </div>
+
+        <div class="character-carousel">
+            <div class="carousel-container">
+                <div class="carousel">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczN0Jwjzsm6piEBS82pbiaHienYVYNvjTKAT5LbNRCtc7AHmsAOlA19hCDJxG0kbUF9GUJFdslubDjfTu8t4Brb9BaistvG9s2OQHw2UHKgvZXXCKbKY=w600-h315-p-k" alt="Lunar Knight" data-character="lunar-knight" class="selected">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczMzP1iSTHEP-_0VxkZ-_2cAG_rReo0JJwwdGbX0eQqDxxwOW93K7_eUE8a6eBOfiaT2DRXGCRsO5OraIiXub7U-s6LxUAZSVOzTns2dRfUaUpaR5Xu4=w600-h315-p-k" alt="Kitsune" data-character="kitsune">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczMt91vgT2sxAnn77QtolQa_2rhP0waQ60wG70diz4lf7diA9W_87-GzUJs8scocyxaRGawcFS7GXx4yTrkh8stNQk91gdkU9LYpz1doQgKkJjkspzlD=w600-h315-p-k" alt="Luminian" data-character="luminian">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczOo9maIhiLzKtcAgNtcqnO3R_doK5_WFBH2J0vTrMdXtjNgXrMqV2XzG5-2jLCfPF7FDgtTBTDH5tFHxWir8rvn7q_VxHocj9xBxPazFbRFytS9bP5t=w600-h315-p-k" alt="Necromancer" data-character="necromancer">
+                </div>
+            </div>
+            <div class="carousel-buttons">
+                <button id="prevCharacter">Back</button>
+                <button id="selectCharacter">Select</button>
+                <button id="nextCharacter">Next</button>
+            </div>
+        </div>
+
+        <div class="model-selection">
+            <h2>Select Model</h2>
+            <button class="btn-primary" id="backToCharacterSelection">Back</button>
+            <div class="model-options">
+                <!-- Lunar Knight Models -->
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczMuYxyiZq9U1VJmSWGzP0yGlzDz6cmKZAhcVpbllyhzSyCQjuKL73qusc5AXKqUx8_2BFJKL6U7hTg1mmhQaOHbAtlMm4CcixqnnWKsGiBR9Wj-xTcL=w512-h315-p-k" alt="Lunar Knight Male" data-model="lunar-knight-male" class="model-option lunar-knight">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczMVvvIIB2R61ocs-bYKtG3yr233v6xQVMdRMEwIx-9V9Zoyr96nHgSL1o7BHGEyCGK7syALxEatLL1Z4CWjdpSR7mvEefBvjbhh4cPzy5A3_Yr-t5aQ=w512-h315-p-k" alt="Lunar Knight Female" data-model="lunar-knight-female" class="model-option lunar-knight">
+
+                <!-- Kitsune Models -->
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczOitgPxy4wp-mTrGHCcBY2RRG74j7qvxjkCGl32DTmaeo03sAYhv1JOXsO8MrFpVxY5OJDuG2g0zN667bWO0uwim8ENuLNe8v5-BJsBx8nCAiR8xzNd=w512-h315-p-k" alt="Kitsune Male" data-model="kitsune-male" class="model-option kitsune">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczPZdDLO_GaAUIC-E6XWP4QtWSPimMwXkOkop2_GvkZpUSgJnASdBfaMUsLlguH8m1aRTTNBJVL7xLgJ8ZIausm7_g-HoP4tFyRVkQVtxyYwYI-4rP49=w512-h315-p-k" alt="Kitsune Female" data-model="kitsune-female" class="model-option kitsune">
+
+                <!-- Luminian Models -->
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczPkwgl-mMOZS7W7Bf4SDvMCircpcdSfDqwz9eb3JmV5muRYjslHiJTXDK3Q0X-o2xvRRrUSDJZvkHaSlyTLlzvUa_A93WDYQDQxqs_cC_CcfLARjOsL=w512-h315-p-k" alt="Luminian Male" data-model="luminian-male" class="model-option luminian">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczOoL2ZCoqNEshtjYBViKkLXeCu8PTrbSgDJa_VM-2BoWBukdW4vCuh_6a6mmhjdck0kdVBt02UA6avHHR-A3pRtM_sEQ0UabrXnetJGpseKhDUEpa03=w512-h315-p-k" alt="Luminian Female" data-model="luminian-female" class="model-option luminian">
+
+                <!-- Necromancer Models -->
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczNxQap7_wm7M7USKn9fIZ5wRyT-7HcfTVXAsA-5BTC-oQf8Mk0haRc7WuzyEeDveLer9-ERnEoDTH7BA9mlrk9ItjOtXSED0tdgYc-LyQr_K1Hi6b7l=w512-h315-p-k" alt="Necromancer Male" data-model="necromancer-male" class="model-option necromancer">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczOqfA3K40QpDf4FuYuyzTmqx2rpNvrtRWoPqRSrj0DyQ0Tk_QOmd14fTxPzwGjTIus8i8eF2QVolBhV1k7JrufQSWAPFVesAqUx7hU2UseFwq2ME9f1=w512-h315-p-k" alt="Necromancer Female" data-model="necromancer-female" class="model-option necromancer">
+            </div>
+        </div>
+
+        <div class="dashboard profile-page" id="profilePage">
+            <div class="profile-header">
+                <div>
+                    <img id="profileAvatar" src="https://lh3.googleusercontent.com/pw/AP1GczMwAdZW6TeAwG_xYq8nrM_IgLBUlfXbY_vTgcBohq3YZTVD1pThDmxBZsR4XjDt4z2Kbpmxoeuu3R9o78q5XpCEuSLw4UKa3Dsfb3KMKEK69_FSPFTN=w2400" alt="Profile Avatar">
+                    <h3 id="profileUsername">TestUsername95</h3>
+                </div>
+                <div class="profile-attributes">
+                    <div><span></span><span id="">0</span></div>
+                    <div><span></span><span id="">0</span></div>
+                    <div><span></span><span id="">0</span></div>
+                    <div><span></span><span id="">0</span></div>
+                </div>
+            </div>
+            <div class="profile-details">
+                <img id="characterImage" src="https://lh3.googleusercontent.com/pw/AP1GczPhB9upXI_jhe_PKokqb1kvK_p5jvMbhQLazOWb_7iNeDpftc5NYXldJljf3OVaLRUTa2Kj89GTPGdDb0KBt7O2_rfiktBmRjiP_RySVfW92se8HEc=w600-h315-p-k" alt="Character Image">
+                <div class="level-exp">
+                    <h3>Level and EXP</h3>
+                    <div><span>Level:</span><span id="level">1</span></div>
+                    <div class="exp-bar"><div id="exp" style="width: 0%;"></div></div>
+                </div>
+                <div class="profile-skills skill-icons">
+                    <h3>Skills</h3>
+                    <div id="skillsContainer">
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczOltgpjpTUQX7GVVCZnwLWuOHopgoCwB3MiPyOcAyAnvWvzcpM9HVXSgHV-v-OTqVn6yjfrzbG9TTIG8w_k90De8B7W8Vb5fuxOuK1lIL1qGwvO7YOA=w2400" alt="Skill 1">
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczPMoaZ8o9ti--bmeCyWXAWV1LD43vlX8aYC5_X9YApGRTdLxGZHZNa1mhmslMxYI_ibC1CBy-MxD8uZzOTfvKLEgvThU6cj7LRJuKjwlQVZWwFZeT14=w2400" alt="Skill 2">
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczMuPaUaOuZd0H_LWV4j0TlYIXq8UNGK0mwuO3pcHCqeC7jCmR8MoRlgcGlC6JVDFzbk-PDPHtFGFmSGNl6J1mdF2lDRBWiJ9YF-L3E1xsI7U4AKG3_m=w2400"> <img src="https://lh3.googleusercontent.com/pw/AP1GczMcSayT3JeSLc72tPGkRIr-a5xPdo5nVxhvdviyk6EG5nrWWLz72ppLRbbWEWwzP3iN6U8bv35uDUzaVn_lkW9YQK0cJ0D3biV27u5tVpJqY8zGiP2E=w600-h315-p-k" /> </a>"
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczP923EG5rW83ee2gwde7z8KGq7sawcL0NYd80JX4Mk66rTFzJn1AXHeFD0rdfQHGoVaDSbjHVKRJoYc-3mY_XpMLHmKVUvf4htiij5NfPMaENY22jWl=w2400" alt="Skill 4">
+                    </div>
+                </div>
+                <div class="alignment-section" id="alignmentSection" style="display: none;">
+                    <h3>Alignment</h3>
+                    <p id="alignment">None</p>
+                </div>
+                <div class="companion-section" id="companionSection" style="display: none;">
+                    <h3>Companion</h3>
+                    <p id="companion">None</p>
+                </div>
+                <button class="btn-primary" id="takeQuizButton">Take Alignment Quiz</button>
+            </div>
+            <div class="sidebar">
+                <ul>
+                    <li>Alignment</li>
+                    <li>Companion</li>
+                    <li>Guild</li>
+                    <li>Achievements</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon" aria-label="Facebook Page"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" aria-label="Twitter Page"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" aria-label="Instagram Page"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon" aria-label="LinkedIn Page"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <audio id="background-music" autoplay loop>
+        <source src="background-music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        document.getElementById('startProfileCreation').addEventListener('click', function() {
+            console.log('Profile creation started');
+            document.querySelector('.initial-prompt').style.display = 'none';
+            document.querySelector('.character-carousel').style.display = 'block';
+        });
+
+        let currentIndex = 0;
+        const images = document.querySelectorAll('.carousel img');
+        const carousel = document.querySelector('.carousel');
+        let selectedCharacter = '';
+
+        document.getElementById('prevCharacter').addEventListener('click', function() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                console.log('Previous character selected:', currentIndex);
+                updateCarousel();
+            }
+        });
+
+        document.getElementById('nextCharacter').addEventListener('click', function() {
+            if (currentIndex < images.length - 1) {
+                currentIndex++;
+                console.log('Next character selected:', currentIndex);
+                updateCarousel();
+            }
+        });
+
+        document.getElementById('selectCharacter').addEventListener('click', function() {
+            selectedCharacter = images[currentIndex].dataset.character;
+            console.log('Character selected:', selectedCharacter);
+            document.querySelector('.character-carousel').style.display = 'none';
+            showModelSelection(selectedCharacter);
+        });
+
+        document.getElementById('backToCharacterSelection').addEventListener('click', function() {
+            console.log('Back to character selection');
+            document.querySelector('.model-selection').style.display = 'none';
+            document.querySelector('.character-carousel').style.display = 'block';
+        });
+
+        document.querySelectorAll('.model-option').forEach(function(model) {
+            model.addEventListener('click', function() {
+                const selectedModel = this.dataset.model;
+                console.log('Model selected:', selectedModel);
+                document.querySelector('.model-selection').style.display = 'none';
+                document.getElementById('profilePage').style.display = 'flex';
+                document.getElementById('characterImage').src = this.src;
+                updateProfileDetails(selectedCharacter, selectedModel);
+            });
+        });
+
+        function updateCarousel() {
+            const offset = -currentIndex * 100;
+            carousel.style.transform = `translateX(${offset}%)`;
+            images.forEach((img, index) => {
+                img.classList.toggle('selected', index === currentIndex);
+            });
+            console.log('Carousel updated:', currentIndex);
+        }
+
+        function showModelSelection(character) {
+            document.querySelectorAll('.model-option').forEach(function(model) {
+                model.style.display = model.classList.contains(character) ? 'inline-block' : 'none';
+            });
+            document.querySelector('.model-selection').style.display = 'block';
+            console.log('Model selection shown for:', character);
+        }
+
+        function updateProfileDetails(character, model) {
+            const attributes = {
+                'lunar-knight': { durable: 7, nuker: 5, disabler: 3, difficulty: 4 },
+                'kitsune': { durable: 4, nuker: 8, disabler: 6, difficulty: 5 },
+                'luminian': { durable: 5, nuker: 4, disabler: 7, difficulty: 3 },
+                'necromancer': { durable: 3, nuker: 6, disabler: 8, difficulty: 5 }
+            };
+
+            const selectedAttributes = attributes[character] || { durable: 0, nuker: 0, disabler: 0, difficulty: 0 };
+
+            document.getElementById('durable').textContent = selectedAttributes.durable;
+            document.getElementById('nuker').textContent = selectedAttributes.nuker;
+            document.getElementById('disabler').textContent = selectedAttributes.disabler;
+            document.getElementById('difficulty').textContent = selectedAttributes.difficulty;
+
+            console.log('Profile details updated for:', character, model);
+            // Add more logic here to update skills or other profile details based on the character and model if necessary.
+        }
+
+        document.getElementById('takeQuizButton').addEventListener('click', function() {
+            console.log('Taking alignment quiz');
+            showQuizModal();
+        });
+
+        function showQuizModal() {
+            const modal = document.createElement('div');
+            modal.classList.add('quiz-modal');
+            modal.innerHTML = `
+                <div class="quiz-content">
+                    <h2>Welcome to the D&D Fantasy Creature Companion Quiz!</h2>
+                    <p>This quiz will help you discover not only your alignment in the D&D universe but also which magical infant creature would be your perfect adventuring companion. Answer the following questions to explore your moral compass and uncover your ideal companion!</p>
+                    <form id="quizForm">
+                        ${generateQuizQuestions()}
+                        <button type="button" id="submitQuiz">Submit</button>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const submitButton = document.getElementById('submitQuiz');
+            submitButton.addEventListener('click', function () {
+                const form = document.getElementById('quizForm');
+                const formData = new FormData(form);
+                const answers = {};
+                formData.forEach((value, key) => {
+                    if (!answers[key]) {
+                        answers[key] = value;
+                    }
+                });
+
+                const results = calculateResults(answers);
+                updateAlignment(results.alignment);
+                document.body.removeChild(modal);
+                showCompanionSelection(results.companions);
+            });
+        }
+
+        function generateQuizQuestions() {
+            const questions = [
+                {
+                    question: "You come across a village being attacked by bandits. You can save the villagers, but doing so means sacrificing your chance to defeat the bandit leader, who has been terrorizing the region. What do you do?",
+                    answers: [
+                        { text: "Save the villagers immediately.", alignment: "Good" },
+                        { text: "Go after the bandit leader to stop future attacks.", alignment: "Lawful" },
+                        { text: "Try to find a way to do both, even if it's risky.", alignment: "Neutral" },
+                        { text: "Protect the most vulnerable and let the others fend for themselves.", alignment: "Chaotic" }
+                    ]
+                },
+                {
+                    question: "A powerful artifact can bring peace to the land, but using it will erase the memories of everyone you know, including you. Do you use it?",
+                    answers: [
+                        { text: "Yes, peace is worth the sacrifice.", alignment: "Good" },
+                        { text: "No, the cost is too high.", alignment: "Lawful" },
+                        { text: "Seek an alternative way to achieve peace.", alignment: "Neutral" },
+                        { text: "Use it, but only if there’s no other option.", alignment: "Chaotic" }
+                    ]
+                },
+                // Add remaining questions here
+            ];
+
+            return questions.map((q, i) => `
+                <div class="quiz-question">
+                    <p>${q.question}</p>
+                    ${q.answers.map(a => `
+                        <label><input type="radio" name="q${i}" value="${a.alignment}"> ${a.text}</label>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function calculateResults(answers) {
+            const alignmentCount = { Good: 0, Lawful: 0, Neutral: 0, Chaotic: 0 };
+
+            for (const key in answers) {
+                if (alignmentCount[answers[key]] !== undefined) {
+                    alignmentCount[answers[key]]++;
+                }
+            }
+
+            const highestAlignment = Object.keys(alignmentCount).reduce((a, b) => alignmentCount[a] > alignmentCount[b] ? a : b);
+
+            const companions = {
+                Good: ["Infant Tressym", "Infant Arcane Retriever", "Infant Displacer Kitten", "Infant Crowlock", "Infant Nightmare Unicorn", "Infant Heartbold", "Infant Sparkling"],
+                Lawful: ["Infant Frost Wyrm", "Infant Sentinel Node", "Infant Savage Venator", "Infant Jungle Chompers", "Infant Red Shadow Dragon", "Infant Sparkling", "Infant Scorch Spider"],
+                Neutral: ["Infant Arcane Retriever", "Infant Displacer Kitten", "Infant Crowlock", "Infant Red Shadow Dragon", "Infant Frost Wyrm", "Infant Sentinel Node"],
+                Chaotic: ["Infant Sprite", "Infant Faerie Dragon", "Infant Pseudodragon", "Infant Devil Raptor", "Infant Cobra Venator", "Infant Heartbold"]
+            };
+
+            return { alignment: highestAlignment, companions: companions[highestAlignment] };
+        }
+
+        function showCompanionSelection(companions) {
+            const modal = document.createElement('div');
+            modal.classList.add('companion-modal');
+            modal.innerHTML = `
+                <div class="companion-content">
+                    <h2>Select a Companion</h2>
+                    <p>Choose a companion to aid you on your journey.</p>
+                    <div class="companion-options">
+                        ${companions.map(c => `<img src="${c.toLowerCase().replace(' ', '-')}.jpg" alt="${c}" data-companion="${c}">`).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.querySelectorAll('.companion-options img').forEach(function (img) {
+                img.addEventListener('click', function () {
+                    const companion = this.dataset.companion;
+                    updateCompanion(companion);
+                    document.body.removeChild(modal);
+                });
+            });
+        }
+
+        function updateAlignment(alignment) {
+            document.getElementById('alignment').textContent = alignment;
+            document.getElementById('alignmentSection').style.display = 'block';
+            console.log('Alignment updated:', alignment);
+        }
+
+        function updateCompanion(companion) {
+            document.getElementById('companion').textContent = companion;
+            document.getElementById('companionSection').style.display = 'block';
+            console.log('Companion updated:', companion);
+        }
+
+        updateCarousel(); // Initialize the carousel selection
+    </script>
+</body>
+</html>

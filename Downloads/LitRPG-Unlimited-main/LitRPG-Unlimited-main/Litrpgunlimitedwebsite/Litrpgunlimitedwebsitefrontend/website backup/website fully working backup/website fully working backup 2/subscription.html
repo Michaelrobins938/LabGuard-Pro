@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        .subscription-container {
+            padding: 2rem 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .subscription-container h2 {
+            margin-bottom: 1rem;
+        }
+
+        .subscription-plans {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .plan {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+            animation: fadeIn 2s;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .plan:hover {
+            background: #ff4500;
+        }
+
+        .plan h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .plan p {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .plan ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 1rem;
+        }
+
+        .plan ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .plan img {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .achievements {
+            margin: 1rem 0;
+            width: 80%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .achievement {
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .achievement:hover {
+            background: #ff4500;
+        }
+    </style>
+</head>
+<body>
+    <header class="animate-header">
+        <h1>Subscription Plans</h1>
+        <nav id="navbar" aria-label="Main navigation">
+            <ul>
+                <li><a href="index (2).html">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="subscription-container animate-section">
+        <h2>Choose Your Plan</h2>
+        <div class="subscription-plans">
+            <div class="plan" data-plan="basic">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczPzH8DmBWrxZqQR0pSWKzE0NDPo71CjZ7_D5jH6u8U9HViieYZi2UQIR6zSIBXqKnaFxMRkkMjI9Xa4ae9pytVmVZKJyivR1JvbK0pcshKUSeStqOyp=w600-h315-p-k" alt="Archer Profile Picture">
+                <h3>Basic Plan</h3>
+                <p>$9.99 / month</p>
+                <ul>
+                    <li>Access to basic features</li>
+                    <li>Limited content</li>
+                </ul>
+                <button class="btn-subscribe">Subscribe</button>
+            </div>
+            <div class="plan" data-plan="premium">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczOS0RToaGN0G1FY_SQ3aE7dcDNTgtUszGL073L-coBcU8C1C8tcp3yzg_JPnQpsF7ZPEL5nht7ExDxa-RBxrr8Pzr3QDEM-_GbJeAjsISqsbpsiJW1E=w600-h315-p-k" alt="Barbarian Profile Picture">
+                <h3>Premium Plan</h3>
+                <p>$19.99 / month</p>
+                <ul>
+                    <li>Access to all features</li>
+                    <li>Unlimited content</li>
+                    <li>Exclusive events</li>
+                </ul>
+                <button class="btn-subscribe">Subscribe</button>
+            </div>
+            <div class="plan" data-plan="elite">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczP4GoxpFdiaf60NhqZp9EF5XfJbalHArfpqBlyt73HDlhRTAj_9OoJu7tx9PSryhiOMblUcl-eI21w-cTyGXD9WVXVKI3epKouxXcZgftM_R_tdgu5O=w600-h315-p-k" alt="Dragoon Profile Picture">
+                <h3>Elite Plan</h3>
+                <p>$29.99 / month</p>
+                <ul>
+                    <li>All premium features</li>
+                    <li>Personalized support</li>
+                    <li>Special gifts</li>
+                </ul>
+                <button class="btn-subscribe">Subscribe</button>
+            </div>
+        </div>
+        <div class="achievements">
+            <h3>Achievements</h3>
+            <div class="achievement">
+                <h4>First Subscriber</h4>
+                <p>Subscribe to any plan.</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" style="width: 0%;"></div>
+                </div>
+            </div>
+            <!-- Add more achievements as needed -->
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const plans = document.querySelectorAll('.plan');
+            const achievements = document.querySelector('.achievements');
+
+            plans.forEach(plan => {
+                plan.addEventListener('click', () => {
+                    const selectedPlan = plan.getAttribute('data-plan');
+                    alert(`Subscribed to ${selectedPlan} Plan!`);
+                    updateAchievements('subscribe');
+                });
+            });
+
+            function updateAchievements(type) {
+                if (type === 'subscribe') {
+                    const achievement = achievements.querySelector('.achievement .progress-bar-inner');
+                    let progress = parseInt(achievement.style.width);
+                    progress += 100;
+                    if (progress > 100) progress = 100;
+                    achievement.style.width = `${progress}%`;
+                }
+                // Add more types as needed
+            }
+        });
+    </script>
+</body>
+</html>

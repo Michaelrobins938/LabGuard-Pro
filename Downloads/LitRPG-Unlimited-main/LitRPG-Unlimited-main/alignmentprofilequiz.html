@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D Fantasy Creature Companion Quiz</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: black;
+            overflow: hidden;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://lh3.googleusercontent.com/pw/AP1GczNjugCUQJntrrmUrksAJm42WPy5zdE3no0mNXQDQOGVgyRxYDZ5a5dbhfpES5mP5dP_K9UbB953AEQP2hxer-_e6lVwj9UckvxLW-tI7CDschqIdk6A=w2400') no-repeat center center;
+            background-size: cover;
+            z-index: 1;
+            opacity: 0.7;
+        }
+        .twinkling {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png');
+            z-index: 2;
+            opacity: 0.5;
+            animation: twinkle 2s infinite alternate;
+        }
+        @keyframes twinkle {
+            0% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 0.7;
+            }
+        }
+        .overlay {
+            background: rgba(0, 0, 0, 0.7);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+        }
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            text-align: center;
+        }
+        .quiz-container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            animation: fade-in 1s;
+        }
+        .hidden {
+            display: none;
+        }
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: orange; }
+        }
+        button {
+            transition: background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="twinkling"></div>
+    <div class="overlay"></div>
+    <div class="container">
+        <div id="intro" class="my-8 text-center quiz-container">
+            <h1 class="text-5xl font-bold mb-4">Welcome to the LitRPG Unlimited Alignment Assessment!</h1>
+            <p class="text-xl mb-4">This quiz will help you discover not only your alignment but also which magical creature will be your new adventuring companion. Answer the following questions to explore your moral compass and uncover your true colors! Good luck, Hero.</p>
+            <button id="startQuiz" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start Quiz</button>
+        </div>
+
+        <div id="quiz" class="hidden quiz-container">
+            <div id="question" class="my-8 text-center">
+                <!-- Question will be dynamically inserted here -->
+            </div>
+            <button id="nextQuestion" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded hidden">Next</button>
+        </div>
+
+        <div id="results" class="hidden my-8 text-center quiz-container">
+            <h2 class="text-4xl font-bold mb-4">Your Results</h2>
+            <p class="text-2xl mb-4" id="alignment"></p>
+            <p class="text-2xl mb-4" id="companion"></p>
+            <div id="companionImage"></div>
+            <button id="restartQuiz" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Restart Quiz</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startButton = document.getElementById('startQuiz');
+            const nextButton = document.getElementById('nextQuestion');
+            const restartButton = document.getElementById('restartQuiz');
+            const introSection = document.getElementById('intro');
+            const quizSection = document.getElementById('quiz');
+            const resultsSection = document.getElementById('results');
+            const questionContainer = document.getElementById('question');
+            const alignmentResult = document.getElementById('alignment');
+            const companionResult = document.getElementById('companion');
+            const companionImage = document.getElementById('companionImage');
+
+            const questions = [
+                {
+                    question: "You come across a village being attacked by bandits. You can save the villagers, but doing so means sacrificing your chance to defeat the bandit leader, who has been terrorizing the region. What do you do?",
+                    answers: [
+                        { text: "Save the villagers immediately.", alignment: "Good" },
+                        { text: "Go after the bandit leader to stop future attacks.", alignment: "Lawful" },
+                        { text: "Try to find a way to do both, even if it's risky.", alignment: "Neutral" },
+                        { text: "Protect the most vulnerable and let the others fend for themselves.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void whispers: Ah, the classic dilemma. Save the day now or think long-term? What kind of hero are you, really?"
+                },
+                {
+                    question: "A powerful artifact can bring peace to the land, but using it will erase the memories of everyone you know, including you. Do you use it?",
+                    answers: [
+                        { text: "Yes, peace is worth the sacrifice.", alignment: "Good" },
+                        { text: "No, the cost is too high.", alignment: "Lawful" },
+                        { text: "Seek an alternative way to achieve peace.", alignment: "Neutral" },
+                        { text: "Use it, but only if there’s no other option.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void chuckles: Peace at the cost of your identity? Sounds like a fair trade... or not. Your call, mortal."
+                },
+                {
+                    question: "You find a treasure chest that belongs to a tyrannical king. Returning it could improve your standing but perpetuate his rule. What do you do?",
+                    answers: [
+                        { text: "Return it to gain favor and try to change the system from within.", alignment: "Lawful" },
+                        { text: "Keep it to fund a rebellion against the king.", alignment: "Chaotic" },
+                        { text: "Distribute the wealth among the needy secretly.", alignment: "Good" },
+                        { text: "Use it for your own purposes, aiming for personal gain.", alignment: "Neutral" }
+                    ],
+                    dialogue: "The void mutters: Ah, money and power. Always a test of true character, isn't it? What's your move?"
+                },
+                {
+                    question: "A friend has committed a serious crime but begs for your help, claiming it was a mistake. Do you assist them?",
+                    answers: [
+                        { text: "Help them and try to find a way to atone for their crime.", alignment: "Good" },
+                        { text: "Turn them in; justice must be served.", alignment: "Lawful" },
+                        { text: "Help them escape and seek justice on your own terms.", alignment: "Chaotic" },
+                        { text: "Confront them and force them to confess.", alignment: "Neutral" }
+                    ],
+                    dialogue: "The void sighs: Loyalty or justice? Or maybe a bit of both? Decisions, decisions."
+                },
+                {
+                    question: "You can gain immense power, but it requires bonding with a dark force that will constantly tempt you towards evil. Do you accept the power?",
+                    answers: [
+                        { text: "Yes, believing you can control the darkness.", alignment: "Chaotic" },
+                        { text: "No, the risk is too great.", alignment: "Good" },
+                        { text: "Seek a way to purify the dark force first.", alignment: "Lawful" },
+                        { text: "Accept it, planning to use the power for good despite the risks.", alignment: "Neutral" }
+                    ],
+                    dialogue: "The void snickers: Ah, the lure of power. Do you really think you can handle it without slipping?"
+                },
+                {
+                    question: "You have the opportunity to learn a forbidden spell that can save many lives but at the cost of your own sanity. Do you learn it?",
+                    answers: [
+                        { text: "Yes, the lives of others are worth the sacrifice.", alignment: "Good" },
+                        { text: "No, the cost is too high.", alignment: "Lawful" },
+                        { text: "Learn it and try to find a way to mitigate the effects.", alignment: "Neutral" },
+                        { text: "Only if it's absolutely necessary.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void whispers: Saving lives at the cost of your mind? What a noble, potentially foolish choice."
+                },
+                {
+                    question: "A prophecy foretells that a child in your village will bring great disaster. Do you intervene?",
+                    answers: [
+                        { text: "Protect the child and try to change their destiny.", alignment: "Good" },
+                        { text: "Ensure the prophecy doesn’t come true, even if it means drastic measures.", alignment: "Lawful" },
+                        { text: "Leave it to fate and focus on the present.", alignment: "Neutral" },
+                        { text: "Warn the child and prepare them for the challenges ahead.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void murmurs: Prophecies and children. Always a delightful combination for moral quandaries. What's your prophecy?"
+                },
+                {
+                    question: "You discover an ancient being that offers you wisdom in exchange for a portion of your life force. Do you accept?",
+                    answers: [
+                        { text: "Yes, knowledge is worth the sacrifice.", alignment: "Lawful" },
+                        { text: "No, your life is too precious.", alignment: "Good" },
+                        { text: "Bargain for a lesser price.", alignment: "Neutral" },
+                        { text: "Accept but plan to find a way to regain your life force later.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void laughs softly: Life force for wisdom. Sounds like a fair trade, if you're into that sort of thing."
+                },
+                {
+                    question: "You are offered a chance to undo a tragic event from your past, but it will change the course of many lives, potentially for the worse. Do you take it?",
+                    answers: [
+                        { text: "Yes, undoing the tragedy is worth any consequence.", alignment: "Good" },
+                        { text: "No, the risks are too high.", alignment: "Lawful" },
+                        { text: "Seek a way to mitigate the negative impacts.", alignment: "Neutral" },
+                        { text: "Only if the positive outcome outweighs the potential harm.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void sighs deeply: Changing the past? Ah, the classic 'butterfly effect'. Are you ready for that chaos?"
+                },
+                {
+                    question: "A rival adventurer offers to join forces, but you know they cannot be fully trusted. Do you accept their help?",
+                    answers: [
+                        { text: "Yes, believing you can handle any betrayal.", alignment: "Chaotic" },
+                        { text: "No, trust is essential.", alignment: "Lawful" },
+                        { text: "Accept, but keep a close watch on them.", alignment: "Neutral" },
+                        { text: "Only if you have no other choice.", alignment: "Good" }
+                    ],
+                    dialogue: "The void chuckles: Trust issues, huh? Can you really afford to be picky?"
+                },
+                {
+                    question: "You can save a loved one’s life by sacrificing an innocent stranger. What do you do?",
+                    answers: [
+                        { text: "Save your loved one; personal bonds matter most.", alignment: "Chaotic" },
+                        { text: "Refuse to sacrifice the innocent; every life is precious.", alignment: "Good" },
+                        { text: "Seek a third option, no matter how difficult.", alignment: "Neutral" },
+                        { text: "Decide based on the greater good.", alignment: "Lawful" }
+                    ],
+                    dialogue: "The void whispers: Sacrifice and love. Tricky terrain, isn't it? What's worth more to you?"
+                },
+                {
+                    question: "A community is suffering due to a lack of resources. You have a surplus but sharing it means your own people might suffer. Do you share?",
+                    answers: [
+                        { text: "Share it; helping others is paramount.", alignment: "Good" },
+                        { text: "Keep it; your duty is to your own community first.", alignment: "Lawful" },
+                        { text: "Share some and look for alternative solutions.", alignment: "Neutral" },
+                        { text: "Share only if the community offers something in return.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void muses: Charity begins at home, or does it? Your generosity or pragmatism will decide."
+                },
+                {
+                    question: "A magical creature is in pain and asks you to end its suffering, but doing so goes against your beliefs. What do you do?",
+                    answers: [
+                        { text: "Respect its wish and end its suffering.", alignment: "Good" },
+                        { text: "Refuse; you cannot take a life.", alignment: "Lawful" },
+                        { text: "Seek a way to alleviate its pain without ending its life.", alignment: "Neutral" },
+                        { text: "Only end its suffering if there's no other option.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void murmurs: Mercy or principles? How far will your beliefs stretch in the face of suffering?"
+                },
+                {
+                    question: "You learn that a respected leader in your community is corrupt. Exposing them will cause chaos but hiding it allows the corruption to continue. What do you do?",
+                    answers: [
+                        { text: "Expose them; truth and justice are most important.", alignment: "Lawful" },
+                        { text: "Keep it hidden for the sake of stability.", alignment: "Neutral" },
+                        { text: "Confront them privately and demand they change.", alignment: "Good" },
+                        { text: "Use the knowledge to gain leverage and enact change.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void sighs: Corruption and chaos. Fun times ahead, no doubt. What's your move, hero?"
+                },
+                {
+                    question: "A powerful enemy offers to make peace if you betray an ally. Do you accept?",
+                    answers: [
+                        { text: "Never betray an ally; loyalty is crucial.", alignment: "Lawful" },
+                        { text: "Accept if it means saving many lives.", alignment: "Good" },
+                        { text: "Seek another way to achieve peace without betrayal.", alignment: "Neutral" },
+                        { text: "Accept, but with plans to undo the betrayal later.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void chuckles: Betrayal for peace. Sounds ironic, doesn't it? How much is your loyalty worth?"
+                },
+                {
+                    question: "You can gain the power to foresee the future, but it will burden you with knowledge of inevitable tragedies. Do you accept this power?",
+                    answers: [
+                        { text: "Yes, to prepare and possibly prevent some tragedies.", alignment: "Good" },
+                        { text: "No, the burden is too great.", alignment: "Lawful" },
+                        { text: "Accept, but use the knowledge selectively.", alignment: "Neutral" },
+                        { text: "Only if you can share the burden with others.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void murmurs: Future knowledge at the cost of peace of mind. Enlightening, or just depressing?"
+                },
+                {
+                    question: "An ancient relic can grant you immortality but will drain the life force of a nearby village. Do you use it?",
+                    answers: [
+                        { text: "No, the cost is too high.", alignment: "Good" },
+                        { text: "Yes, immortality can achieve great good.", alignment: "Lawful" },
+                        { text: "Use it only if there's no other way to achieve your goals.", alignment: "Neutral" },
+                        { text: "Only use it if the village consents.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void sighs: Immortality at the expense of others. What a delightful moral puzzle. Your call."
+                },
+                {
+                    question: "You find out that your mentor has been using dark magic for good deeds. Do you confront them?",
+                    answers: [
+                        { text: "Yes, dark magic is unacceptable.", alignment: "Lawful" },
+                        { text: "No, if the deeds are good, it justifies the means.", alignment: "Chaotic" },
+                        { text: "Confront them and seek a better way to achieve good.", alignment: "Good" },
+                        { text: "Only if their actions start to cause harm.", alignment: "Neutral" }
+                    ],
+                    dialogue: "The void mutters: Dark magic and good deeds. Quite the conundrum. Do ends justify the means for you?"
+                },
+                {
+                    question: "A stranger offers you vast wealth in exchange for a seemingly harmless favor, but you sense something is off. Do you accept?",
+                    answers: [
+                        { text: "No, it's too risky.", alignment: "Good" },
+                        { text: "Yes, wealth can help you achieve much good.", alignment: "Lawful" },
+                        { text: "Accept, but with caution and preparedness for any consequences.", alignment: "Neutral" },
+                        { text: "Only if you can find out more about the stranger's intentions.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void chuckles: Too good to be true? Or just your lucky day? Your instincts better be sharp."
+                },
+                {
+                    question: "You can create a utopia, but it requires erasing free will. Do you proceed?",
+                    answers: [
+                        { text: "No, free will is too important.", alignment: "Good" },
+                        { text: "Yes, a utopia is worth the sacrifice.", alignment: "Lawful" },
+                        { text: "Seek a way to create a better world without erasing free will.", alignment: "Neutral" },
+                        { text: "Only if the majority consents.", alignment: "Chaotic" }
+                    ],
+                    dialogue: "The void whispers: Ah, a perfect world at the cost of freedom. What a tempting offer. What will you choose?"
+                }
+            ];
+
+            const companions = {
+                "Good": [
+                    { name: "Infant Tressym", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczM2c-_sh9r-C61pLiOBKO90LA_7jL5Ke0pnPxt_X8O3jK4LtOvdGskUn17EUvMsVg6RmwDqfsQSzM5cOdx8uaVd3eXIAQp5b9LeQPhuWa9p0hB7Wvet=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczM2c-_sh9r-C61pLiOBKO90LA_7jL5Ke0pnPxt_X8O3jK4LtOvdGskUn17EUvMsVg6RmwDqfsQSzM5cOdx8uaVd3eXIAQp5b9LeQPhuWa9p0hB7Wvet=w600-h315-p-k" /></a>' },
+                    { name: "Infant Arcane Retriever", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczPg0naDmlGQVd5ntQsNvDURxh4bLqMHKXL8agaU16EQHT64aqfHRIDXhgJtKkEiONxIxfQj6RuiADHdYCWhLTfDYk8VX_17ngQNbmQSptKwI8bigTcO=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczPg0naDmlGQVd5ntQsNvDURxh4bLqMHKXL8agaU16EQHT64aqfHRIDXhgJtKkEiONxIxfQj6RuiADHdYCWhLTfDYk8VX_17ngQNbmQSptKwI8bigTcO=w600-h315-p-k" /></a>' },
+                    { name: "Infant Displacer Kitten", img: '' },
+                    { name: "Infant Crowlock", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczNV4abgdgkbt-XgBMOVHGp8KqQGmYtA9FYHlU7fVfZQhLRBR6k5sJoosCBE1jyTF_8ZOfu5tlfi5l8SEqbfb2axQ-mZIlQNd7fL0pV6zvNGVdh54rE1=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczNV4abgdgkbt-XgBMOVHGp8KqQGmYtA9FYHlU7fVfZQhLRBR6k5sJoosCBE1jyTF_8ZOfu5tlfi5l8SEqbfb2axQ-mZIlQNd7fL0pV6zvNGVdh54rE1=w600-h315-p-k" /></a>' },
+                    { name: "Infant Nightmare Unicorn", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczOAkKh6N-Uq27GaviSFhSYLIuoPhaiO2DTD_2oyuG3FLrEwXbVIxpWxxRrLyya-MQgaVSlqCMz0ii4elIgLMHqfdB7tu4nDjhtQnTyu2oe_WBQeBsLM=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczOAkKh6N-Uq27GaviSFhSYLIuoPhaiO2DTD_2oyuG3FLrEwXbVIxpWxxRrLyya-MQgaVSlqCMz0ii4elIgLMHqfdB7tu4nDjhtQnTyu2oe_WBQeBsLM=w600-h315-p-k" /></a>' },
+                    { name: "Infant Heartbold", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczP1LhmSH7xaqSzu0qJ6blxstUbn9QEebAmoQPkRPZ-Qy0kw_hfL2ZsQFzkeFY6zmJL9Y7YULRLPfpOi5Lkf3-o2RmZ56qAoGzBfqMwqpfhkHzxLnhdZ=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczP1LhmSH7xaqSzu0qJ6blxstUbn9QEebAmoQPkRPZ-Qy0kw_hfL2ZsQFzkeFY6zmJL9Y7YULRLPfpOi5Lkf3-o2RmZ56qAoGzBfqMwqpfhkHzxLnhdZ=w600-h315-p-k" /></a>' },
+                    { name: "Infant Sparkling", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczPNUiG848Xf8xP7qQBJOGeuERIHXcZ7EDgW2qXDsMUBoDRyG35T8ikm1UUYvMvMlF3-x09N7d0EJkkLBRg7hv13Vp9oz6SgkFkVqB2IYCE1e7Y080A4=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczPNUiG848Xf8xP7qQBJOGeuERIHXcZ7EDgW2qXDsMUBoDRyG35T8ikm1UUYvMvMlF3-x09N7d0EJkkLBRg7hv13Vp9oz6SgkFkVqB2IYCE1e7Y080A4=w600-h315-p-k" /></a>' }
+                ],
+                "Lawful": [
+                    { name: "Infant Frost Wyrm", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczP9nL2-aoWM1jL2-WY6kF5horFe_6ybFFccwTnoGEbF0VK-U90IkuTfOV4oTwu3vRBJ0QASC_78LLyPT9ee7HgGbIH1dUSKrkdliE2hymu3oOO_BabV=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczP9nL2-aoWM1jL2-WY6kF5horFe_6ybFFccwTnoGEbF0VK-U90IkuTfOV4oTwu3vRBJ0QASC_78LLyPT9ee7HgGbIH1dUSKrkdliE2hymu3oOO_BabV=w600-h315-p-k" /></a>' },
+                    { name: "Infant Sentinel Node", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczNib0nvvckj7ghOfda0JBzurCNrH2Z6zcDHZqPK4NNou0OJZTpOXYWxmPPaCT2v3Yq1z-o0rIYqO2eCmbN04bBqEWmu65COvHqJggjxEbqgMjpUvdtt=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczNib0nvvckj7ghOfda0JBzurCNrH2Z6zcDHZqPK4NNou0OJZTpOXYWxmPPaCT2v3Yq1z-o0rIYqO2eCmbN04bBqEWmu65COvHqJggjxEbqgMjpUvdtt=w600-h315-p-k" /></a>' },
+                    { name: "Infant Savage Venator", img: '' },
+                    { name: "Infant Jungle Chompers", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczOIF0iMgOBk6qtIGAmDfW8SHT5RWoTPL3uz9RDnfHdstjWJvZhLF3YjbmZ29PC-MfOlbPSoMmcifA8kuyvO4rrtgzR0tVyMHDkFd-X8AZZ9kbTwtZRp=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczOIF0iMgOBk6qtIGAmDfW8SHT5RWoTPL3uz9RDnfHdstjWJvZhLF3YjbmZ29PC-MfOlbPSoMmcifA8kuyvO4rrtgzR0tVyMHDkFd-X8AZZ9kbTwtZRp=w600-h315-p-k" /></a>' },
+                    { name: "Infant Red Shadow Dragon", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczOQ9sHlOoRZ4BCyYzKVAH_Nlx5x5dEXjtF-r6uaQ55aS_DLyx1zD2spygLoM9C3_mll606_q4V7O8tyhe7fi8PUJGtY42i-M2hcNDVXX03LLCbtWMOp=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczOQ9sHlOoRZ4BCyYzKVAH_Nlx5x5dEXjtF-r6uaQ55aS_DLyx1zD2spygLoM9C3_mll606_q4V7O8tyhe7fi8PUJGtY42i-M2hcNDVXX03LLCbtWMOp=w600-h315-p-k" /></a>' },
+                    { name: "Infant Sparkling", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczPNUiG848Xf8xP7qQBJOGeuERIHXcZ7EDgW2qXDsMUBoDRyG35T8ikm1UUYvMvMlF3-x09N7d0EJkkLBRg7hv13Vp9oz6SgkFkVqB2IYCE1e7Y080A4=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczPNUiG848Xf8xP7qQBJOGeuERIHXcZ7EDgW2qXDsMUBoDRyG35T8ikm1UUYvMvMlF3-x09N7d0EJkkLBRg7hv13Vp9oz6SgkFkVqB2IYCE1e7Y080A4=w600-h315-p-k" /></a>' },
+                    { name: "Infant Scorch Spider", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczPSY50RnNDdnVlpnHMiRC9aYUxYRpuoIMLduohvPYVM3xs4I4V7dItI7qMwZ5hbNJcIZHl8NxvCozUuYyKrgV750yt05pH43vTPvtsCCGP6nPuWhRhg=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczPSY50RnNDdnVlpnHMiRC9aYUxYRpuoIMLduohvPYVM3xs4I4V7dItI7qMwZ5hbNJcIZHl8NxvCozUuYyKrgV750yt05pH43vTPvtsCCGP6nPuWhRhg=w600-h315-p-k" /></a>' }
+                ],
+                "Neutral": [
+                    { name: "Infant Arcane Retriever", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczPg0naDmlGQVd5ntQsNvDURxh4bLqMHKXL8agaU16EQHT64aqfHRIDXhgJtKkEiONxIxfQj6RuiADHdYCWhLTfDYk8VX_17ngQNbmQSptKwI8bigTcO=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczPg0naDmlGQVd5ntQsNvDURxh4bLqMHKXL8agaU16EQHT64aqfHRIDXhgJtKkEiONxIxfQj6RuiADHdYCWhLTfDYk8VX_17ngQNbmQSptKwI8bigTcO=w600-h315-p-k" /></a>' },
+                    { name: "Infant Displacer Kitten", img: '' },
+                    { name: "Infant Crowlock", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczNV4abgdgkbt-XgBMOVHGp8KqQGmYtA9FYHlU7fVfZQhLRBR6k5sJoosCBE1jyTF_8ZOfu5tlfi5l8SEqbfb2axQ-mZIlQNd7fL0pV6zvNGVdh54rE1=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczNV4abgdgkbt-XgBMOVHGp8KqQGmYtA9FYHlU7fVfZQhLRBR6k5sJoosCBE1jyTF_8ZOfu5tlfi5l8SEqbfb2axQ-mZIlQNd7fL0pV6zvNGVdh54rE1=w600-h315-p-k" /></a>' },
+                    { name: "Infant Red Shadow Dragon", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczOQ9sHlOoRZ4BCyYzKVAH_Nlx5x5dEXjtF-r6uaQ55aS_DLyx1zD2spygLoM9C3_mll606_q4V7O8tyhe7fi8PUJGtY42i-M2hcNDVXX03LLCbtWMOp=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczOQ9sHlOoRZ4BCyYzKVAH_Nlx5x5dEXjtF-r6uaQ55aS_DLyx1zD2spygLoM9C3_mll606_q4V7O8tyhe7fi8PUJGtY42i-M2hcNDVXX03LLCbtWMOp=w600-h315-p-k" /></a>' },
+                    { name: "Infant Frost Wyrm", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczP9nL2-aoWM1jL2-WY6kF5horFe_6ybFFccwTnoGEbF0VK-U90IkuTfOV4oTwu3vRBJ0QASC_78LLyPT9ee7HgGbIH1dUSKrkdliE2hymu3oOO_BabV=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczP9nL2-aoWM1jL2-WY6kF5horFe_6ybFFccwTnoGEbF0VK-U90IkuTfOV4oTwu3vRBJ0QASC_78LLyPT9ee7HgGbIH1dUSKrkdliE2hymu3oOO_BabV=w600-h315-p-k" /></a>' },
+                    { name: "Infant Sentinel Node", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczNib0nvvckj7ghOfda0JBzurCNrH2Z6zcDHZqPK4NNou0OJZTpOXYWxmPPaCT2v3Yq1z-o0rIYqO2eCmbN04bBqEWmu65COvHqJggjxEbqgMjpUvdtt=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczNib0nvvckj7ghOfda0JBzurCNrH2Z6zcDHZqPK4NNou0OJZTpOXYWxmPPaCT2v3Yq1z-o0rIYqO2eCmbN04bBqEWmu65COvHqJggjxEbqgMjpUvdtt=w600-h315-p-k" /></a>' }
+                ],
+                "Chaotic": [
+                    { name: "Infant Sprite", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczNQfhi9uoIYNu17jCJKks125Bih-zidfw8R6zVXu4qEUeea9lwSvctvgaajIbr7f8XCokAo5n3HzTZ5pnbiPTUZU77YDewLMjn2YnqNuATKhNC7KtYt=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczNQfhi9uoIYNu17jCJKks125Bih-zidfw8R6zVXu4qEUeea9lwSvctvgaajIbr7f8XCokAo5n3HzTZ5pnbiPTUZU77YDewLMjn2YnqNuATKhNC7KtYt=w600-h315-p-k" /></a>' },
+                    { name: "Infant Faerie Dragon", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczOT-NlZMIjvIaCZ3bVg--xGQrJ78k2ZdU7Ms9RVFcyJLlyYrPaj0k2MBUNK0gMe_ZCeGRnTwllSoOj09O_f6_drTwwNgQIaFkYWz_noXrmq722cQca2=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczOT-NlZMIjvIaCZ3bVg--xGQrJ78k2ZdU7Ms9RVFcyJLlyYrPaj0k2MBUNK0gMe_ZCeGRnTwllSoOj09O_f6_drTwwNgQIaFkYWz_noXrmq722cQca2=w600-h315-p-k" /></a>' },
+                    { name: "Infant Pseudodragon", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczPuBYBwrR53xVPT1KzxN2CjRZkQuwTEiF-87ppFFui2XAj-sPKeD6o5OUefOYQlKL5IPNkyIbQwvTSoV2nqqdlvYWqO_mkZ6D9bQ3GRXklA0-2647yl=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczPuBYBwrR53xVPT1KzxN2CjRZkQuwTEiF-87ppFFui2XAj-sPKeD6o5OUefOYQlKL5IPNkyIbQwvTSoV2nqqdlvYWqO_mkZ6D9bQ3GRXklA0-2647yl=w600-h315-p-k" /></a>' },
+                    { name: "Infant Devil Raptor", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczOEKk8aHx0M--P3ljPz_PMFjtlTGUpUBwZRI6d8Tlbs4hUDwd29SvyTfwNGz1CondS8dlh0g2-W5ciNhEL1HSJw8g31PkRDjPZYa1hbuOW89B0ggtHk=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczOEKk8aHx0M--P3ljPz_PMFjtlTGUpUBwZRI6d8Tlbs4hUDwd29SvyTfwNGz1CondS8dlh0g2-W5ciNhEL1HSJw8g31PkRDjPZYa1hbuOW89B0ggtHk=w600-h315-p-k" /></a>' },
+                    { name: "Infant Cobra Venator", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczNqh_MGIH1GRFhGqWGYtLYqRCitL7yv-E5ZJup0Fz5kXE4tHw36E74_5hV7KJWMoy_FV07i2T2EoU2ICOzcxlR1wqy41peZNkXtixfLtJ9_AQk4ExZ6=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczNqh_MGIH1GRFhGqWGYtLYqRCitL7yv-E5ZJup0Fz5kXE4tHw36E74_5hV7KJWMoy_FV07i2T2EoU2ICOzcxlR1wqy41peZNkXtixfLtJ9_AQk4ExZ6=w600-h315-p-k" /></a>' },
+                    { name: "Infant Heartbold", img: '<a href="https://lh3.googleusercontent.com/pw/AP1GczP1LhmSH7xaqSzu0qJ6blxstUbn9QEebAmoQPkRPZ-Qy0kw_hfL2ZsQFzkeFY6zmJL9Y7YULRLPfpOi5Lkf3-o2RmZ56qAoGzBfqMwqpfhkHzxLnhdZ=w2400?source=screenshot.guru"><img src="https://lh3.googleusercontent.com/pw/AP1GczP1LhmSH7xaqSzu0qJ6blxstUbn9QEebAmoQPkRPZ-Qy0kw_hfL2ZsQFzkeFY6zmJL9Y7YULRLPfpOi5Lkf3-o2RmZ56qAoGzBfqMwqpfhkHzxLnhdZ=w600-h315-p-k" /></a>' }
+                ]
+            };
+
+            let userAnswers = [];
+            let currentQuestionIndex = 0;
+
+            startButton.addEventListener('click', () => {
+                introSection.classList.add('hidden');
+                quizSection.classList.remove('hidden');
+                displayQuestion(currentQuestionIndex);
+            });
+
+            nextButton.addEventListener('click', () => {
+                if (!document.querySelector('input[name="question"]:checked')) {
+                    alert('Please select an answer before proceeding.');
+                    return;
+                }
+
+                userAnswers.push(document.querySelector('input[name="question"]:checked').value);
+                currentQuestionIndex++;
+
+                if (currentQuestionIndex < questions.length) {
+                    fadeOut(questionContainer, () => {
+                        displayQuestion(currentQuestionIndex);
+                        fadeIn(questionContainer);
+                    });
+                } else {
+                    calculateResults();
+                }
+            });
+
+            restartButton.addEventListener('click', () => {
+                userAnswers = [];
+                currentQuestionIndex = 0;
+                resultsSection.classList.add('hidden');
+                introSection.classList.remove('hidden');
+            });
+
+            function displayQuestion(index) {
+                questionContainer.innerHTML = '';
+                const q = questions[index];
+                const questionElem = document.createElement('div');
+                questionElem.innerHTML = `
+                    <div class="typewriter">
+                        <h3 class="text-3xl font-bold mb-4">${q.question}</h3>
+                        <p class="italic mb-4">${q.dialogue}</p>
+                    </div>
+                `;
+                q.answers.forEach(answer => {
+                    const answerElem = document.createElement('div');
+                    answerElem.innerHTML = `
+                        <input type="radio" name="question" value="${answer.alignment}" class="mr-2">
+                        <label class="text-xl">${answer.text}</label>
+                    `;
+                    questionElem.appendChild(answerElem);
+                });
+                questionContainer.appendChild(questionElem);
+                nextButton.classList.remove('hidden');
+            }
+
+            function calculateResults() {
+                const alignmentCounts = userAnswers.reduce((acc, answer) => {
+                    acc[answer] = (acc[answer] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const alignment = Object.keys(alignmentCounts).reduce((a, b) => alignmentCounts[a] > alignmentCounts[b] ? a : b);
+
+                const randomCompanion = companions[alignment][Math.floor(Math.random() * companions[alignment].length)];
+
+                alignmentResult.textContent = `Your alignment is: ${alignment}`;
+                companionResult.innerHTML = `Your companion is: ${randomCompanion.name}`;
+                companionImage.innerHTML = randomCompanion.img;
+
+                quizSection.classList.add('hidden');
+                resultsSection.classList.remove('hidden');
+            }
+
+            function fadeOut(element, callback) {
+                element.style.animation = 'fade-out 1s forwards';
+                setTimeout(() => {
+                    element.style.display = 'none';
+                    callback();
+                }, 1000);
+            }
+
+            function fadeIn(element) {
+                element.style.display = 'block';
+                element.style.animation = 'fade-in 1s forwards';
+            }
+        });
+    </script>
+</body>
+</html>

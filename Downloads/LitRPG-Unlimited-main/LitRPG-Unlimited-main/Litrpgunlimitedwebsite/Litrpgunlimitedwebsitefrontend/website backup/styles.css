@@ -1,0 +1,134 @@
+body {
+    font-family: Arial, sans-serif;
+    background: url('https://lh3.googleusercontent.com/pw/AP1GczO7GUIiqjblBRdJwBnkihR8BMWIYAAGjAC9sXFIEi4kaSX0BwQXFrZS7itgDiDEt0pasJsOfNMecfA7Wg_xkiBJvPmpj5ifhe17zlQCwX5SgMlVOK4x=w2400?source=screenshot.guru') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 1rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+#navbar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#navbar ul li {
+    display: inline;
+    margin-right: 1rem;
+}
+
+#navbar ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+.hero {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.hero h2 {
+    font-size: 3rem;
+}
+
+.hero p {
+    font-size: 1.5rem;
+}
+
+.btn {
+    background-color: orange;
+    color: white;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.btn:hover {
+    background-color: darkorange;
+}
+
+.content-section {
+    padding: 2rem 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    margin-bottom: 1rem;
+}
+
+#subscription-form,
+#contact-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#subscription-form input,
+#contact-form input,
+#contact-form textarea {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    width: 80%;
+    max-width: 400px;
+}
+
+#subscription-form button,
+#contact-form button {
+    padding: 0.5rem 1rem;
+    background-color: orange;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#subscription-form button:hover,
+#contact-form button:hover {
+    background-color: darkorange;
+}
+
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.book {
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.book img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.social-icons {
+    margin-bottom: 1rem;
+}
+
+.social-icon {
+    color: white;
+    margin: 0 0.5rem;
+    text-decoration: none;
+}
+
+.social-icon:hover {
+    color: orange;
+}

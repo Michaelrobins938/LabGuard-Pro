@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingdom Hearts: Dive to the Heart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div id="stage-container">
+        <img id="stage-image" src="" alt="Stage Image" class="stage-image">
+        <div id="stage-content" class="stage-content"></div>
+    </div>
+    <div id="die-roll" class="die-roll" style="display:none;">
+        <label for="dice-select">Select Die:</label>
+        <select id="dice-select">
+            <option value="d4">d4</option>
+            <option value="d6">d6</option>
+            <option value="d8">d8</option>
+            <option value="d10">d10</option>
+            <option value="d12">d12</option>
+            <option value="d20">d20</option>
+            <option value="d100">d100</option>
+        </select>
+        <button onclick="rollDie()">Roll Die</button>
+        <p id="die-result"></p>
+    </div>
+    <div id="summary" class="summary" style="display:none;">
+        <h2>Character Summary</h2>
+        <div id="summary-content"></div>
+        <button onclick="downloadCharacterSheet()">Download Character Sheet</button>
+    </div>
+    <button onclick="startBattle()">Start Battle</button>
+    <audio id="background-music" src="{{ url_for('static', filename='path/to/background-music.mp3') }}" loop></audio>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

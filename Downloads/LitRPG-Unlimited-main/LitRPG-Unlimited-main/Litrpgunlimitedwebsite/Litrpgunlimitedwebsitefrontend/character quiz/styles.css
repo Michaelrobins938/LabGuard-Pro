@@ -1,0 +1,54 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #000;
+    color: #fff;
+    text-align: center;
+}
+
+#stage-container {
+    margin: 20px auto;
+    padding: 20px;
+    border: 2px solid #fff;
+    max-width: 800px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+}
+
+.stage-image {
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+}
+
+.stage-content {
+    margin-top: 20px;
+}
+
+.die-roll, .summary {
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+/* CSS Transitions */
+.stage-content, .die-roll, .summary {
+    transition: opacity 0.5s ease-in-out;
+}

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes glow {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        body {
+            font-family: 'Merriweather', serif;
+            background-color: #121212;
+            color: #f1f1f1;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .content-section {
+            padding: 2rem 1rem;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 1s ease-in-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-section h2 {
+            margin-bottom: 1rem;
+            animation: slideUp 0.5s ease-in-out;
+            font-size: 2.5rem;
+            color: #ffeb3b;
+            text-shadow: 0 0 10px rgba(255, 235, 59, 0.7);
+        }
+
+        .content-section p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            text-align: center;
+            color: #e0e0e0;
+            margin-bottom: 1rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 600px;
+            animation: slideUp 0.5s ease-in-out;
+        }
+
+        form input, form textarea {
+            background-color: #2e2e2e;
+            color: #f1f1f1;
+            border: 1px solid #3e3e3e;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        form input:focus, form textarea:focus {
+            background-color: #3e3e3e;
+            outline: none;
+            transform: scale(1.05);
+        }
+
+        form button {
+            background-color: #ff9500;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            font-size: 1rem;
+        }
+
+        form button:hover {
+            background-color: #e68a00;
+            transform: scale(1.1);
+        }
+
+        .floating-animation {
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255, 69, 0, 0.5), transparent);
+            border-radius: 50%;
+            animation: float 3s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        .ethereal-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .ethereal-effect canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .nebula-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(72, 61, 139, 0.5), transparent);
+            animation: glow 5s infinite alternate;
+            z-index: 0;
+        }
+
+        footer {
+            margin-top: 2rem;
+            padding: 1rem;
+            text-align: center;
+            background: rgba(30, 30, 30, 0.8);
+            color: #f1f1f1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .social-icons {
+            margin: 1rem 0;
+        }
+
+        .social-icon {
+            margin: 0 0.5rem;
+            color: #f1f1f1;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .social-icon:hover {
+            color: #ff9500;
+        }
+
+        .footer-links {
+            margin: 1rem 0;
+        }
+
+        .footer-links a {
+            color: #f1f1f1;
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #ff9500;
+        }
+    </style>
+</head>
+<body>
+    <header class="animate-header">
+        <h1>Contact Us</h1>
+        <nav id="navbar" aria-label="Main navigation">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="floating-animation"></div>
+    <div class="ethereal-effect">
+        <canvas id="ethereal-canvas"></canvas>
+    </div>
+    <div class="nebula-effect"></div>
+
+    <section class="content-section animate-section">
+        <h2>Contact Us</h2>
+        <p>Have any questions or feedback? We'd love to hear from you! Fill out the form below and we'll get back to you as soon as possible.</p>
+        <form>
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="email" name="email" placeholder="Your Email" required>
+            <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
+            <button type="submit">Send Message</button>
+        </form>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ethereal Background Effects
+            const canvas = document.getElementById('ethereal-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            class Star {
+                constructor(x, y, radius, twinkleSpeed) {
+                    this.x = x;
+                    this.y = y;
+                    this.radius = radius;
+                    this.twinkleSpeed = twinkleSpeed;
+                    this.opacity = Math.random();
+                    this.delta = Math.random() * 0.02;
+                }
+
+                twinkle() {
+                    this.opacity += this.delta * this.twinkleSpeed;
+                    if (this.opacity >= 1 || this.opacity <= 0) this.delta = -this.delta;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                    ctx.fill();
+                }
+            }
+
+            const stars = [];
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 2;
+                const twinkleSpeed = Math.random() * 0.5;
+                stars.push(new Star(x, y, radius, twinkleSpeed));
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                stars.forEach(star => {
+                    star.twinkle();
+                    star.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        });
+    </script>
+</body>
+</html>

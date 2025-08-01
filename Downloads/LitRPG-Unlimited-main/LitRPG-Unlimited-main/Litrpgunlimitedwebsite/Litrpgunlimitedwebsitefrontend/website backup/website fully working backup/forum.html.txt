@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="animate-header">
+        <h1>Forum</h1>
+        <nav id="navbar" aria-label="Main navigation">
+            <ul>
+                <li><a href="index (2).html">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="content-section animate-section">
+        <h2>Forum</h2>
+        <div class="forum-topics">
+            <div class="forum-topic">
+                <h3>Topic Title 1</h3>
+                <p>Discussion content goes here...</p>
+            </div>
+            <div class="forum-topic">
+                <h3>Topic Title 2</h3>
+                <p>Discussion content goes here...</p>
+            </div>
+            <!-- Add more forum topics as needed -->
+        </div>
+        <form id="new-topic-form">
+            <input type="text" placeholder="New Topic Title" required>
+            <textarea placeholder="Topic Content" rows="5" required></textarea>
+            <button type="submit">Create Topic</button>
+        </form>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

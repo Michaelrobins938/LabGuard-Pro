@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        .library-container {
+            padding: 2rem 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .library-container h2 {
+            margin-bottom: 1rem;
+        }
+
+        .books-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .book {
+            width: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .book img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .book:hover {
+            transform: scale(1.05);
+        }
+
+        .book-title {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+
+        .reading-progress,
+        .achievements {
+            margin: 1rem 0;
+            width: 80%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .achievement {
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .achievement:hover {
+            background: #ff4500;
+        }
+    </style>
+</head>
+<body>
+    <header class="animate-header">
+        <h1>Library</h1>
+        <nav id="navbar" aria-label="Main navigation">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <section id="library" class="library-container animate-section">
+        <h2>Library</h2>
+        <div id="books-grid" class="books-grid"></div>
+    </section>
+
+    <section class="content-section animate-section">
+        <div class="reading-progress">
+            <h3>Reading Progress</h3>
+            <div class="progress-bar">
+                <div class="progress-bar-inner" id="overall-progress" style="width: 40%;"></div>
+            </div>
+        </div>
+        <div class="achievements">
+            <h3>Achievements</h3>
+            <div class="achievement">
+                <h4>Bookworm</h4>
+                <p>Read 10 books.</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" style="width: 70%;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const books = [
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6XCP56C", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMRmnHP92RmiPcPBGx9Varxu_lIW9xFs2Byj0ney06q0E86Atm2leChjLXE-qj4uX5AD5cQa6M5AOhN2K0rAUc0sveslhmYu-59uiamVuikG4R1Be5U=w600-h315-p-k", alt: "Book cover of Book Title 1 by Author Name", title: "Infernal Bonds: A Dark Romance Fantasy" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0CTHRGWGN", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMnFOgo6uR1zY9doiSndIaZyjUOoi6rO62LI5TLsy4Aj47DzwVu07Ly4Q5LZjQ1xxF2P_3hvKmifGW459M8E06sJrn1l0Lf0iYR0ncQV4vhOeQwE_o4=w600-h315-p-k", alt: "Book cover of Book Title 2 by Author Name", title: "Moonlit Pact: A Dark Romance Fantasy" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6X3SL71", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczNtu2Seu7YXjIfbbMdWdsJ0kjphCbInyqh0aUKZRQjWn92prRJwcoADPO2xqPt-c7QQPkyPDG1rJLEbqCAQEglq4raIc9wEIx1IMNsCJd2G4_P8UzdH=w600-h315-p-k", alt: "Book cover of Book Title 3 by Author Name", title: "The Ghost in the Glass: A Paranormal Romance" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D45DSLS9", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczM0VQ8zIJ4_9ziV7R5sJDC9x-9XvbP5oG8lswIXgrlzjLmjdBzj9Oj4sW3H6fYzN7ywek94Pfkff3sHPbd9zp1aQHGxrkCwpjp4nCAY2Z18V69V3D8B=w600-h315-p-k", alt: "Book cover of Book Title 4 by Author Name", title: "Thorns of Desire" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0CW1B6C7Y", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczPrwp-itCf5mLYGLfurr9t0-EWot-fvmCHeT82mKnxhlfHLkXFNrmJyVwlMM_Jc9tWXnykbu9AiC_hB26yxK9AHgVgjrQdo40MqihGK0tp9PB3380xN=w600-h315-p-k", alt: "Book cover of Book Title 5 by Author Name", title: "Mistress of the Mirrors: A Dark Romance Mystery" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0CW18TSP6", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczOyVLbePXvFvk21ADuJALaZHZSg6gYkOKpMsO1Kp6oexkIubjGs5NJn7tw0Ur_jZ1Dh4Vhu2rgtE2V3sSXJMjmtWwyCuszh8rexFLWyJSJ278LONAib=w600-h315-p-k", alt: "Book cover of Book Title 6 by Author Name", title: "Gilded Cages: A Dark Romance Fantasy" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0CW7Q2RPT", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczM-i5pGvbhO1HUKiLi9ieKGaBA7k9v1uBbo5vwGOfm5kcTMAEZgz_qtAgEWce9_Qr4vFZiCRPbz0Igu3StR6IDnIPGbI2cKxhh1HzYtE7sSOcepJAr6=w2400", alt: "Book cover of Book Title 7 by Author Name", title: "The Witch's Consort" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6PFWY8X", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMvhz97hpUUBLFEAgOwTTrEmmOU_vjeRvo2HEL6DRGfsW154dtPvNgrRmjan_IG2Jn-5o-Fim62EOtpoJUTOf1vw0bNMdO9X2KHMeQWgag3feJMXAim=w600-h315-p-k", alt: "Book cover of Book Title 8 by Author Name", title: "Curse of the Black Rose" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6WWPLVR", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczOKsct9a_i1bxckHC9BqxQ9ec_HvzphXdKAwd6WE-o4tBIhmUKBfqgsmmZKe4oYvI3jikoAB5WIn7SAa3m8A8tF5vMUNQw7llH2YtyrWUjkJf6WUTFu=w600-h315-p-k", alt: "Book cover of Book Title 9 by Author Name", title: "The Siren's Heart" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0CWVWQF4D", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczOvXN7lTy43liJV6-lIEnHfOurAmXUIeJJ6ntUdZrb-pSOMQnYcVYuf74tarQIrr_pQ_Lgqv8-bn8v_gezVb3JF_mclBsc1XW9hMjg5ZaxiYMJIYJgo=w600-h315-p-k", alt: "Book cover of Book Title 10 by Author Name", title: "Crimson Pact" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6TS8PLJ", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczM57y1Q4JpeS9Uk3ncHfHqfpbGeywdqfZR20VECftzNa4qIRkNDlYYcPRICONoWwSitaMhaPU1e86VQ1U2-QSAGPQ5E4ZRgwpUFS0fSfa2_x6-1LPMC=w600-h315-p-k", alt: "Book cover of Book Title 11 by Author Name", title: "The Star Witch: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D4VZ7CX9", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMApMOyEnVcxVg8uPj2reyf59O0_YcDsF6wsFe4EWr3krA48nS_GgqRTZ884OT17GqwLWwUxv_AA1gHQtNwdv89M95uRkCErUjaFb8jQrWMVmUV42LI=w600-h315-p-k", alt: "Book cover of Book Title 12 by Author Name", title: "The Pirate Queen: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6TX4FNL", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczP9omKC8FLBP4aRjuxlzMsJa2EP_tTUfd_23sKHtAorWcYO17bgUbV7xmAPvfv2M1lGcpZLAtIAIWqcRUmLsXHh9rVDg4FL2Bq5YZWtKC7OA9Nxkp1n=w600-h315-p-k", alt: "Book cover of Book Title 13 by Author Name", title: "The Silent Blade: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6WJP9QT", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczOv23bj5NkqC_kbINLWTJxhOm7yLMRvA4oKo-3QWSqQ5Lh5a5BTzCz00Jvnz5NkoOHv4fHFWVSpLbEBREnh1IHpXmSd0IU4mMZHoJF9c2UGnXwk18sm=w600-h315-p-k", alt: "Book cover of Book Title 14 by Author Name", title: "The Dragon Sorceress: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6X94JHD", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczNHHSUqPlbeeUHQWFMeJ8V2DGcB2uQiaUeoBhIU-JrBGRc8RvnTWgDIxyM_opuIdynVTy_K99SPjmRJBCtDA4AW_iInE0QK2MDmOhSOEHbS6PW_tuQH=w600-h315-p-k", alt: "Book cover of Book Title 15 by Author Name", title: "The Star Guardian: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6TZ6DMF", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMGVlcaP0VPgzJQuvvht0OsW4GhpUMxR8oWTfE7w3AtQH3G3B8wQtAiWClrvHElUKTA8ZVJzbfobPxw5IKXX_kOuqhGtmaTvRoCcEZRTm8eOHD8M4gq=w600-h315-p-k", alt: "Book cover of Book Title 16 by Author Name", title: "Goddess of the Arena: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6TZT69X", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczNWM2BW4nT8YPJk9lpmOR3lJBrjbcmWw8adZkqyuxNlXRt0hYEu7SQj4ddfrQ7vc4kQLN9ZXjF8m-X6usQ7W75jVBGQ0eHXr1yQWfvGOFXhmq_dfDvS=w600-h315-p-k", alt: "Book cover of Book Title 17 by Author Name", title: "The Time Weaver: A GameLit - LitRPG" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6TQJK9W", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczP9hwNPtN_uSA9R7mIYyKgDaXN3n1juvB6oqjB_9p6L_0qOUhoCh6nnxrNXCZ3kyQq3_sjlwrD48pnzNBKOBcGQ4-lI6feNyTXnVJZpwDyjBjXtjBUZ=w600-h315-p-k", alt: "Book cover of Book Title 18 by Author Name", title: "The Valkyrie's Quest: A GameLit - LitRPG" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0CZLYN3ZF",  imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczNXEKKCmSJsXZAaHu0fMxcprNVseNBDmS2xMCjkSDa8IyOWbMuYFQ3TD9vDM-41xJIA-E0nHLspCsRmfM3l5bSJt_FLefJLGfkny78oz9MpC0cJObWR=w600-h315-p-k", alt: "Book cover of Book Title 20 by Author Name", title: "Cyber Huntress : A gameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6WKJ532", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczN-gxtCBB6b8FUeCQGO_a0dcWAIL6bn_JsMenPrTTmALqWBuCsfdSSl_DFFk085TS7ULcvMwlU_wh5RX9vyubsP-ZTOVlP8F_ZJgbuLvJnqb8sZrHLk=w600-h315-p-k", alt: "Book cover of Book Title 21 by Author Name", title: "The Arcane Inventor: A Technomagic Fantasy LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6T3Z6S4", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczNDbMvYTWX26TOObuLHgF8CqJAtOlQPX7wHGB8xMNothhV3TuCf46FxozaujD9BTyDj1wg-2JWhN-U5U8e1f5ICednszLcs7-64lTd9uCuZpMBEi1-Z=w600-h315-p-k", alt: "Book cover of Book Title 22 by Author Name", title: "The Spirit Summoner: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6SMRS52", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczN8o13icdg-CfUygStXuJNiYxpKD_CJkZ5Hcx2jw5ikkHwEhWq3y0X2RGKBetKQm0v49o2aXiIABS5FWIudDd5Ir4umOnpl2EG7BP-6tljRCszj9irK=w600-h315-p-k", alt: "Book cover of Book Title 23 by Author Name", title: "The Mystic Ranger: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6SXP8FT", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczPrlwW5C_BXUXecw2pK0F3M0lAUby1cE7uTXl8Bv_zI4jrVl1aS18bKD7YCkwetxv3aOMlxVGzeaIiA51C3lotjMtz_F_cI9a02-r9rKlRWKalfzBwc=w600-h315-p-k", alt: "Book cover of Book Title 24 by Author Name", title: "The Shapeshifter's Quest: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6SH4R9X", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMkPV4eb3qiO79eru_A0Te1-eV6DE2Bf43Zgkf-Sh4joVLisSjwbCwsUew0qLwJQKlmqzZNQwlEoiWNgpH-0FnkwqPBwuizZKw81IpB4N1CJDDs7kI0=w600-h315-p-k", alt: "Book cover of Book Title 25 by Author Name", title: "The Priestess of Sol: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6SLMSNS", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMfonmtOEiMDpJyFIyduIZDJZyx-My2GrqFr06m7n4uuor5kipu5Q5gYe55Kt6vQvsASf4YbOFiqU0zf0me08GxAoFySMemBSwqFUsu_DoroIzXZFGy=w600-h315-p-k", alt: "Book cover of Book Title 26 by Author Name", title: "The Shadow Dancer: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6SHXTYY", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczO0F3gmVG0PQIQ9cWz1jaH4hT7YGc1KzfNFDmuqEv0ScnnvHAAYvmQBxMHvahQdg34vUFK8zO93jcAkNYTj_ZBUslxomTugX00rnbId8RMIii0YeAmg=w600-h315-p-k", alt: "Book cover of Book Title 27 by Author Name", title: "The Crystal Shaman: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6S38YYG", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczOn9EGqaResbrJJL1i_vPy3TClgV7OuNT_eeTtj2DTUKVewm0gBQ76K5JCqHI0Ieb2NUBxkrLKYsTZXuY8blbZvDVMIbpZsVIXluoYHzzpOR_qKvSNR=w600-h315-p-k", alt: "Book cover of Book Title 28 by Author Name", title: "The Lunar Priestess: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D5DD3QYX", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczNWHDzZxqYSKGyAZo0dJ_cmgNgLK7tzaKOWJ9-hUQl6mjONreFdZlJ2DHSqj27hvLhhjqysGeC66Uza_dusZMUohtFLiPG8rC0pQ9GZspNjCVUVFYit=w600-h315-p-k", alt: "Book cover of Book Title 29 by Author Name", title: "Guardian of the Lost City: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6RJRN2S", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczPx7TakKIaobpTasGy0NcnLZsNcrbW_G7RMLizFzUeybXwXmOjsCXp2-ercNq16Ov1cVT7BX6eM702lo_oS1biMFRfmTrIghjaHrvYptYrMFq0V5PlG=w600-h315-p-k", alt: "Book cover of Book Title 30 by Author Name", title: "The Beastmaster: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0CW18L9QM", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczPz2MdpnAWCjdxPg1zYEJXQtrHO8l8TEdhnniHff_moAbV3DrLlEFp1WFkrQabnazs8Q_yfiR0LCLAOSlSaIYNigS8QNp21p7zELI-knzBbBOWlj8BA=w600-h315-p-k", alt: "Book cover of Book Title 31 by Author Name", title: "Queen of the Elements: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D38DXB82", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczOuvRY4XCB3Nbo0DXWZn9wlKtsEs146RQ3X9XPQmJuzuQe7SXWamY2M9bJazZNQ9UlglIED6xvLbjEcOLCh8A4CcB00bDwun7LTH2KQTSyDLqsN4ohB=w600-h315-p-k", alt: "Book cover of Book Title 32 by Author Name", title: "The Alchemist's Apprentice: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D59MLQ7Q", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczPLpeUqqn-FNZ2zllG5pXdFR-dztaGBYTkFfAI0CP2yvGba-qOwWH-yKS6FrIlyBM92v3Sg2q1OHEeOsi3sRcbHJ8-3eQ24-pIasM4jkq9nkDAS_oBX=w600-h315-p-k", alt: "Book cover of Book Title 33 by Author Name", title: "Sorceress of Shadows: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6RM2WLG", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczOC2E00GOyxr83Y8gdKUzOuWTsa36hrUUeCA9SRl5hMqjQl6LIvkBC49Y7G9nT4fR_Ip-QdF-SfERI0fXMSIojkhlmZsw79ZxskoyOa-ne3TPpgYNvM=w600-h315-p-k", alt: "Book cover of Book Title 34 by Author Name", title: "Knight of the Moonlit Vale: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6RL3Q95", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczNSip_kjsC--_mrGBOGIMOSlj-VM1aVYWFYRAzfzEu0tnuZt3ntDhYL6aePigwaN4clh32tVSL3Y34HAWKkDyuCAPxM35pL5IYLB4RGtCjk-qdK8mRh=w600-h315-p-k", alt: "Book cover of Book Title 35 by Author Name", title: "The Enchanted Forest: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D33MSRGR", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMY3HZKSOArf30D9-wuxdLY1kAvtEGuZvuu3HKIn8POTL-ys05ozb3-xl-o2sYz5a96GKI47QSfbXxK_4ZH6RKe-zsbOw_MTkB15tAckUj_it8kEm9k=w600-h315-p-k", alt: "Book cover of Book Title 36 by Author Name", title: "The Healer's Journey: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D6R9K72K", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczMUOllmJG7INSVvECAdDQxns7NVHWLLxQ6T5hLBtml5eZK8rS2-iRxsziB_EdLcthiRvIpvdg27e3Tp3VIP2WZ0-bkVu7dfZ78CyKlIMHCtrEUj4QLQ=w600-h315-p-k", alt: "Book cover of Book Title 37 by Author Name", title: "The Infernal Knight: A GameLit - LitRPG Series" },
+            { url: "https://www.amazon.com/kindle-vella/story/B0D69L23CD", imgSrc: "https://lh3.googleusercontent.com/pw/AP1GczPTrv30pBVmwPABlwcqitlZwLTtyF2wEu7mLz6ScWdQqWSuWDOGYvQzsZ7KRhVZvKnpPgDPhn6GwTX2L0SquO5nGoHZFAaL0Uv_lO7IbWxLoHmnWoQq=w600-h315-p-k", alt: "Book cover of Book Title 38 by Author Name", title: "The Cursed Treasure: A GameLit - LitRPG Series" }
+        ];
+
+        function createBookElement(book) {
+            const bookDiv = document.createElement('div');
+            bookDiv.classList.add('book');
+            const bookLink = document.createElement('a');
+            bookLink.href = book.url;
+            const bookImg = document.createElement('img');
+            bookImg.dataset.src = book.imgSrc;
+            bookImg.alt = book.alt;
+            bookImg.loading = 'lazy';
+
+            const bookTitle = document.createElement('div');
+            bookTitle.classList.add('book-title');
+            bookTitle.textContent = book.title;
+
+            bookLink.appendChild(bookImg);
+            bookDiv.appendChild(bookLink);
+            bookDiv.appendChild(bookTitle);
+            return bookDiv;
+        }
+
+        function initLazyLoading() {
+            const lazyImages = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        observer.unobserve(img);
+                    }
+                });
+            });
+
+            lazyImages.forEach(image => {
+                imageObserver.observe(image);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const booksGrid = document.getElementById('books-grid');
+            books.forEach(book => {
+                const bookElement = createBookElement(book);
+                booksGrid.appendChild(bookElement);
+            });
+
+            initLazyLoading();
+
+            const progressBars = document.querySelectorAll('.progress-bar-inner');
+
+            function updateOverallProgress() {
+                const totalBooks = progressBars.length;
+                let totalProgress = 0;
+                progressBars.forEach(bar => {
+                    totalProgress += parseFloat(bar.style.width);
+                });
+                const overallProgress = totalProgress / totalBooks;
+                document.getElementById('overall-progress').style.width = `${overallProgress}%`;
+            }
+
+            progressBars.forEach(bar => {
+                bar.addEventListener('click', () => {
+                    let progress = parseFloat(bar.style.width);
+                    progress = Math.min(progress + 10, 100);
+                    bar.style.width = `${progress}%`;
+                    updateOverallProgress();
+                });
+            });
+
+            updateOverallProgress();
+        });
+    </script>
+</body>
+</html>

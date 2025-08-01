@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Station of Awakening Interactive Narrative</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="stage-container" class="stage-container glow" aria-live="polite">
+        <img id="stage-image" src="path/to/initial-stage-image.jpg" alt="Stage Image" class="stage-image">
+        <div id="stage-content" class="stage-content">
+            <p id="narrative-text" class="narrative-text"></p>
+            <div id="choices-container" class="choices-container">
+                <!-- Choices will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+    <section id="summary" class="summary" style="display: none;">
+        <h2>Character Summary</h2>
+        <div id="summary-content"></div>
+        <button onclick="downloadCharacterSheet()">Download Character Sheet</button>
+    </section>
+    <audio id="interaction-sound" src="path/to/sound.mp3" preload="auto"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
