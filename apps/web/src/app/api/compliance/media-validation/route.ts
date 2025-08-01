@@ -136,7 +136,7 @@ function generateReasoning(
   recall: any
 ) {
   if (status === 'REJECT') {
-    const reasons = []
+    const reasons: string[] = []
     if (expiration.expired) reasons.push('Media is expired')
     if (visual.contaminated) reasons.push('Visual contamination detected')
     if (recall.recalled) reasons.push('Media is on recall list')
@@ -144,7 +144,7 @@ function generateReasoning(
   }
 
   if (status === 'CONDITIONAL') {
-    const reasons = []
+    const reasons: string[] = []
     if (expiration.nearExpiration) reasons.push('Media expires soon')
     if (storage.temperatureExcursion) reasons.push('Temperature excursion detected')
     if (qc.overdue) reasons.push('QC testing overdue')
