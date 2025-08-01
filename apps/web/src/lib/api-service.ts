@@ -75,6 +75,18 @@ export const apiService = {
       const response = await apiClient.delete(`/api/equipment/${id}`)
       return response.data
     },
+    getStats: async () => {
+      const response = await apiClient.get('/api/equipment/stats')
+      return response.data
+    },
+    getCalibrationHistory: async (id: string) => {
+      const response = await apiClient.get(`/api/equipment/${id}/calibration-history`)
+      return response.data
+    },
+    getStatus: async (id: string) => {
+      const response = await apiClient.get(`/api/equipment/${id}/status`)
+      return response.data
+    },
   },
 
   // Calibration endpoints
@@ -431,6 +443,26 @@ export const apiService = {
       const response = await apiClient.get('/api/analytics/system-performance')
       return response.data
     },
+    getEquipmentAnalytics: async (params?: any) => {
+      const response = await apiClient.get('/api/analytics/equipment', { params })
+      return response.data
+    },
+    getCalibrationAnalytics: async (params?: any) => {
+      const response = await apiClient.get('/api/analytics/calibration', { params })
+      return response.data
+    },
+    getComplianceAnalytics: async (params?: any) => {
+      const response = await apiClient.get('/api/analytics/compliance', { params })
+      return response.data
+    },
+    getUserAnalytics: async (params?: any) => {
+      const response = await apiClient.get('/api/analytics/users', { params })
+      return response.data
+    },
+    getCustomReport: async (reportData: any) => {
+      const response = await apiClient.post('/api/analytics/custom-report', reportData)
+      return response.data
+    },
   },
 
   // Dashboard endpoints
@@ -441,6 +473,18 @@ export const apiService = {
     },
     getRecentActivity: async (limit: number = 10) => {
       const response = await apiClient.get(`/api/dashboard/activity`, { params: { limit } })
+      return response.data
+    },
+    getComplianceOverview: async () => {
+      const response = await apiClient.get('/api/dashboard/compliance-overview')
+      return response.data
+    },
+    getEquipmentStatus: async () => {
+      const response = await apiClient.get('/api/dashboard/equipment-status')
+      return response.data
+    },
+    getCalibrationSchedule: async () => {
+      const response = await apiClient.get('/api/dashboard/calibration-schedule')
       return response.data
     },
   },

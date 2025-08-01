@@ -14,7 +14,8 @@ const mockSession = {
       email: 'demo@labguardpro.com',
       name: 'Demo User',
       role: 'ADMIN',
-      laboratoryId: 'demo-lab'
+      laboratoryId: 'demo-lab',
+      laboratoryName: 'Demo Laboratory'
     },
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
   },

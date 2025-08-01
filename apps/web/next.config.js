@@ -1,48 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable SWC minification to avoid binary issues
+  // Completely disable SWC to avoid binary issues
   swcMinify: false,
   
-  // Performance optimizations
+  // Disable SWC compiler and use Babel instead
   experimental: {
+    forceSwcTransforms: false,
+    swcTraceProfiling: false,
+    swcMinify: false,
     optimizeCss: true,
     optimizePackageImports: ['@heroui/react', 'lucide-react', 'framer-motion'],
   },
   
-  // Webpack configuration to handle modern JavaScript features
-  webpack: (config, { isServer }) => {
-    // Ignore sibling applications during build
-    config.watchOptions = {
-      ...config.watchOptions,
-      ignored: [
-        '**/node_modules/**',
-        '../api/**',
-        '../mobile/**',
-        '../../backend/**',
-        '../../apps/api/**',
-        '../../apps/mobile/**'
-      ]
-    };
-    
-    // Optimize chunk splitting
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-      };
-    }
-    
-    // SVG optimization
-    config.module.rules.push({
-      test: /\.svg$/,
-      use: ['@svgr/webpack'],
-    });
-    
-    return config;
+  // Force Babel usage
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
   
-  // Webpack optimization for monorepo
+  // Webpack configuration to handle modern JavaScript features
   webpack: (config, { isServer }) => {
     // Ignore sibling applications during build
     config.watchOptions = {
@@ -97,7 +72,7 @@ const nextConfig = {
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'your-nextauth-secret-key-here',
-    API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:3000/api',
+    API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:3000',
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
   },
   

@@ -53,22 +53,26 @@ export function ModernLandingPage() {
     {
       icon: <Brain className="w-6 h-6" />,
       title: "Stanford Biomni AI",
-      description: "Powered by Stanford's cutting-edge research with 150+ biomedical tools and 59 scientific databases."
+      description: "Powered by Stanford's cutting-edge research with 150+ biomedical tools and 59 scientific databases.",
+      link: "/biomni"
     },
     {
       icon: <Shield className="w-6 h-6" />,
       title: "Compliance Automation",
-      description: "Automated regulatory compliance with real-time monitoring and audit trail generation."
+      description: "Automated regulatory compliance with real-time monitoring and audit trail generation.",
+      link: "/compliance"
     },
     {
       icon: <Microscope className="w-6 h-6" />,
       title: "Equipment Management",
-      description: "Comprehensive laboratory equipment tracking with maintenance scheduling and calibration alerts."
+      description: "Comprehensive laboratory equipment tracking with maintenance scheduling and calibration alerts.",
+      link: "/equipment"
     },
     {
       icon: <BarChart3 className="w-6 h-6" />,
       title: "Advanced Analytics",
-      description: "AI-powered insights and predictive analytics for laboratory optimization and decision-making."
+      description: "AI-powered insights and predictive analytics for laboratory optimization and decision-making.",
+      link: "/analytics"
     }
   ]
 
@@ -534,7 +538,7 @@ export function ModernLandingPage() {
                 <Button 
                   variant="ghost"
                   className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
-                  onClick={() => window.location.href = '/ai-demo'}
+                  onClick={() => window.location.href = feature.link}
                 >
                   <span className="text-sm font-medium">Learn More</span>
                   <ArrowRight className="w-4 h-4" />

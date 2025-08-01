@@ -68,7 +68,7 @@ export class VoiceProcessingService {
     }
   }
 
-  speak(text: string, options: SpeechOptions = {}) {
+  speak(text: string, options: any = {}) {
     if (!this.synthesis) {
       console.warn('Speech synthesis not available')
       return
@@ -100,6 +100,11 @@ export class VoiceProcessingService {
   stopListening() {
     if (!this.recognition) return
     this.recognition.stop()
+  }
+
+  stopSpeaking() {
+    if (!this.synthesis) return
+    this.synthesis.cancel()
   }
 
   private async processVoiceCommand(transcript: string) {
@@ -134,7 +139,7 @@ export function useVoiceProcessing(config?: Partial<VoiceProcessingConfig>) {
   const [isSupported, setIsSupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const voiceService = useMemo(() => new VoiceProcessingService(config), []);
+  const voiceService = useMemo(() => new VoiceProcessingService(), []);
 
   useEffect(() => {
     // Check for speech recognition support

@@ -531,7 +531,7 @@ class ImageAnalysisService {
   }
 
   private generateMicroscopyInsights(cells: Detection[], contamination: any, morphology: any): string[] {
-    const insights = [];
+    const insights: string[] = [];
     
     if (cells.length > 0) {
       insights.push(`Detected ${cells.length} cells in the image`);
@@ -547,7 +547,7 @@ class ImageAnalysisService {
   }
 
   private generateMicroscopyRecommendations(data: MicroscopyAnalysis): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
     
     if (data.contamination?.detected) {
       recommendations.push('Investigate contamination source and implement containment measures');
@@ -561,7 +561,7 @@ class ImageAnalysisService {
   }
 
   private generateMicroscopyWarnings(data: MicroscopyAnalysis): string[] {
-    const warnings = [];
+    const warnings: string[] = [];
     
     if (data.contamination?.detected && data.contamination.severity === 'high') {
       warnings.push('⚠️ High level contamination detected - immediate action required');
@@ -637,7 +637,7 @@ class ImageAnalysisService {
 
   // Batch processing
   async analyzeBatch(files: File[], analysisType: 'auto' | 'microscopy' | 'gel_electrophoresis' | 'equipment' | 'sample' = 'auto'): Promise<ImageAnalysisResult[]> {
-    const results = [];
+    const results: ImageAnalysisResult[] = [];
     
     for (const file of files) {
       try {
@@ -785,20 +785,42 @@ export async function analyzeImageData(imageData: any): Promise<ImageAnalysisRes
     }
 
     return {
+      id: `img-${Date.now()}`,
+      type: 'general',
+      confidence: imageData.confidence || 0.85,
+      processingTime: Date.now(),
+      detections: [],
+      metadata: {
+        filename: 'analyzed-image',
+        fileSize: 0,
+        dimensions: { width: 0, height: 0 },
+        format: 'unknown',
+        colorDepth: 0,
+        timestamp: Date.now()
+      },
       insights,
       recommendations,
-      warnings,
-      processingTime: Date.now(),
-      confidence: imageData.confidence || 0.85
+      warnings
     }
   } catch (error) {
     console.error('Error analyzing image data:', error)
     return {
+      id: `img-error-${Date.now()}`,
+      type: 'general',
+      confidence: 0,
+      processingTime: Date.now(),
+      detections: [],
+      metadata: {
+        filename: 'error-image',
+        fileSize: 0,
+        dimensions: { width: 0, height: 0 },
+        format: 'unknown',
+        colorDepth: 0,
+        timestamp: Date.now()
+      },
       insights: ['Error processing image data'],
       recommendations: ['Review image format and try again'],
-      warnings: ['Image analysis failed'],
-      processingTime: Date.now(),
-      confidence: 0
+      warnings: ['Image analysis failed']
     }
   }
 }

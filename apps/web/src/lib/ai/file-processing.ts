@@ -2,6 +2,7 @@
 // Supports FASTA, FASTQ, CSV, Excel, PDF, JSON, XML, and other laboratory file formats
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { FileAnalysisResult } from '../../types';
 
 export interface FileProcessingConfig {
   maxFileSize: number;
@@ -830,7 +831,7 @@ class FileProcessingService {
         insights.push(`Average sequence length: ${avgLength.toFixed(0)} bp`);
         
         const types = sequences.map(seq => seq.type);
-        const uniqueTypes = [...new Set(types)];
+        const uniqueTypes = Array.from(new Set(types));
         insights.push(`Sequence types: ${uniqueTypes.join(', ')}`);
       }
     } else if (format === 'csv' || format === 'excel') {
@@ -870,7 +871,7 @@ class FileProcessingService {
   }
 
   private generateFASTASuggestions(sequences: SequenceRecord[], errors: ValidationError[]): string[] {
-    const suggestions = [];
+    const suggestions: string[] = [];
     
     if (errors.length > 0) {
       suggestions.push('Check for proper FASTA format with > headers');
@@ -884,7 +885,7 @@ class FileProcessingService {
   }
 
   private generateFASTQSuggestions(sequences: SequenceRecord[], errors: ValidationError[]): string[] {
-    const suggestions = [];
+    const suggestions: string[] = [];
     
     if (errors.length > 0) {
       suggestions.push('Check for proper FASTQ format with 4 lines per record');
@@ -894,7 +895,7 @@ class FileProcessingService {
   }
 
   private generateCSVSuggestions(data: TabularData, warnings: ValidationWarning[]): string[] {
-    const suggestions = [];
+    const suggestions: string[] = [];
     
     if (warnings.length > 0) {
       suggestions.push('Check for consistent column counts across all rows');
@@ -1044,22 +1045,40 @@ export async function analyzeFileContent(content: string, fileType: string): Pro
     const uniqueTypes = Array.from(new Set(types))
 
     return {
-      insights,
-      suggestions,
-      warnings,
-      fileType,
-      uniqueTypes,
-      processingTime: Date.now()
+      id: `file-${Date.now()}`,
+      type: fileType,
+      content: content,
+      analysis: {
+        insights,
+        recommendations: suggestions,
+        warnings,
+        processingTime: Date.now(),
+        confidence: 0.85
+      },
+      metadata: {
+        size: content.length,
+        format: fileType,
+        encoding: 'utf-8'
+      }
     }
   } catch (error) {
     console.error('Error analyzing file content:', error)
     return {
-      insights: ['Error processing file content'],
-      suggestions: ['Check file format and try again'],
-      warnings: ['File analysis failed'],
-      fileType,
-      uniqueTypes: [],
-      processingTime: Date.now()
+      id: `file-error-${Date.now()}`,
+      type: fileType,
+      content: content,
+      analysis: {
+        insights: ['Error processing file content'],
+        recommendations: ['Check file format and try again'],
+        warnings: ['File analysis failed'],
+        processingTime: Date.now(),
+        confidence: 0
+      },
+      metadata: {
+        size: content.length,
+        format: fileType,
+        encoding: 'utf-8'
+      }
     }
   }
 } 

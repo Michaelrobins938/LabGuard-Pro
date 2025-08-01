@@ -3,6 +3,7 @@
 // Implements the 100x acceleration capabilities described in the case study
 
 import { biomniClient } from './biomni-client';
+import { BiomniAnalysisResult } from '../../types';
 
 export interface BiomniCapabilities {
   // Core Research Capabilities
@@ -288,7 +289,7 @@ export class BiomniIntegrationService {
 
   // Utility Functions
   private extractInsights(result: string): string[] {
-    const insights = [];
+    const insights: string[] = [];
     const insightPatterns = [
       /(?:insight|finding|discovery|observation):\s*(.+?)(?=\n|\.)/gi,
       /(?:key finding|important note|notable result):\s*(.+?)(?=\n|\.)/gi
@@ -297,7 +298,10 @@ export class BiomniIntegrationService {
     insightPatterns.forEach(pattern => {
       const matches = result.match(pattern);
       if (matches) {
-        insights.push(...matches.map(match => match.replace(/^[^:]+:\s*/, '')));
+        const cleanedMatches = matches.map((match: string) => match.replace(/^[^:]+:\s*/, ''));
+        for (const match of cleanedMatches) {
+          insights.push(match);
+        }
       }
     });
 
@@ -321,7 +325,7 @@ export class BiomniIntegrationService {
   }
 
   private generateEquipmentRecommendations(equipmentData: any): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
     
     if (equipmentData.calibrationDue?.length > 0) {
       recommendations.push('Schedule immediate calibration for equipment due for service');
@@ -339,7 +343,7 @@ export class BiomniIntegrationService {
   }
 
   private generateWorkflowRecommendations(workflowData: any): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
     
     if (workflowData.bottlenecks?.length > 0) {
       recommendations.push('Address workflow bottlenecks to improve efficiency');
@@ -357,7 +361,7 @@ export class BiomniIntegrationService {
   }
 
   private generateNextSteps(type: string, results: string[]): string[] {
-    const nextSteps = [];
+    const nextSteps: string[] = [];
     
     switch (type) {
       case 'bioinformatics':
@@ -621,22 +625,40 @@ export async function analyzeBiomniData(data: any): Promise<BiomniAnalysisResult
     }
 
     return {
-      insights,
-      recommendations,
-      nextSteps,
-      confidence: data.confidence || 0.85,
-      processingTime: data.processingTime || 0,
-      model: data.model || 'biomni-a1-latest'
+      id: `biomni-${Date.now()}`,
+      type: 'analysis',
+      data: data,
+      analysis: {
+        insights,
+        recommendations,
+        nextSteps,
+        processingTime: data.processingTime || 0,
+        confidence: data.confidence || 0.85
+      },
+      metadata: {
+        source: 'biomni-integration',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+      }
     }
   } catch (error) {
     console.error('Error analyzing Biomni data:', error)
     return {
-      insights: ['Error processing Biomni data'],
-      recommendations: ['Review data format and try again'],
-      nextSteps: ['Contact support if issue persists'],
-      confidence: 0,
-      processingTime: 0,
-      model: 'unknown'
+      id: `biomni-error-${Date.now()}`,
+      type: 'analysis',
+      data: data,
+      analysis: {
+        insights: ['Error processing Biomni data'],
+        recommendations: ['Review data format and try again'],
+        nextSteps: ['Contact support if issue persists'],
+        processingTime: 0,
+        confidence: 0
+      },
+      metadata: {
+        source: 'biomni-integration',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+      }
     }
   }
 } 

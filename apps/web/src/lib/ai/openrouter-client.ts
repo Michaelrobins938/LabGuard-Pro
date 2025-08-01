@@ -1,6 +1,8 @@
 // OpenRouter Client for Frontend Integration
 // This connects the frontend to OpenRouter API for flagship AI models
 
+import { OpenRouterOptions } from '../../types';
+
 interface OpenRouterConfig {
   apiKey: string;
   baseUrl: string;
@@ -121,7 +123,7 @@ class OpenRouterClient {
   ): Promise<OpenRouterResponse> {
     const selectedModel = model || this.config.defaultModel;
     
-    const messages: Array<{ role: string; content: string }> = []
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = []
     
     // Add system prompt if provided
     if (options?.systemPrompt) {
@@ -141,7 +143,7 @@ class OpenRouterClient {
     
     // Add user prompt
     messages.push({
-      role: 'user',
+      role: 'user' as const,
       content: prompt
     });
 
@@ -236,7 +238,7 @@ class OpenRouterClient {
 
   // Calculate cost for a request
   calculateCost(tokens: number, model: string): number {
-    const pricing = {
+    const pricing: Record<string, number> = {
       'anthropic/claude-3.5-sonnet': 0.000003, // $3 per 1M tokens
       'anthropic/claude-3-opus': 0.000015,      // $15 per 1M tokens
       'openai/gpt-4o': 0.000005,                // $5 per 1M tokens
@@ -249,7 +251,7 @@ class OpenRouterClient {
 
   // Get model capabilities
   getModelCapabilities(model: string) {
-    const capabilities = {
+    const capabilities: Record<string, any> = {
       'anthropic/claude-3.5-sonnet': {
         maxTokens: 200000,
         modalities: ['text'],
@@ -343,18 +345,22 @@ export async function processOpenRouterRequest(
 
     const data = await response.json()
     return {
-      content: data.choices[0]?.message?.content || '',
+      id: data.id || `req-${Date.now()}`,
+      object: data.object || 'chat.completion',
+      created: data.created || Date.now(),
       model: data.model,
-      usage: data.usage,
-      processingTime: Date.now()
+      choices: data.choices || [],
+      usage: data.usage || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
     }
   } catch (error) {
     console.error('Error processing OpenRouter request:', error)
     return {
-      content: 'Error processing request',
+      id: `error-${Date.now()}`,
+      object: 'chat.completion',
+      created: Date.now(),
       model: 'unknown',
-      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-      processingTime: Date.now()
+      choices: [],
+      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
     }
   }
 } 

@@ -73,7 +73,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await prisma.user.findUnique({
+          const prisma = getPrisma();
+          const user = await prisma?.user.findUnique({
             where: { email: credentials.email },
             include: { laboratory: true }
           })
@@ -82,7 +83,7 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.hashedPassword)
+          const isPasswordValid = await bcrypt.compare(credentials.password, (user as any).hashedPassword || (user as any).password || '')
 
           if (!isPasswordValid) {
             return null
@@ -91,11 +92,11 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user.id,
             email: user.email,
-            name: user.name || `${user.firstName} ${user.lastName}`,
+            name: `${user.firstName} ${user.lastName}`,
             role: user.role,
             laboratoryId: user.laboratoryId,
             laboratoryName: user.laboratory.name
-          }
+          } as any
         } catch (error) {
           console.error('Auth error:', error)
           return null

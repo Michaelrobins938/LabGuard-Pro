@@ -175,19 +175,82 @@ class ApiClient {
     return this.request('/api/analytics/users', { method: 'POST', body: JSON.stringify(params) })
   }
 
+  // Equipment methods
+  async getEquipmentAll(params?: any): Promise<ApiResponse> {
+    return this.request('/api/equipment', { method: 'GET' })
+  }
+
+  async getEquipmentById(id: string): Promise<ApiResponse> {
+    return this.request(`/api/equipment/${id}`, { method: 'GET' })
+  }
+
+  async createEquipment(equipmentData: any): Promise<ApiResponse> {
+    return this.request('/api/equipment', { method: 'POST', body: JSON.stringify(equipmentData) })
+  }
+
+  async updateEquipment(id: string, equipmentData: any): Promise<ApiResponse> {
+    return this.request(`/api/equipment/${id}`, { method: 'PUT', body: JSON.stringify(equipmentData) })
+  }
+
+  async deleteEquipment(id: string): Promise<ApiResponse> {
+    return this.request(`/api/equipment/${id}`, { method: 'DELETE' })
+  }
+
+  async getEquipmentStats(): Promise<ApiResponse> {
+    return this.request('/api/equipment/stats', { method: 'GET' })
+  }
+
+  async getEquipmentCalibrationHistory(id: string): Promise<ApiResponse> {
+    return this.request(`/api/equipment/${id}/calibrations`, { method: 'GET' })
+  }
+
+  // Dashboard methods
+  async getComplianceOverview(): Promise<ApiResponse> {
+    return this.request('/api/dashboard/compliance', { method: 'GET' })
+  }
+
+  async getEquipmentStatus(): Promise<ApiResponse> {
+    return this.request('/api/dashboard/equipment-status', { method: 'GET' })
+  }
+
+  async getCalibrationSchedule(): Promise<ApiResponse> {
+    return this.request('/api/dashboard/calibration-schedule', { method: 'GET' })
+  }
+
+  // Analytics methods
+  async getCustomReport(reportData: any): Promise<ApiResponse> {
+    return this.request('/api/analytics/custom-report', { method: 'POST', body: JSON.stringify(reportData) })
+  }
+
   get analytics() {
     return {
       getEquipmentAnalytics: this.getEquipmentAnalytics.bind(this),
       getCalibrationAnalytics: this.getCalibrationAnalytics.bind(this),
       getComplianceAnalytics: this.getComplianceAnalytics.bind(this),
       getUserAnalytics: this.getUserAnalytics.bind(this),
+      getCustomReport: this.getCustomReport.bind(this),
     }
   }
 
   get dashboard() {
     return {
       getStats: this.getDashboardStats.bind(this),
-      getRecentActivity: this.getRecentActivity.bind(this)
+      getRecentActivity: this.getRecentActivity.bind(this),
+      getComplianceOverview: this.getComplianceOverview.bind(this),
+      getEquipmentStatus: this.getEquipmentStatus.bind(this),
+      getCalibrationSchedule: this.getCalibrationSchedule.bind(this),
+    }
+  }
+
+  get equipment() {
+    return {
+      getAll: this.getEquipmentAll.bind(this),
+      getById: this.getEquipmentById.bind(this),
+      create: this.createEquipment.bind(this),
+      update: this.updateEquipment.bind(this),
+      delete: this.deleteEquipment.bind(this),
+      getStats: this.getEquipmentStats.bind(this),
+      getCalibrationHistory: this.getEquipmentCalibrationHistory.bind(this),
     }
   }
 }
