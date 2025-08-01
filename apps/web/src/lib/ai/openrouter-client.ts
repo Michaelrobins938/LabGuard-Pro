@@ -143,9 +143,9 @@ class OpenRouterClient {
     
     // Add user prompt
     messages.push({
-      role: 'user' as const,
+      role: 'user',
       content: prompt
-    });
+    } as const);
 
     const requestBody: OpenRouterRequest = {
       model: selectedModel,

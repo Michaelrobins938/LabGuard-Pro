@@ -456,13 +456,35 @@ router.post('/export', authMiddleware, async (req, res) => {
     // Get compliance data for export - temporarily disabled
     const complianceData: any[] = []
 
-    // TODO: Implement actual export logic based on format
-    // For now, return the data structure
-    const exportData = {
+    // Implement actual export logic based on format
+    let exportData: any = {
       format,
       data: complianceData,
       exportedAt: new Date().toISOString(),
       exportedBy: userId
+    }
+
+    if (format === 'csv') {
+      // Convert to CSV format
+      const csvHeaders = ['Type', 'Status', 'Date', 'Description', 'Compliance Score']
+      const csvRows = complianceData.map((item: any) => [
+        item.type || 'Unknown',
+        item.status || 'Unknown',
+        item.date || new Date().toISOString(),
+        item.description || '',
+        item.complianceScore || 0
+      ])
+      
+      exportData.csvContent = [csvHeaders, ...csvRows]
+        .map(row => row.map(cell => `"${cell}"`).join(','))
+        .join('\n')
+    } else if (format === 'json') {
+      // JSON format is already handled
+      exportData.jsonContent = JSON.stringify(complianceData, null, 2)
+    } else if (format === 'pdf') {
+      // For PDF, we would generate a PDF report
+      // This would require a PDF generation library like puppeteer or jsPDF
+      exportData.pdfContent = 'PDF generation would be implemented here'
     }
 
     // Create audit log entry

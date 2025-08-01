@@ -32,7 +32,146 @@ apiClient.interceptors.response.use(
   }
 )
 
-export const apiService = {
+// Type definitions for API service
+export interface ApiService {
+  auth: {
+    login: (credentials: { email: string; password: string }) => Promise<any>
+    register: (userData: any) => Promise<any>
+    logout: () => Promise<any>
+    refreshToken: () => Promise<any>
+  }
+  equipment: {
+    getAll: (params?: any) => Promise<any>
+    getById: (id: string) => Promise<any>
+    create: (data: any) => Promise<any>
+    update: (id: string, data: any) => Promise<any>
+    delete: (id: string) => Promise<any>
+    getStats: () => Promise<any>
+    getCalibrationHistory: (id: string) => Promise<any>
+    getStatus: (id: string) => Promise<any>
+  }
+  calibration: {
+    getAll: (params?: any) => Promise<any>
+    getById: (id: string) => Promise<any>
+    create: (data: any) => Promise<any>
+    update: (id: string, data: any) => Promise<any>
+    delete: (id: string) => Promise<any>
+    performCalibration: (id: string, data: any) => Promise<any>
+  }
+  reports: {
+    getAll: (params?: any) => Promise<any>
+    getById: (id: string) => Promise<any>
+    create: (data: any) => Promise<any>
+    generatePDF: (id: string) => Promise<any>
+  }
+  team: {
+    getMembers: (params?: any) => Promise<any>
+    inviteMember: (data: any) => Promise<any>
+    updateMember: (id: string, data: any) => Promise<any>
+    removeMember: (id: string) => Promise<any>
+  }
+  notifications: {
+    getAll: (params?: any) => Promise<any>
+    markAsRead: (id: string) => Promise<any>
+    markAllAsRead: () => Promise<any>
+    getPreferences: () => Promise<any>
+    updatePreferences: (data: any) => Promise<any>
+  }
+  billing: {
+    getSubscription: () => Promise<any>
+    getPlans: () => Promise<any>
+    createPaymentIntent: (data: any) => Promise<any>
+    createSubscription: (data: any) => Promise<any>
+    upgradeSubscription: (planId: string) => Promise<any>
+    cancelSubscription: (id: string) => Promise<any>
+    getInvoices: (params?: any) => Promise<any>
+    getInvoice: (id: string) => Promise<any>
+    downloadInvoice: (id: string) => Promise<any>
+    getPaymentMethods: () => Promise<any>
+    addPaymentMethod: (data: any) => Promise<any>
+    setDefaultPaymentMethod: (methodId: string) => Promise<any>
+    deletePaymentMethod: (methodId: string) => Promise<any>
+    getUsage: () => Promise<any>
+    getUsageHistory: (params: any) => Promise<any>
+    trackUsageEvents: (events: any[]) => Promise<any>
+    getUsageAnalytics: (period: string) => Promise<any>
+    getBillingPortal: (data: any) => Promise<any>
+    updateSubscription: (data: any) => Promise<any>
+    getBillingSettings: () => Promise<any>
+    updateBillingSettings: (data: any) => Promise<any>
+  }
+  search: {
+    globalSearch: (params: any) => Promise<any>
+    getSavedSearches: () => Promise<any>
+    saveSearch: (data: any) => Promise<any>
+  }
+  bulkOperations: {
+    getBulkOperations: () => Promise<any>
+    getTemplates: () => Promise<any>
+    createBulkOperation: (data: any) => Promise<any>
+    executeBulkOperation: (id: string) => Promise<any>
+    cancelBulkOperation: (id: string) => Promise<any>
+  }
+  dataManagement: {
+    exportData: (type: string, format: string) => Promise<any>
+    importData: (data: any) => Promise<any>
+    getImportTemplates: () => Promise<any>
+    getExportHistory: () => Promise<any>
+    getImportHistory: () => Promise<any>
+  }
+  api: {
+    getApiKeys: () => Promise<any>
+    createApiKey: (data: any) => Promise<any>
+    deleteApiKey: (id: string) => Promise<any>
+    revokeApiKey: (id: string) => Promise<any>
+    getApiUsage: () => Promise<any>
+    getApiEndpoints: () => Promise<any>
+  }
+  automation: {
+    getWorkflows: () => Promise<any>
+    getTemplates: () => Promise<any>
+    createWorkflow: (data: any) => Promise<any>
+    updateWorkflow: (id: string, data: any) => Promise<any>
+    deleteWorkflow: (id: string) => Promise<any>
+    executeWorkflow: (id: string) => Promise<any>
+    toggleWorkflow: (id: string, action: 'start' | 'pause' | 'stop') => Promise<any>
+  }
+  admin: {
+    getSystemMetrics: () => Promise<any>
+    getSecurityEvents: () => Promise<any>
+    getSystemBackups: () => Promise<any>
+    createBackup: (type?: 'full' | 'incremental') => Promise<any>
+    getUsers: () => Promise<any>
+    updateUser: (id: string, data: any) => Promise<any>
+    deleteUser: (id: string) => Promise<any>
+  }
+  analytics: {
+    getEnterpriseMetrics: () => Promise<any>
+    getRevenueData: (period: string) => Promise<any>
+    getUserEngagement: () => Promise<any>
+    getSystemPerformance: () => Promise<any>
+    getEquipmentAnalytics: (params?: any) => Promise<any>
+    getCalibrationAnalytics: (params?: any) => Promise<any>
+    getComplianceAnalytics: (params?: any) => Promise<any>
+    getUserAnalytics: (params?: any) => Promise<any>
+    getCustomReport: (reportData: any) => Promise<any>
+  }
+  dashboard: {
+    getStats: () => Promise<any>
+    getRecentActivity: (limit?: number) => Promise<any>
+    getComplianceOverview: () => Promise<any>
+    getEquipmentStatus: () => Promise<any>
+    getCalibrationSchedule: () => Promise<any>
+  }
+  integrations: {
+    getLIMSConnections: () => Promise<any>
+    createLIMSConnection: (data: any) => Promise<any>
+    syncLIMSData: (connectionId: string) => Promise<any>
+    disconnectLIMS: (connectionId: string) => Promise<any>
+  }
+}
+
+export const apiService: ApiService = {
   // Auth endpoints
   auth: {
     login: async (credentials: { email: string; password: string }) => {

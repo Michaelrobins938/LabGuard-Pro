@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { apiService } from '@/lib/api'
+import { apiService } from '@/lib/api-service'
 import { toast } from 'sonner'
 
 interface Notification {
@@ -39,18 +39,20 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!session?.user) return
 
     try {
-      // TODO: Implement notifications API
-      setNotifications([])
-      setUnreadCount(0)
+      const response = await apiService.notifications.getAll()
+      setNotifications(response.data || [])
+      setUnreadCount(response.data?.filter((n: any) => !n.isRead).length || 0)
     } catch (error) {
       console.error('Failed to fetch notifications:', error)
+      setNotifications([])
+      setUnreadCount(0)
     }
   }, [session?.user])
 
   // Mark notification as read
   const markAsRead = useCallback(async (id: string) => {
     try {
-      // TODO: Implement mark as read API
+      await apiService.notifications.markAsRead(id)
       setNotifications(prev => 
         prev.map(notification => 
           notification.id === id 
@@ -67,7 +69,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
     try {
-      // TODO: Implement mark all as read API
+      await apiService.notifications.markAllAsRead()
       setNotifications(prev => 
         prev.map(notification => ({ ...notification, isRead: true }))
       )

@@ -26,7 +26,7 @@ import {
   Plus
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-// import { apiService } from '@/lib/api-service' // TODO: Implement search API
+import { apiService } from '@/lib/api-service'
 
 interface SearchResult {
   id: string
@@ -65,8 +65,15 @@ export default function SearchPage() {
   const { data: searchResults, isLoading: searchLoading } = useQuery({
     queryKey: ['search', searchQuery, activeFilters],
     queryFn: async () => {
-      // TODO: Implement search API
-      return [] as SearchResult[]
+      const response = await apiService.search.globalSearch({
+        query: searchQuery,
+        filters: activeFilters,
+        types: selectedTypes,
+        dateRange,
+        location: locationFilter,
+        status: statusFilter
+      })
+      return response.data || []
     },
     enabled: !!session && (searchQuery.length > 0 || Object.keys(activeFilters).length > 0)
   })
@@ -75,8 +82,8 @@ export default function SearchPage() {
   const { data: savedSearchesData } = useQuery({
     queryKey: ['saved-searches'],
     queryFn: async () => {
-      // TODO: Implement saved searches API
-      return [] as SavedSearch[]
+      const response = await apiService.search.getSavedSearches()
+      return response.data || []
     },
     enabled: !!session
   })
@@ -114,18 +121,19 @@ export default function SearchPage() {
     setStatusFilter('')
   }
 
-  const saveSearch = () => {
+  const saveSearch = async () => {
     const searchName = prompt('Enter a name for this search:')
     if (searchName) {
-      const newSavedSearch: SavedSearch = {
-        id: Date.now().toString(),
-        name: searchName,
-        query: searchQuery,
-        filters: activeFilters,
-        createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
+      try {
+        const response = await apiService.search.saveSearch({
+          name: searchName,
+          query: searchQuery,
+          filters: activeFilters
+        })
+        setSavedSearches([...savedSearches, response.data])
+      } catch (error) {
+        console.error('Failed to save search:', error)
       }
-      setSavedSearches([...savedSearches, newSavedSearch])
     }
   }
 
