@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Character Creation - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+    <header class="animate-header">
+        <h1>Profile</h1>
+        <nav id="navbar" aria-label="Main navigation">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="dashboard animate-section">
+        <h2>Welcome, [Username]!</h2>
+        <div class="achievements">
+            <h3>Achievements</h3>
+            <div class="achievement">
+                <h4>Bookworm</h4>
+                <p>Read 10 books.</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" style="width: 70%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="quests">
+            <h3>Quests</h3>
+            <div class="quest">
+                <h4>First Steps</h4>
+                <p>Complete your profile.</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" style="width: 50%;"></div>
+                </div>
+            </div>
+        </div>
+        <form id="profile-form">
+            <input type="text" placeholder="Username" aria-label="Username" required>
+            <input type="email" placeholder="Email" aria-label="Email" required>
+            <textarea placeholder="Bio" rows="5" aria-label="Bio"></textarea>
+            <button type="submit">Update Profile</button>
+        </form>
+    </section>
+
+    <button id="startCreation">Start Character Creation</button>
+
+    <section class="character-creation" id="characterCreation" style="display:none;">
+        <div id="3d-viewer-container">
+            <div id="3d-viewer"></div>
+        </div>
+        <div id="characterForm-container">
+            <form id="characterForm">
+                <div class="step" id="backstorySelection">
+                    <h2>Select Your Backstory</h2>
+                    <div class="option">
+                        <input type="radio" id="nobleWarrior" name="backstory" value="Noble Warrior">
+                        <label for="nobleWarrior">Noble Warrior: Higher charisma and better starting equipment.</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" id="orphanedRogue" name="backstory" value="Orphaned Rogue">
+                        <label for="orphanedRogue">Orphaned Rogue: Enhanced stealth abilities and unique side quests.</label>
+                    </div>
+                    <div class="option">
+                        <input type="radio" id="mysticScholar" name="backstory" value="Mystic Scholar">
+                        <label for="mysticScholar">Mystic Scholar: Access to rare spells and higher intelligence.</label>
+                    </div>
+                    <button type="button" class="nextButton">Next</button>
+                </div>
+
+                <div class="step" id="raceClassSelection" style="display:none;">
+                    <h2>Choose Your Race and Class</h2>
+                    <div class="option-group">
+                        <h3>Select Race</h3>
+                        <div class="option">
+                            <input type="radio" id="elf" name="race" value="Elf">
+                            <label for="elf">Elf: Enhanced agility and magical affinity.</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="dwarf" name="race" value="Dwarf">
+                            <label for="dwarf">Dwarf: Superior strength and mining skills.</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="human" name="race" value="Human">
+                            <label for="human">Human: Balanced stats with faster experience gain.</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="orc" name="race" value="Orc">
+                            <label for="orc">Orc: High resilience and combat prowess.</label>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <h3>Select Class</h3>
+                        <div class="option">
+                            <input type="radio" id="warrior" name="class" value="Warrior">
+                            <label for="warrior">Warrior: High health and melee damage.</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="mage" name="class" value="Mage">
+                            <label for="mage">Mage: Powerful spells but low physical defense.</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="rogue" name="class" value="Rogue">
+                            <label for="rogue">Rogue: Stealthy with high critical hit chances.</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="ranger" name="class" value="Ranger">
+                            <label for="ranger">Ranger: Skilled in ranged combat and survival tactics.</label>
+                        </div>
+                    </div>
+                    <button type="button" class="prevButton">Back</button>
+                    <button type="button" class="nextButton">Next</button>
+                </div>
+
+                <div class="step" id="appearanceCustomization" style="display:none;">
+                    <h2>Customize Your Appearance</h2>
+                    <div class="customization-section">
+                        <label for="facialFeatures">Facial Features</label>
+                        <select id="facialFeatures" name="facialFeatures">
+                            <option value="default">Default</option>
+                            <option value="scarred">Scarred</option>
+                            <option value="tattooed">Tattooed</option>
+                        </select>
+                    </div>
+                    <div class="customization-section">
+                        <label for="hairStyle">Hair Style</label>
+                        <select id="hairStyle" name="hairStyle">
+                            <option value="short">Short</option>
+                            <option value="long">Long</option>
+                            <option value="curly">Curly</option>
+                        </select>
+                    </div>
+                    <div class="customization-section">
+                        <label for="hairColor">Hair Color</label>
+                        <input type="color" id="hairColor" name="hairColor" value="#000000">
+                    </div>
+                    <div class="customization-section">
+                        <label for="eyeColor">Eye Color</label>
+                        <input type="color" id="eyeColor" name="eyeColor" value="#0000ff">
+                    </div>
+                    <div class="customization-section">
+                        <label for="bodyType">Body Type</label>
+                        <select id="bodyType" name="bodyType">
+                            <option value="slim">Slim</option>
+                            <option value="athletic">Athletic</option>
+                            <option value="muscular">Muscular</option>
+                        </select>
+                    </div>
+                    <div class="customization-section">
+                        <label for="clothingStyle">Clothing Style</label>
+                        <select id="clothingStyle" name="clothingStyle">
+                            <option value="casual">Casual</option>
+                            <option value="armored">Armored</option>
+                            <option value="elegant">Elegant</option>
+                        </select>
+                    </div>
+                    <button type="button" class="prevButton">Back</button>
+                    <button type="button" class="nextButton">Next</button>
+                </div>
+
+                <div class="step" id="skillAllocation" style="display:none;">
+                    <h2>Allocate Skills and Abilities</h2>
+                    <div class="skill-section">
+                        <label for="strength">Strength</label>
+                        <input type="number" id="strength" name="strength" min="1" max="20" value="10">
+                    </div>
+                    <div class="skill-section">
+                        <label for="dexterity">Dexterity</label>
+                        <input type="number" id="dexterity" name="dexterity" min="1" max="20" value="10">
+                    </div>
+                    <div class="skill-section">
+                        <label for="constitution">Constitution</label>
+                        <input type="number" id="constitution" name="constitution" min="1" max="20" value="10">
+                    </div>
+                    <div class="skill-section">
+                        <label for="intelligence">Intelligence</label>
+                        <input type="number" id="intelligence" name="intelligence" min="1" max="20" value="10">
+                    </div>
+                    <div class="skill-section">
+                        <label for="wisdom">Wisdom</label>
+                        <input type="number" id="wisdom" name="wisdom" min="1" max="20" value="10">
+                    </div>
+                    <div class="skill-section">
+                        <label for="charisma">Charisma</label>
+                        <input type="number" id="charisma" name="charisma" min="1" max="20" value="10">
+                    </div>
+                    <button type="button" class="prevButton">Back</button>
+                    <button type="button" class="nextButton">Next</button>
+                </div>
+
+                <div class="step" id="traitsSelection" style="display:none;">
+                    <h2>Select Personal Traits and Alignment</h2>
+                    <div class="trait-section">
+                        <label for="quirks">Select Quirks</label>
+                        <select id="quirks" name="quirks">
+                            <option value="fearOfHeights">Fear of Heights</option>
+                            <option value="animalLover">Love for Animals</option>
+                            <option value="mysteriousPast">Mysterious Past</option>
+                        </select>
+                    </div>
+                    <div class="trait-section">
+                        <label for="alignment">Alignment</label>
+                        <select id="alignment" name="alignment">
+                            <option value="lawfulGood">Lawful Good</option>
+                            <option value="neutralGood">Neutral Good</option>
+                            <option value="chaoticGood">Chaotic Good</option>
+                            <option value="lawfulNeutral">Lawful Neutral</option>
+                            <option value="trueNeutral">True Neutral</option>
+                            <option value="chaoticNeutral">Chaotic Neutral</option>
+                            <option value="lawfulEvil">Lawful Evil</option>
+                            <option value="neutralEvil">Neutral Evil</option>
+                            <option value="chaoticEvil">Chaotic Evil</option>
+                        </select>
+                    </div>
+                    <button type="button" class="prevButton">Back</button>
+                    <button type="button" class="nextButton">Next</button>
+                </div>
+
+                <div class="step" id="finalReview" style="display:none;">
+                    <h2>Final Review</h2>
+                    <div class="summary">
+                        <h3>Character Summary</h3>
+                        <p id="summaryBackstory"></p>
+                        <p id="summaryRaceClass"></p>
+                        <p id="summaryAppearance"></p>
+                        <p id="summarySkills"></p>
+                        <p id="summaryTraits"></p>
+                    </div>
+                    <div class="name-selection">
+                        <label for="characterName">Character Name</label>
+                        <input type="text" id="characterName" name="characterName" required>
+                        <button type="button" id="randomNameButton">Random Name</button>
+                    </div>
+                    <button type="button" class="prevButton">Back</button>
+                    <button type="submit">Save and Start</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

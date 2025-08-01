@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Releases - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #f1f1f1;
+        }
+
+        .releases-container {
+            padding: 2rem 1rem;
+            background: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .releases-container h2 {
+            margin-bottom: 1rem;
+            animation: slideUp 0.5s ease-in-out;
+        }
+
+        .releases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .release {
+            background-color: #2e2e2e;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            transition: transform 0.3s, background-color 0.3s;
+            cursor: pointer;
+            animation: slideUp 0.7s ease-in-out;
+        }
+
+        .release:hover {
+            transform: scale(1.05);
+            background-color: #3e3e3e;
+        }
+
+        .release img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .release h3 {
+            margin: 0.5rem 0;
+        }
+
+        .release p {
+            margin-bottom: 0.5rem;
+        }
+
+        .rating {
+            margin-bottom: 0.5rem;
+            color: orange;
+        }
+
+        .comments-container {
+            margin: 2rem 0;
+            width: 80%;
+            max-width: 800px;
+            background: #2e2e2e;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .comments-container h3 {
+            margin-bottom: 1rem;
+        }
+
+        .comment-item {
+            background: #3e3e3e;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .comment-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .comment-details {
+            flex: 1;
+        }
+
+        .comment-details p {
+            margin: 0;
+        }
+
+        .comment-details .username {
+            font-weight: bold;
+        }
+
+        .comment-details .timestamp {
+            font-size: 0.8rem;
+            color: #b3b3b3;
+        }
+
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+            margin-top: 1rem;
+        }
+
+        .comment-form textarea,
+        .comment-form button {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            width: 100%;
+            border-radius: 5px;
+        }
+
+        .comment-form textarea {
+            background-color: #1e1e1e;
+            color: #f1f1f1;
+            border: 1px solid #3e3e3e;
+        }
+
+        .comment-form button {
+            background-color: orange;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .comment-form button:hover {
+            background-color: darkorange;
+            transform: scale(1.1);
+        }
+
+        .bookmarks-container {
+            margin: 2rem 0;
+            text-align: center;
+            width: 80%;
+            max-width: 800px;
+            background: #2e2e2e;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .bookmarks-container h3 {
+            margin-bottom: 1rem;
+        }
+
+        .bookmarked-release {
+            background: #3e3e3e;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bookmarked-release img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+        }
+
+        .achievements-container {
+            margin: 2rem 0;
+            text-align: center;
+            width: 80%;
+            max-width: 800px;
+            background: #2e2e2e;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .achievements-container h3 {
+            margin-bottom: 1rem;
+        }
+
+        .achievement {
+            background: #3e3e3e;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .achievement img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+        }
+
+        .vote-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .vote-button {
+            background-color: orange;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .vote-button:hover {
+            background-color: darkorange;
+            transform: scale(1.1);
+        }
+
+        .bookmark-button {
+            background-color: orange;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .bookmark-button:hover {
+            background-color: darkorange;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <header class="animate-header">
+        <h1>New Releases</h1>
+        <nav id="navbar" aria-label="Main navigation">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="releases-container animate-section">
+        <h2>Latest Releases</h2>
+        <div class="releases-grid">
+            <div class="release">
+                <img src="https://via.placeholder.com/150" alt="Release Cover">
+                <h3>Release Title 1</h3>
+                <p>Author: Author Name</p>
+                <div class="rating">⭐⭐⭐⭐☆</div>
+                <button class="read-more-button">Read More</button>
+                <div class="vote-buttons">
+                    <button class="vote-button upvote">Upvote</button>
+                    <button class="vote-button downvote">Downvote</button>
+                </div>
+                <button class="bookmark-button">Bookmark</button>
+            </div>
+            <div class="release">
+                <img src="https://via.placeholder.com/150" alt="Release Cover">
+                <h3>Release Title 2</h3>
+                <p>Author: Author Name</p>
+                <div class="rating">⭐⭐⭐☆☆</div>
+                <button class="read-more-button">Read More</button>
+                <div class="vote-buttons">
+                    <button class="vote-button upvote">Upvote</button>
+                    <button class="vote-button downvote">Downvote</button>
+                </div>
+                <button class="bookmark-button">Bookmark</button>
+            </div>
+            <!-- Add more releases as needed -->
+        </div>
+
+        <div class="comments-container">
+            <h3>User Comments</h3>
+            <div class="comment-item">
+                <img src="https://via.placeholder.com/40" alt="User Avatar">
+                <div class="comment-details">
+                    <p class="username">User1</p>
+                    <p>This release is fantastic!</p>
+                    <p class="timestamp">Posted on: 2024-06-01 12:34</p>
+                </div>
+            </div>
+            <div class="comment-item">
+                <img src="https://via.placeholder.com/40" alt="User Avatar">
+                <div class="comment-details">
+                    <p class="username">User2</p>
+                    <p>I enjoyed reading this.</p>
+                    <p class="timestamp">Posted on: 2024-06-01 13:45</p>
+                </div>
+            </div>
+            <!-- Add more comments as needed -->
+
+            <form id="comment-form" class="comment-form">
+                <textarea id="comment" placeholder="Write your comment here..." rows="4" required></textarea>
+                <button type="submit">Submit Comment</button>
+            </form>
+        </div>
+
+        <div class="bookmarks-container">
+            <h3>Your Bookmarked Releases</h3>
+            <!-- Bookmarked releases will be added here -->
+        </div>
+
+        <div class="achievements-container">
+            <h3>Your Achievements</h3>
+            <div class="achievement">
+                <img src="https://via.placeholder.com/50" alt="Achievement Badge">
+                <p>Bookmarked 5 Releases</p>
+            </div>
+            <div class="achievement">
+                <img src="https://via.placeholder.com/50" alt="Achievement Badge">
+                <p>Submitted 10 Comments</p>
+            </div>
+            <!-- Add more achievements as needed -->
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.read-more-button').forEach(button => {
+            button.addEventListener('click', () => {
+                alert('More information about this release will be available soon.');
+            });
+        });
+
+        document.getElementById('comment-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const commentText = document.getElementById('comment').value;
+            if (!commentText) {
+                alert("Please write a comment before submitting.");
+                return;
+            }
+
+            const commentContainer = document.createElement('div');
+            commentContainer.classList.add('comment-item');
+            const timestamp = new Date().toLocaleString();
+            commentContainer.innerHTML = `
+                <img src="https://via.placeholder.com/40" alt="User Avatar">
+                <div class="comment-details">
+                    <p class="username">You</p>
+                    <p>${commentText}</p>
+                    <p class="timestamp">Posted on: ${timestamp}</p>
+                </div>
+            `;
+            document.querySelector('.comments-container').appendChild(commentContainer);
+
+            document.getElementById('comment').value = "";
+            alert("Comment submitted successfully!");
+
+            updateAchievements('comment');
+
+            // Here you can add code to send the comment data to the server
+        });
+
+        document.querySelectorAll('.bookmark-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const release = button.closest('.release');
+                const title = release.querySelector('h3').textContent;
+                const imgSrc = release.querySelector('img').src;
+
+                const bookmarkContainer = document.createElement('div');
+                bookmarkContainer.classList.add('bookmarked-release');
+                bookmarkContainer.innerHTML = `
+                    <img src="${imgSrc}" alt="Bookmarked Release">
+                    <p>${title}</p>
+                    <button class="remove-bookmark-button">Remove</button>
+                `;
+                document.querySelector('.bookmarks-container').appendChild(bookmarkContainer);
+
+                button.disabled = true;
+                button.textContent = "Bookmarked";
+                updateAchievements('bookmark');
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.classList.contains('remove-bookmark-button')) {
+                e.target.closest('.bookmarked-release').remove();
+            }
+        });
+
+        document.querySelectorAll('.vote-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const isUpvote = button.classList.contains('upvote');
+                const voteType = isUpvote ? 'Upvote' : 'Downvote';
+                alert(`You have ${voteType.toLowerCase()}d this release!`);
+                updateAchievements(isUpvote ? 'upvote' : 'downvote');
+            });
+        });
+
+        function updateAchievements(type) {
+            if (type === 'bookmark') {
+                const bookmarks = document.querySelectorAll('.bookmarked-release').length;
+                if (bookmarks === 5) {
+                    addAchievement('Bookmarked 5 Releases');
+                }
+            } else if (type === 'comment') {
+                const comments = document.querySelectorAll('.comment-item').length;
+                if (comments === 10) {
+                    addAchievement('Submitted 10 Comments');
+                }
+            } else if (type === 'upvote') {
+                // Add upvote related achievements
+            } else if (type === 'downvote') {
+                // Add downvote related achievements
+            }
+        }
+
+        function addAchievement(description) {
+            const achievementContainer = document.createElement('div');
+            achievementContainer.classList.add('achievement');
+            achievementContainer.innerHTML = `
+                <img src="https://via.placeholder.com/50" alt="Achievement Badge">
+                <p>${description}</p>
+            `;
+            document.querySelector('.achievements-container').appendChild(achievementContainer);
+        }
+    </script>
+</body>
+</html>

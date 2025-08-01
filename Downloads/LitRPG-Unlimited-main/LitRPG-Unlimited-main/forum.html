@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #000;
+            padding: 1rem;
+            color: white;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #444;
+            border-radius: 5px;
+        }
+
+        .forum-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            color: white;
+            position: relative;
+        }
+
+        .forum-container::before {
+            content: "";
+            background: url('https://lh3.googleusercontent.com/pw/AP1GczNqjZq0mGP4AfeGp_R0184wmPiw1O54c6oFeIgA6ULkUqdRqBu61KXlQMvVnd5YxgNzf9N1z_gQs_sLblDLg-Qc12KVM1uJOWv9bVDDTkj77vvSvL4D=w600-h315-p-k') no-repeat center center/cover;
+            opacity: 0.4;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            position: absolute;
+            z-index: -1;
+            border-radius: 10px;
+        }
+
+        .forum-container h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #ff4500;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-bar input, .search-bar select, .search-bar button {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
+            flex: 1;
+        }
+
+        .search-bar button {
+            background-color: #ff4500;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .search-bar button:hover {
+            background-color: #e63900;
+        }
+
+        .progress-bar {
+            height: 1rem;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background-color: #007bff;
+            width: 50%;
+        }
+
+        .guild-section, .narrative-section, .character-section, .social-platform, .news-section, .blog-section, .matches-section, .tabbed-posts-section, .footer-section {
+            margin: 2rem 0;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .guild-section h3, .narrative-section h3, .character-section h3, .social-platform h3, .news-section h3, .blog-section h3, .matches-section h3, .tabbed-posts-section h3, .footer-section h3 {
+            color: #ff4500;
+        }
+
+        .news-item, .blog-item, .match-item, .tabbed-post-item {
+            margin-bottom: 1rem;
+        }
+
+        .news-item img, .blog-item img {
+            width: 100%;
+            border-radius: 5px;
+        }
+
+        .footer-section .footer-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .search-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .search-bar input, .search-bar select, .search-bar button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Forum</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html" id="login-link">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="forum-container">
+            <h2>Welcome to the Forum, <span id="username-display">Guest</span>!</h2>
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search topics..." aria-label="Search Topics">
+                <select id="search-author" aria-label="Filter by Author">
+                    <option value="">All Authors</option>
+                </select>
+                <button id="search-button">Search</button>
+            </div>
+            <div class="xp-level">
+                <h3>Level: <span id="user-level">1</span></h3>
+                <p>XP: <span id="user-xp">50</span>/100</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" id="xp-bar"></div>
+                </div>
+            </div>
+            <div class="badges">
+                <h3>Your Badges</h3>
+                <div id="badge-container"></div>
+            </div>
+            <div class="leaderboard">
+                <h3>Top Users</h3>
+                <ol id="leaderboard-list"></ol>
+            </div>
+            <div class="quests">
+                <h3>Quests</h3>
+                <div class="quest">
+                    <h4>Welcome Quest</h4>
+                    <p>Introduce yourself in the forum.</p>
+                    <div class="progress-bar">
+                        <div class="progress-bar-inner" style="width: 50%;"></div>
+                    </div>
+                </div>
+                <div class="quest">
+                    <h4>Engage with Topics</h4>
+                    <p>Comment on 5 different topics.</p>
+                    <div class="progress-bar">
+                        <div class="progress-bar-inner" style="width: 20%;"></div>
+                    </div>
+                </div>
+                <div class="quest">
+                    <h4>Daily Login</h4>
+                    <p>Log in for 7 consecutive days.</p>
+                    <div class="progress-bar">
+                        <div class="progress-bar-inner" style="width: 70%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guild Sections -->
+            <article class="guild-section">
+                <h3>Guild 1: The Celestial Order</h3>
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczNqjZq0mGP4AfeGp_R0184wmPiw1O54c6oFeIgA6ULkUqdRqBu61KXlQMvVnd5YxgNzf9N1z_gQs_sLblDLg-Qc12KVM1uJOWv9bVDDTkj77vvSvL4D=w2400?source=screenshot.guru" alt="The Celestial Order Symbol" class="guild-symbol">
+                <p><strong>Symbol:</strong> A crescent moon with a star at its tip.</p>
+                <p><strong>Colors:</strong> Silver and Blue</p>
+                <p><strong>Values:</strong> Courage, Honor, and Celestial Power</p>
+                <p><strong>History and Lore:</strong> The Celestial Order was founded by the first Lunar Knight, Seraphine the Radiant, who harnessed the power of the moon to protect the realm from darkness. The Order's fortress, Moonspire Keep, stands tall atop a mountain, its towers reaching for the stars. The Order believes in the protection of the weak and the pursuit of justice, guided by the celestial light.</p>
+                <p><strong>Backstory:</strong> Members of the Celestial Order are the Lunar Knights, warriors imbued with the power of the moon. They are known for their bravery and honor, often seen as the first line of defense against evil. The Order values courage and self-sacrifice, with each knight sworn to uphold the principles of justice and righteousness. They are revered across the land for their unwavering commitment to the greater good.</p>
+            </article>
+            <article class="guild-section">
+                <h3>Guild 2: The Kitsune Clan</h3>
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczOlpNXUEclknj8lnu6Aowiwg1qSit1smBQLF-FgEUb_Kyz3Wd8NA2Wjbm_CaytRQO0WU-FeEAJ9ssVYMVM5oLiVs_Y2qbR5NDEFLStK3yjljDvy-XKC=w2400?source=screenshot.guru" alt="The Kitsune Clan Symbol" class="guild-symbol">
+                <p><strong>Symbol:</strong> A nine-tailed fox surrounded by swirling flames.</p>
+                <p><strong>Colors:</strong> Red and Gold</p>
+                <p><strong>Values:</strong> Cunning, Mysticism, and Transformation</p>
+                <p><strong>History and Lore:</strong> The Kitsune Clan was formed by the enigmatic fox spirit, Yuki, who taught her followers the art of shapeshifting and illusion. The Clan's hidden village, Kitsune Hollow, is nestled deep within an enchanted forest, its location known only to those initiated into the Clan. The Kitsune Clan believes in the power of transformation and the wisdom of nature.</p>
+                <p><strong>Backstory:</strong> Members of the Kitsune Clan are the Kitsune, mystical beings with the ability to shapeshift and cast powerful illusions. They value cunning and agility, using their skills to protect the natural world and maintain balance. The Clan's members are often seen as playful and mischievous, but beneath their light-hearted exterior lies a deep connection to the spiritual world. They are guardians of ancient secrets and wielders of powerful magic.</p>
+            </article>
+            <article class="guild-section">
+                <h3>Guild 3: The Luminae Sanctum</h3>
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczMuKx6hOTASscY8DyjK-bG1DrKjpOUer4mgheZXirDJIBa5xwU5eaBj9e_T0vHpQ9-Bll5WCvZV1sQ5vn3-boFt9qU-Sj6d1XE6MkJi0v5NJeC4CE51=w2400?source=screenshot.guru" alt="The Luminae Sanctum Symbol" class="guild-symbol">
+                <p><strong>Symbol:</strong> A radiant sun with rays extending outward.</p>
+                <p><strong>Colors:</strong> White and Gold</p>
+                <p><strong>Values:</strong> Light, Purity, and Enlightenment</p>
+                <p><strong>History and Lore:</strong> The Luminae Sanctum was established by the first Luminian, Solara the Pure, who discovered the power of the sun and used it to bring light to the darkest corners of the world. The Sanctum's temple, Sunspire Abbey, is a beacon of light, its golden spires shining brightly. The Sanctum believes in the pursuit of enlightenment and the eradication of darkness.</p>
+                <p><strong>Backstory:</strong> Members of the Luminae Sanctum are the Luminian, beings of pure light who seek to spread illumination and wisdom. They are healers and sages, using their radiant power to cleanse and purify. The Sanctum values purity and knowledge, believing that true enlightenment comes from understanding and compassion. They are revered as bringers of hope and light, often sought after for their guidance and wisdom.</p>
+            </article>
+            <article class="guild-section">
+                <h3>Guild 4: The Umbral Covenant</h3>
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczNUg6lb0WwEbaHYdAH_7w1WekpQgiI8ePR4rzKxuWJi2aPRihgi3kF-DXDzQfMV_H7HG5gX3UCCcBvvuz6iK6-EzFGqsTVDLSjshIpiwdEBY6vWzdqZ=w2400?source=screenshot.guru" alt="The Umbral Covenant Symbol" class="guild-symbol">
+                <p><strong>Symbol:</strong> A skull enveloped in dark flames.</p>
+                <p><strong>Colors:</strong> Black and Purple</p>
+                <p><strong>Values:</strong> Power, Darkness, and Mastery of Death</p>
+                <p><strong>History and Lore:</strong> The Umbral Covenant was formed by the first Necromancer, Moros the Deathbringer, who uncovered the secrets of life and death. The Covenant's necropolis, Shadowfell Citadel, is a place of dark beauty, where the dead walk and the air hums with arcane power. The Covenant believes in the mastery of death and the pursuit of ultimate power.</p>
+                <p><strong>Backstory:</strong> Members of the Umbral Covenant are the Necromancers, masters of death magic who command legions of the undead. They value power and control, using their dark abilities to bend life and death to their will. The Covenant's members are often feared and misunderstood, but they believe that their path leads to true mastery. They are scholars of the macabre, constantly pushing the boundaries of what is possible through their dark arts.</p>
+            </article>
+
+            <!-- Central Narrative Section -->
+            <article class="narrative-section">
+                <h3>The Grand Quest for the Celestial Core</h3>
+                <p>The Celestial Core, a powerful and ancient artifact, is rumored to be hidden within a vast and dangerous realm known as the Celestial Abyss. This realm is filled with challenges, puzzles, and guardians that test the mettle of any who dare to enter. Each guild and their members believe that acquiring the Celestial Core will fulfill their ultimate goals, leading to a fierce competition.</p>
+                <p><strong>Key Elements:</strong></p>
+                <ul>
+                    <li><strong>The Celestial Abyss:</strong> A mysterious and treacherous realm that holds the Celestial Core at its heart. The Abyss is filled with ancient ruins, magical barriers, and formidable creatures. Only the bravest and most skilled adventurers can hope to navigate its dangers.</li>
+                    <li><strong>The Trials:</strong> The path to the Celestial Core is guarded by a series of trials, each designed to test different attributes such as strength, wisdom, agility, and magical prowess. These trials ensure that only the most worthy can reach the Core.</li>
+                    <li><strong>The Prophecy:</strong> An ancient prophecy foretells that the one who masters the trials and claims the Celestial Core will bring about a new era. This prophecy drives the guilds and individual adventurers to compete fiercely, each believing they are the chosen one.</li>
+                </ul>
+            </article>
+
+            <!-- Character Integration Section -->
+            <article class="character-section">
+                <h3>Social Media</h3>
+                <p><strong>:</strong></p>
+                <p><strong>:</strong> </p>
+                <p><strong>:</strong></p>
+                <p><strong>:</strong> </p>
+                <p><strong>:</strong></p>
+                <p><strong>:</strong></p>
+                <p><strong>:</strong> </p>
+                <p><strong></p>
+            </article>
+
+            <!-- Social Platform Section -->
+            <aside class="social-platform">
+                <h3>Social Platform and Community Features</h3>
+                <p><strong>Forums and Chat:</strong> </p>
+                <p><strong>Community Events:</strong></p>
+                <p><strong>House Points System:</strong> </p>
+            </aside>
+
+            <!-- News Blog - Horizontal Section -->
+            <section class="news-section">
+                <h3>News Blog </h3>
+                <div class="news-item">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczO2v3sbvoFhhFQV0632x4G_be5nn3LmUq64oXIDnw9qOQkwgzpZ4ucKJRcmXRE0u--Pku3i69tnzjuTVek43ei474V-IlCf8TwM52zqtw33qZR1FDhT=w2400" alt="News Image 1">
+                    <h4></h4>
+                    <p>Clan News - 1 day(s) ago - No comments</p>
+                    <p></p>
+                </div>
+                <div class="news-item">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczNwZ5Q3RtW6N-tRDkiV95oq53XxAMta4qhxH81toFA01mavtZr5TM8VG1kxl3ArMIpMlUpFNEi-kjiGlkk276gx7P6Eh6aCXI_Evtk4R0cXZh0nVpEE=w2400" alt="News Image 2">
+                    <h4></h4>
+                    <p>RPG - 10 days ago - No comments</p>
+                    <p></p>
+                </div>
+            </section>
+
+            <!-- Directly from the Blog Section -->
+            <section class="blog-section">
+                <h3>Directly from the Blog</h3>
+                <div class="blog-item">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczN1ca-6XBfkh9WeP7VJYhMzxVtnzf-j20pLHCRLuOQBct3rAoto4joElmNL6va_zZZXu8E6a7gfg2KWDAj2qGWhy56IuNPmoWfqnRGYQuL9Je9XCPyK=w2400" alt="Blog Image 1">
+                    <h4></h4>
+                    <p>By Author - Date - Comments</p>
+                </div>
+                <div class="blog-item">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczOviUWWDc6ccDTRZqS05L1djYUXogw5ik_IB5ma4drPGmNNDKsE8paoXUgk2dFzDqGI2Rj06gESlHhHYMWZCTuw_4dSG71TQlJFR7QvzlAtkQB_4RYr=w2400" alt="Blog Image 2">
+                    <h4></h4>
+                    <p>By Author - Date - Comments</p>
+                </div>
+                <div class="blog-item">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczNocS1xV25KBl8t5fIqlbYUjj5GsZW39tVSzSKqO_mjKiX4_LNp6u2rYkji5-7HWzxzdyID0B8aDda19MwhAhFOukSvDs33EjIa7qkHM8LgooJNYoZx=w2400" alt="Blog Image 3">
+                    <h4></h4>
+                    <p>By Author - Date - Comments</p>
+                </div>
+            </section>
+
+            <!-- Clan Matches Section -->
+            <section class="matches-section">
+                <h3>Clan Matches</h3>
+                <div class="match-item">
+                    <p></p>
+                </div>
+                <div class="match-item">
+                    <p></p>
+                </div>
+                <div class="match-item">
+                    <p></p>
+                </div>
+            </section>
+
+            <!-- Tabbed Posts Section -->
+            <section class="tabbed-posts-section">
+                <h3>Tabbed Posts</h3>
+                <div class="tabbed-post-item">
+                    <h4>Adventure</h4>
+                    <p>Umbral Covenant Chatroom</p>
+                    <p>Kitsune Chatroom</p>
+                </div>
+                <div class="Community Challenges">
+                    <h4>Luminae Sanctum Chatroom</h4>
+                    <p>Chatrooms</p>
+                    <p>Celestial Order  Chatroom</p>
+                </div>
+                <div class="tabbed-post-item">
+                    <h4>Racing</h4>
+                    <p>Monthly Challenges</p>
+                    <p>What's New</p>
+                </div>
+            </section>
+
+            <!-- Forum Topics Section -->
+            <section class="forum-topics" id="forum-topics">
+                <h3>Forum Topics</h3>
+            </section>
+            <section class="new-topic-form">
+                <h3>Post a New Topic</h3>
+                <form id="new-topic-form">
+                    <input type="text" placeholder="Topic Title" aria-label="Topic Title" required>
+                    <textarea placeholder="Topic Content" rows="5" aria-label="Topic Content" required></textarea>
+                    <button type="submit">Post Topic</button>
+                </form>
+            </section>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="footer-section">
+            <div class="footer-column">
+                <h3>Latest Posts</h3>
+                <p>Schedule</p>
+                <p>Upcoming-Releases</p>
+                <p>Guild News</p>
+            </div>
+            <div class="footer-column">
+                <h3>From the Forum</h3>
+                <p>News1</p>
+                <p>Events</p>
+                <p>Upcoming</p>
+            </div>
+            <div class="footer-column">
+                <h3>Latest Works</h3>
+                <p></p>
+                <p></p>
+                <p></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const progressBars = document.querySelectorAll('.progress-bar-inner');
+            const xpBar = document.getElementById('xp-bar');
+            let xp = 50;
+            const xpPerLevel = 100;
+            let level = 1;
+
+            const socket = new WebSocket('wss://your-websocket-server');
+
+            socket.addEventListener('message', event => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'xp-update') {
+                    updateXP(data.newXP);
+                } else if (data.type === 'badge-update') {
+                    updateBadges(data.badges);
+                }
+            });
+
+            function updateXP(newXP) {
+                xp += newXP;
+                if (xp >= xpPerLevel) {
+                    levelUp();
+                }
+                const xpPercent = (xp / xpPerLevel) * 100;
+                xpBar.style.width = `${xpPercent}%`;
+                document.getElementById('user-xp').textContent = xp;
+            }
+
+            function levelUp() {
+                xp = 0;
+                level += 1;
+                document.getElementById('user-level').textContent = level;
+                alert(`Congratulations! You've reached level ${level}`);
+            }
+
+            function checkAuthentication() {
+                const username = sessionStorage.getItem('username');
+                if (username) {
+                    document.getElementById('username-display').textContent = username;
+                    document.getElementById('login-link').textContent = 'Logout';
+                    document.getElementById('login-link').addEventListener('click', logout);
+                } else {
+                    document.getElementById('username-display').textContent = 'Guest';
+                }
+            }
+
+            function logout() {
+                sessionStorage.removeItem('username');
+                location.reload();
+            }
+
+            function searchTopics(query, filters) {
+                const topics = document.querySelectorAll('.forum-topic');
+                topics.forEach(topic => {
+                    const title = topic.querySelector('h4').textContent.toLowerCase();
+                    const author = topic.querySelector('p').textContent.toLowerCase();
+                    let isVisible = title.includes(query) || author.includes(query);
+
+                    if (filters.author && !author.includes(filters.author.toLowerCase())) {
+                        isVisible = false;
+                    }
+
+                    topic.style.display = isVisible ? 'block' : 'none';
+                });
+            }
+
+            function editTopic(topicId) {
+                alert(`Edit topic ${topicId}`);
+            }
+
+            function deleteTopic(topicId) {
+                alert(`Delete topic ${topicId}`);
+            }
+
+            function updateBadges(badges) {
+                const badgeContainer = document.getElementById('badge-container');
+                badgeContainer.innerHTML = '';
+                badges.forEach(badge => {
+                    const badgeElement = document.createElement('div');
+                    badgeElement.className = 'badge';
+                    badgeElement.innerHTML = `<img src="${badge.image}" alt="${badge.name}"><p>${badge.name}</p>`;
+                    badgeContainer.appendChild(badgeElement);
+                });
+            }
+
+            document.getElementById('new-topic-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('New topic posted successfully!');
+                updateXP(10);
+            });
+
+            const forumTopics = document.querySelectorAll('.forum-topic');
+            forumTopics.forEach(topic => {
+                topic.addEventListener('click', () => {
+                    updateXP(5);
+                });
+            });
+
+            const editButtons = document.querySelectorAll('.edit-topic');
+            editButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const topicId = e.target.closest('.forum-topic').dataset.topicId;
+                    editTopic(topicId);
+                });
+            });
+
+            const deleteButtons = document.querySelectorAll('.delete-topic');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const topicId = e.target.closest('.forum-topic').dataset.topicId;
+                    deleteTopic(topicId);
+                });
+            });
+
+            document.getElementById('search-button').addEventListener('click', () => {
+                const query = document.getElementById('search-input').value.toLowerCase();
+                const filters = {
+                    author: document.getElementById('search-author').value,
+                };
+                searchTopics(query, filters);
+            });
+
+            progressBars.forEach(bar => {
+                let progress = parseInt(bar.style.width);
+                setInterval(() => {
+                    if (progress < 100) {
+                        progress += 1;
+                        bar.style.width = `${progress}%`;
+                    }
+                }, 100);
+            });
+
+            fetch('/api/topics')
+                .then(response => response.json())
+                .then(data => {
+                    const forumTopics = document.getElementById('forum-topics');
+                    forumTopics.innerHTML = '';
+                    data.forEach(topic => {
+                        const topicElement = document.createElement('div');
+                        topicElement.className = 'forum-topic';
+                        topicElement.dataset.topicId = topic.id;
+                        topicElement.innerHTML = `
+                            <h4>${topic.title}</h4>
+                            <p>by ${topic.author}</p>
+                            <div class="edit-delete-buttons">
+                                <button class="edit-topic">Edit</button>
+                                <button class="delete-topic">Delete</button>
+                            </div>`;
+                        forumTopics.appendChild(topicElement);
+                    });
+                });
+
+            checkAuthentication();
+        });
+    </script>
+</body>
+</html>

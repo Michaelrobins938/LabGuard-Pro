@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #fff;
+        }
+
+        header, footer {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #ff4500;
+        }
+
+        .social-icons {
+            margin-top: 10px;
+        }
+
+        .social-icons a {
+            color: white;
+            margin: 0 10px;
+            font-size: 1.5em;
+        }
+
+        .music-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            width: 100%;
+        }
+
+        .music-container h2 {
+            margin-bottom: 1rem;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .music-item {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 1rem;
+            transition: background 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .music-item:hover {
+            background: #ff4500;
+        }
+
+        .music-item h3 {
+            margin: 0 0 10px;
+        }
+
+        .music-item p {
+            margin: 0 0 10px;
+        }
+
+        .playlist-creation,
+        .achievements,
+        .leveling {
+            margin: 1rem 0;
+            width: 100%;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .playlist-creation input,
+        .playlist-creation button {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
+
+        .playlist-creation button {
+            background-color: #ff4500;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .playlist-creation button:hover {
+            background-color: darkorange;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 1rem;
+            text-align: center;
+            color: white;
+        }
+
+        .footer a {
+            color: #ffa500;
+            margin: 0 0.5rem;
+        }
+
+        .footer a:hover {
+            color: #ff4500;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #2d3748;
+            border-radius: 5px;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background: #ff4500;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .music-container h2 {
+                font-size: 1.5em;
+            }
+
+            .music-item {
+                padding: 10px;
+            }
+
+            .music-item p {
+                font-size: 1em;
+            }
+
+            .playlist-creation,
+            .achievements,
+            .leveling {
+                padding: 10px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Music</h1>
+        <nav aria-label="Main navigation">
+            <ul>
+                <li><a href="index.html" aria-current="page">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons" aria-label="Social media links">
+                <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="music-container" aria-label="Your music library">
+            <h2>Your Music Library</h2>
+            <div class="music-item" data-track="https://drive.google.com/file/d/1XOk_Ew7KAIqr82sPOEgatl6keJV0t_uh/preview">
+                <h3>Track Title 1</h3>
+                <p>Artist: Artist Name</p>
+                <iframe src="https://drive.google.com/file/d/1XOk_Ew7KAIqr82sPOEgatl6keJV0t_uh/preview" width="300" height="80"></iframe>
+            </div>
+            <div class="music-item" data-track="https://drive.google.com/file/d/1G2jFUL2zwESHDc41QfO6rCcAjEsuhiv9/preview">
+                <h3>Track Title 2</h3>
+                <p>Artist: Artist Name</p>
+                <iframe src="https://drive.google.com/file/d/1G2jFUL2zwESHDc41QfO6rCcAjEsuhiv9/preview" width="300" height="80"></iframe>
+            </div>
+            <div class="music-item" data-track="https://drive.google.com/file/d/1a94ouvvPKc4gr8sbohwYRCmy9_CqjGpE/preview">
+                <h3>Track Title 3</h3>
+                <p>Artist: Artist Name</p>
+                <iframe src="https://drive.google.com/file/d/1a94ouvvPKc4gr8sbohwYRCmy9_CqjGpE/preview" width="300" height="80"></iframe>
+            </div>
+            <!-- Add more tracks as needed following the same pattern -->
+            <div class="playlist-creation">
+                <h3>Create a Playlist</h3>
+                <form id="playlist-form">
+                    <input type="text" placeholder="Playlist Name" required aria-label="Playlist Name">
+                    <div id="track-inputs">
+                        <input type="text" placeholder="Add Track URL" required aria-label="Track URL">
+                    </div>
+                    <button type="button" id="add-track-button">Add Another Track</button>
+                    <button type="submit">Create Playlist</button>
+                </form>
+                <div id="playlist-display" class="mt-4"></div>
+            </div>
+            <div class="achievements">
+                <h3>Achievements</h3>
+                <div class="achievement">
+                    <h4>Music Lover</h4>
+                    <p>Listen to 100 tracks.</p>
+                    <div class="progress-bar">
+                        <div class="progress-bar-inner" style="width: 50%;" id="music-lover-progress"></div>
+                    </div>
+                </div>
+                <!-- Add more achievements as needed -->
+            </div>
+            <div class="leveling">
+                <h3>Level: <span id="user-level">1</span></h3>
+                <p>XP: <span id="user-xp">0</span>/100</p>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" id="xp-progress-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons" aria-label="Social media links">
+                <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentAudio = null;
+            const achievements = document.querySelector('.achievements');
+            const playlistForm = document.getElementById('playlist-form');
+            const playlistDisplay = document.getElementById('playlist-display');
+            const addTrackButton = document.getElementById('add-track-button');
+            const trackInputs = document.getElementById('track-inputs');
+            const musicItems = document.querySelectorAll('.music-item');
+            const audioElements = {};
+            const userLevelElem = document.getElementById('user-level');
+            const userXpElem = document.getElementById('user-xp');
+            const xpProgressBar = document.getElementById('xp-progress-bar');
+            const musicLoverProgress = document.getElementById('music-lover-progress');
+
+            let userStats = {
+                level: parseInt(localStorage.getItem('userLevel')) || 1,
+                xp: parseInt(localStorage.getItem('userXp')) || 0,
+            };
+
+            let achievementProgress = {
+                playlist: parseInt(localStorage.getItem('achievementPlaylist')) || 50,
+                tracks: parseInt(localStorage.getItem('achievementTracks')) || 0,
+            };
+
+            let playlists = JSON.parse(localStorage.getItem('playlists')) || [];
+
+            function playTrack(track) {
+                if (currentAudio && !currentAudio.paused) {
+                    currentAudio.pause();
+                }
+                if (!audioElements[track]) {
+                    audioElements[track] = new Audio(track);
+                }
+                currentAudio = audioElements[track];
+                currentAudio.play();
+                updateAchievements('tracks', 1);
+            }
+
+            playlistForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const playlistName = e.target[0].value;
+                const tracks = Array.from(e.target)
+                    .slice(1, -2)
+                    .map(input => input.value)
+                    .filter(track => track); // Validate non-empty URLs
+                const newPlaylist = { name: playlistName, tracks: tracks };
+                playlists.push(newPlaylist);
+                localStorage.setItem('playlists', JSON.stringify(playlists));
+                alert(`Playlist Created: ${playlistName}`);
+                updateAchievements('playlist', 10);
+                e.target.reset();
+                displayPlaylists();
+            });
+
+            addTrackButton.addEventListener('click', () => {
+                const newTrackInput = document.createElement('input');
+                newTrackInput.type = 'text';
+                newTrackInput.placeholder = 'Add Track URL';
+                newTrackInput.required = true;
+                newTrackInput.ariaLabel = 'Track URL';
+                trackInputs.appendChild(newTrackInput);
+            });
+
+            function displayPlaylists() {
+                playlistDisplay.innerHTML = '';
+                playlists.forEach(playlist => {
+                    const playlistElement = document.createElement('div');
+                    playlistElement.classList.add('playlist');
+                    playlistElement.innerHTML = `<h4>${playlist.name}</h4><p>Tracks: ${playlist.tracks.join(', ')}</p>`;
+                    playlistDisplay.appendChild(playlistElement);
+                });
+            }
+
+            function updateAchievements(type, value) {
+                if (type === 'playlist') {
+                    achievementProgress.playlist += value;
+                    localStorage.setItem('achievementPlaylist', achievementProgress.playlist);
+                    const progressBar = achievements.querySelector('.progress-bar-inner');
+                    progressBar.style.width = `${achievementProgress.playlist}%`;
+                } else if (type === 'tracks') {
+                    achievementProgress.tracks += value;
+                    localStorage.setItem('achievementTracks', achievementProgress.tracks);
+                    if (achievementProgress.tracks >= 100) {
+                        alert("Achievement Unlocked: Music Lover!");
+                    }
+                    musicLoverProgress.style.width = `${achievementProgress.tracks}%`;
+                }
+                updateXP(value);
+            }
+
+            function updateXP(value) {
+                userStats.xp += value;
+                if (userStats.xp >= 100) {
+                    userStats.level += 1;
+                    userStats.xp = userStats.xp - 100;
+                    alert(`Level Up! You are now level ${userStats.level}`);
+                }
+                localStorage.setItem('userLevel', userStats.level);
+                localStorage.setItem('userXp', userStats.xp);
+                userLevelElem.textContent = userStats.level;
+                userXpElem.textContent = userStats.xp;
+                xpProgressBar.style.width = `${userStats.xp}%`;
+            }
+
+            musicItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const track = item.getAttribute('data-track');
+                    playTrack(track);
+                });
+            });
+
+            function init() {
+                userLevelElem.textContent = userStats.level;
+                userXpElem.textContent = userStats.xp;
+                xpProgressBar.style.width = `${userStats.xp}%`;
+                displayPlaylists();
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>

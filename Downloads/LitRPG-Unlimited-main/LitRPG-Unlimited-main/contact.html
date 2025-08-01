@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        .center-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2rem 0;
+        }
+        .center-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 50%; /* Make the image circular */
+        }
+
+        /* Additional CSS for responsive design */
+        @media (max-width: 600px) {
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .center-image img {
+                width: 80%;
+                height: auto;
+            }
+
+            form input, form textarea, form button {
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+
+            .footer-content {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="animate-header">
+        <h1>Contact Us</h1>
+        <nav id="navbar" aria-label="Main navigation">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="content-section animate-section">
+        <h2>Contact Us</h2>
+        <div class="center-image">
+            <a href="https://lh3.googleusercontent.com/pw/AP1GczP5oLybVS8T7oyvtzdH-FIbUnrPC5XcboQtWZrBJvWJs8TVfB-6DEw1T2liydmko3L1gbItAUcfomLWLW0OG5nHVGrEY7bMYsRDbgYEZa-90SbfSO1U=w2400?source=screenshot.guru">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczP5oLybVS8T7oyvtzdH-FIbUnrPC5XcboQtWZrBJvWJs8TVfB-6DEw1T2liydmko3L1gbItAUcfomLWLW0OG5nHVGrEY7bMYsRDbgYEZa-90SbfSO1U=w600-h315-p-k" alt="Illustrative image showing company contact information">
+            </a>
+        </div>
+        <form id="contact-form">
+            <input type="text" placeholder="Name" aria-label="Name" required>
+            <input type="email" placeholder="Email" aria-label="Email" required>
+            <textarea placeholder="Your Message" rows="5" aria-label="Your Message" required></textarea>
+            <button type="submit">Send Message</button>
+        </form>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('contact-form').addEventListener('submit', function(event) {
+            let name = event.target.querySelector('input[aria-label="Name"]').value;
+            let email = event.target.querySelector('input[aria-label="Email"]').value;
+            let message = event.target.querySelector('textarea[aria-label="Your Message"]').value;
+            let error = '';
+
+            if (!name.trim()) {
+                error += 'Name is required.\n';
+            }
+            if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+                error += 'A valid email is required.\n';
+            }
+            if (!message.trim()) {
+                error += 'Message is required.\n';
+            }
+
+            if (error) {
+                alert(error);
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

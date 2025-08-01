@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Releases - LitRPG Unlimited</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #fff;
+        }
+        header, footer {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            animation: fadeIn 1s ease-in-out;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            transition: color 0.3s;
+        }
+        nav ul li a:hover {
+            color: #ff4500;
+        }
+        .social-icons {
+            margin-top: 10px;
+        }
+        .social-icons a {
+            color: white;
+            margin: 0 10px;
+            font-size: 1.5em;
+        }
+        .carousel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            width: 100%;
+        }
+        .carousel-container h2 {
+            margin-bottom: 1rem;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .carousel {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 500px;
+            perspective: 1000px;
+            overflow: hidden;
+        }
+        .carousel .carousel-item {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 20px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .carousel .carousel-item img {
+            max-width: 80%;
+            height: auto;
+            border-radius: 10px;
+            loading: "lazy";
+        }
+        .carousel .carousel-item p {
+            margin: 10px 0 0;
+            color: #fff;
+            font-size: 1.2em;
+            text-align: center;
+            font-weight: bold;
+        }
+        .carousel-controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+        .carousel-controls button {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+        .carousel-controls button:hover {
+            background-color: #ff4500;
+            color: white;
+        }
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .carousel-indicators button {
+            background-color: #fff;
+            border: none;
+            margin: 0 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+        .carousel-indicators button.active {
+            background-color: #ff4500;
+        }
+        @media (max-width: 600px) {
+            .carousel-container h2 {
+                font-size: 1.5em;
+            }
+            .carousel .carousel-item {
+                padding: 10px;
+            }
+            .carousel .carousel-item p {
+                font-size: 1em;
+            }
+            .carousel-controls button {
+                font-size: 1em;
+                padding: 5px;
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>New Releases</h1>
+        <nav aria-label="Main navigation">
+            <ul>
+                <li><a href="index.html" aria-current="page">Home</a></li>
+                <li><a href="subscription.html">Subscription Plans</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="new-releases.html">New Releases</a></li>
+                <li><a href="music.html">Music</a></li>
+                <li><a href="testimonials.html">Testimonials</a></li>
+                <li><a href="forum.html">Forum</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+            </ul>
+            <div class="social-icons" aria-label="Social media links">
+                <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="carousel-container" aria-label="Featured new releases carousel">
+            <h2>Featured New Releases</h2>
+            <div class="carousel" role="region" aria-labelledby="carousel-heading">
+                <h3 id="carousel-heading" class="sr-only">New Releases Carousel</h3>
+                <div class="carousel-item" tabindex="0" role="button" aria-label="Shadowplay book cover">
+                    <a href="https://www.amazon.com/kindle-vella/story/B0D69L23CD">
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczM_bHPP5th2zBSesub1vH26wnhgwxiOU8bB2uVae047E-hlU5NuWv2X-KyqyoT_cJR4HhvXh5pp4KC3isqk4bwDhz2Xb95q2KmZH_3jqx9aSiaLNw5W=w600-h315-p-k" alt="Shadowplay book cover">
+                    </a>
+                    <p>Shadowplay</p>
+                </div>
+                <div class="carousel-item" tabindex="0" role="button" aria-label="Crimson Pact book cover">
+                    <a href="https://www.amazon.com/kindle-vella/story/B0CWVWQF4D">
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczOqmq4b3flpaDw54vcUT4zBxTpWlnnS4AjgYZIxxcGy4MoyOcDFA9P9KKyoCbPhnDVgoxyvvyOBp3lFqJdz8XmwNXFytkpt89IJlw-egV4hbVQTYHOG=w600-h315-p-k" alt="Crimson Pact book cover">
+                    </a>
+                    <p>Crimson Pact</p>
+                </div>
+                <div class="carousel-item" tabindex="0" role="button" aria-label="The Cursed Hero book cover">
+                    <a href="#">
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczP5h55bV4yamQ3plFpXVBmk77lQA7PjQ81VGGYmc5vwyTPTFi05x6T9yemZ0vLI-qhw1Tt2_CIoq3v-PaDcWmdUltQEZ3Bw0WWRLwHlKbfquDz92eTb=w600-h315-p-k" alt="The Cursed Hero book cover">
+                    </a>
+                    <p>The Cursed Hero</p>
+                </div>
+                <div class="carousel-item" tabindex="0" role="button" aria-label="Dark Genesis book cover">
+                    <a href="#">
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczNEquPDEG6SlNNoIzsYCpueSeZxaelanp3kJYQBd5I27G9q4DKilp6XKIM2yPmaqaCe2ZLLZN0TZAWq_VwROar4-L3VsXJ98DCT1A1Rxx4d3zTlLRYO=w600-h315-p-k" alt="Dark Genesis book cover">
+                    </a>
+                    <p>Dark Genesis</p>
+                </div>
+                <div class="carousel-item" tabindex="0" role="button" aria-label="Obscura Online book cover">
+                    <a href="#">
+                        <img src="https://lh3.googleusercontent.com/pw/AP1GczMPm0JeBKzpRJlWfZijUGt97sHIA-WxZCW6E1LKldiLA83JtPfajxDhXhb7kQVmY1tYkHKUeAgwontmu7vIntIbbTJjdpIA5qZfVHuMCjU2qxzQexo1=w600-h315-p-k" alt="Obscura Online book cover">
+                    </a>
+                    <p>Obscura Online</p>
+                </div>
+            </div>
+            <div class="carousel-controls">
+                <button id="prev" aria-label="Previous slide">&lt;</button>
+                <button id="next" aria-label="Next slide">&gt;</button>
+            </div>
+            <div class="carousel-indicators">
+                <button class="active" aria-label="Slide 1"></button>
+                <button aria-label="Slide 2"></button>
+                <button aria-label="Slide 3"></button>
+                <button aria-label="Slide 4"></button>
+                <button aria-label="Slide 5"></button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-icons" aria-label="Social media links">
+                <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a> |
+                <a href="#terms">Terms of Service</a> |
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <p>&copy; 2024 LitRPG Unlimited. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        let angle = 0;
+        const carousel = document.querySelector('.carousel');
+        const items = document.querySelectorAll('.carousel-item');
+        const next = document.getElementById('next');
+        const prev = document.getElementById('prev');
+        const indicators = document.querySelectorAll('.carousel-indicators button');
+        let currentIndex = 0;
+        let autoRotate;
+
+        function updateCarousel() {
+            items.forEach((item, index) => {
+                item.style.transform = `rotateY(${angle + index * 60}deg) translateZ(300px)`;
+            });
+            indicators.forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        function rotateCarousel(direction) {
+            angle += direction * 60;
+            currentIndex = (currentIndex + direction + items.length) % items.length;
+            updateCarousel();
+        }
+
+        function startAutoRotate() {
+            autoRotate = setInterval(() => rotateCarousel(1), 3000);
+        }
+
+        function stopAutoRotate() {
+            clearInterval(autoRotate);
+        }
+
+        next.addEventListener('click', () => {
+            stopAutoRotate();
+            rotateCarousel(-1);
+            startAutoRotate();
+        });
+
+        prev.addEventListener('click', () => {
+            stopAutoRotate();
+            rotateCarousel(1);
+            startAutoRotate();
+        });
+
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                stopAutoRotate();
+                currentIndex = index;
+                angle = -60 * index;
+                updateCarousel();
+                startAutoRotate();
+            });
+        });
+
+        carousel.addEventListener('mouseenter', stopAutoRotate);
+        carousel.addEventListener('mouseleave', startAutoRotate);
+
+        updateCarousel();
+        startAutoRotate();
+    </script>
+</body>
+</html>
