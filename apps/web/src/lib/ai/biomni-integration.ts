@@ -452,3 +452,191 @@ export class BiomniIntegrationService {
 }
 
 export const biomniIntegration = new BiomniIntegrationService(); 
+
+export async function analyzeBiomniData(data: any): Promise<BiomniAnalysisResult> {
+  const insights: string[] = []
+  const recommendations: string[] = []
+  const nextSteps: string[] = []
+
+  try {
+    // Extract insights from Biomni response
+    if (data.insights && Array.isArray(data.insights)) {
+      insights.push(...data.insights)
+    }
+
+    // Extract recommendations from Biomni response
+    if (data.recommendations && Array.isArray(data.recommendations)) {
+      recommendations.push(...data.recommendations)
+    }
+
+    // Extract next steps from Biomni response
+    if (data.nextSteps && Array.isArray(data.nextSteps)) {
+      nextSteps.push(...data.nextSteps)
+    }
+
+    // Process text-based insights
+    if (data.text) {
+      const matches = data.text.match(/insight:\s*(.+?)(?=\n|$)/gi)
+      if (matches) {
+        insights.push(...matches.map((match: string) => match.replace(/^[^:]+:\s*/, '')))
+      }
+    }
+
+    // Generate equipment-specific recommendations
+    if (data.equipment && data.equipment.length > 0) {
+      const overdueEquipment = data.equipment.filter((eq: any) => eq.calibrationDue)
+      if (overdueEquipment.length > 0) {
+        recommendations.push('Schedule immediate calibration for equipment due for service')
+      }
+
+      const maintenanceEquipment = data.equipment.filter((eq: any) => eq.maintenanceRequired)
+      if (maintenanceEquipment.length > 0) {
+        recommendations.push('Perform preventive maintenance on identified equipment')
+      }
+
+      const performanceIssues = data.equipment.filter((eq: any) => eq.performanceScore < 80)
+      if (performanceIssues.length > 0) {
+        recommendations.push('Investigate performance issues and consider replacement')
+      }
+    }
+
+    // Generate workflow recommendations
+    if (data.workflow) {
+      if (data.workflow.bottlenecks && data.workflow.bottlenecks.length > 0) {
+        recommendations.push('Address workflow bottlenecks to improve efficiency')
+      }
+
+      if (data.workflow.redundantSteps && data.workflow.redundantSteps.length > 0) {
+        recommendations.push('Eliminate redundant steps in the workflow')
+      }
+
+      if (data.workflow.automationOpportunities && data.workflow.automationOpportunities.length > 0) {
+        recommendations.push('Implement automation for repetitive tasks')
+      }
+    }
+
+    // Generate research-specific next steps
+    if (data.research) {
+      if (data.research.experimentalData) {
+        nextSteps.push('Validate findings with experimental data')
+      }
+
+      if (data.research.followUpExperiments) {
+        nextSteps.push('Design follow-up experiments')
+      }
+
+      if (data.research.literatureReview) {
+        nextSteps.push('Compare with existing literature')
+      }
+    }
+
+    // Generate protocol-specific next steps
+    if (data.protocol) {
+      if (data.protocol.validationRequired) {
+        nextSteps.push('Review and validate protocol steps')
+      }
+
+      if (data.protocol.reagentsNeeded) {
+        nextSteps.push('Prepare necessary reagents and equipment')
+      }
+
+      if (data.protocol.pilotRequired) {
+        nextSteps.push('Conduct pilot experiment')
+      }
+    }
+
+    // Generate research gap analysis
+    if (data.researchGaps) {
+      if (data.researchGaps.identified) {
+        nextSteps.push('Identify research gaps')
+      }
+
+      if (data.researchGaps.experimentsNeeded) {
+        nextSteps.push('Design experiments to address gaps')
+      }
+
+      if (data.researchGaps.proposalUpdate) {
+        nextSteps.push('Update research proposal')
+      }
+    }
+
+    // Generate hypothesis testing steps
+    if (data.hypothesis) {
+      if (data.hypothesis.testingRequired) {
+        nextSteps.push('Design experiments to test hypothesis')
+      }
+
+      if (data.hypothesis.preliminaryData) {
+        nextSteps.push('Gather preliminary data')
+      }
+
+      if (data.hypothesis.refinement) {
+        nextSteps.push('Refine hypothesis based on initial results')
+      }
+    }
+
+    // Generate maintenance and calibration steps
+    if (data.maintenance) {
+      if (data.maintenance.calibrationDue) {
+        nextSteps.push('Schedule maintenance and calibration')
+      }
+
+      if (data.maintenance.inventoryUpdate) {
+        nextSteps.push('Update equipment inventory')
+      }
+
+      if (data.maintenance.trainingRequired) {
+        nextSteps.push('Train staff on new procedures')
+      }
+    }
+
+    // Generate workflow improvement steps
+    if (data.workflowImprovements) {
+      if (data.workflowImprovements.changes) {
+        nextSteps.push('Implement workflow changes')
+      }
+
+      if (data.workflowImprovements.monitoring) {
+        nextSteps.push('Monitor efficiency improvements')
+      }
+
+      if (data.workflowImprovements.training) {
+        nextSteps.push('Train team on new processes')
+      }
+    }
+
+    // Generate cross-modal analysis steps
+    if (data.crossModalAnalysis) {
+      if (data.crossModalAnalysis.validation) {
+        nextSteps.push('Validate cross-modal findings')
+      }
+
+      if (data.crossModalAnalysis.integratedExperiments) {
+        nextSteps.push('Design integrated experiments')
+      }
+
+      if (data.crossModalAnalysis.publication) {
+        nextSteps.push('Publish comprehensive analysis')
+      }
+    }
+
+    return {
+      insights,
+      recommendations,
+      nextSteps,
+      confidence: data.confidence || 0.85,
+      processingTime: data.processingTime || 0,
+      model: data.model || 'biomni-a1-latest'
+    }
+  } catch (error) {
+    console.error('Error analyzing Biomni data:', error)
+    return {
+      insights: ['Error processing Biomni data'],
+      recommendations: ['Review data format and try again'],
+      nextSteps: ['Contact support if issue persists'],
+      confidence: 0,
+      processingTime: 0,
+      model: 'unknown'
+    }
+  }
+} 

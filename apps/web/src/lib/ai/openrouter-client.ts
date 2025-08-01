@@ -121,7 +121,7 @@ class OpenRouterClient {
   ): Promise<OpenRouterResponse> {
     const selectedModel = model || this.config.defaultModel;
     
-    const messages = [];
+    const messages: Array<{ role: string; content: string }> = []
     
     // Add system prompt if provided
     if (options?.systemPrompt) {
@@ -289,3 +289,72 @@ export type {
   OpenRouterResponse,
   ModelInfo
 }; 
+
+export async function processOpenRouterRequest(
+  prompt: string,
+  options: OpenRouterOptions = {},
+  context?: string
+): Promise<OpenRouterResponse> {
+  const messages: Array<{ role: string; content: string }> = []
+
+  try {
+    // Add system prompt if provided
+    if (options.systemPrompt) {
+      messages.push({
+        role: 'system',
+        content: options.systemPrompt
+      })
+    }
+
+    // Add context if provided
+    if (context) {
+      messages.push({
+        role: 'system',
+        content: `Context: ${context}`
+      })
+    }
+
+    // Add user prompt
+    messages.push({
+      role: 'user',
+      content: prompt
+    })
+
+    // Make API request
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_API_KEY}`,
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        'X-Title': 'LabGuard Pro'
+      },
+      body: JSON.stringify({
+        model: options.model || 'anthropic/claude-3.5-sonnet',
+        messages,
+        max_tokens: options.maxTokens || 1000,
+        temperature: options.temperature || 0.7
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return {
+      content: data.choices[0]?.message?.content || '',
+      model: data.model,
+      usage: data.usage,
+      processingTime: Date.now()
+    }
+  } catch (error) {
+    console.error('Error processing OpenRouter request:', error)
+    return {
+      content: 'Error processing request',
+      model: 'unknown',
+      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+      processingTime: Date.now()
+    }
+  }
+} 

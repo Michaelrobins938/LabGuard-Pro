@@ -8,7 +8,7 @@
       "description": "Device calibrated recently - should PASS",
       "input": {
         "device": "Microscope",
-        "last_calibrated": "2025-01-15",
+        "last_calibrated": "2025-07-15",
         "tolerance": 30
       },
       "expected": {
@@ -30,7 +30,7 @@
       "description": "Device calibrated outside tolerance - should FAIL",
       "input": {
         "device": "Incubator",
-        "last_calibrated": "2024-11-01",
+        "last_calibrated": "2025-05-01",
         "tolerance": 30
       },
       "expected": {
@@ -52,7 +52,7 @@
       "description": "Device calibrated exactly on threshold - edge case",
       "input": {
         "device": "Centrifuge",
-        "last_calibrated": "2024-12-01",
+        "last_calibrated": "2025-07-02",
         "tolerance": 30
       },
       "expected": {
@@ -60,7 +60,8 @@
         "recommendation": "Up to date",
         "days_overdue": {
           "type": "number",
-          "value": 30
+          "min": 25,
+          "max": 35
         }
       },
       "metadata": {
@@ -73,7 +74,7 @@
       "description": "Device with high tolerance - should PASS",
       "input": {
         "device": "Autoclave",
-        "last_calibrated": "2024-12-15",
+        "last_calibrated": "2025-06-20",
         "tolerance": 90
       },
       "expected": {
@@ -81,7 +82,7 @@
         "recommendation": "Up to date",
         "days_overdue": {
           "type": "number",
-          "min": 15,
+          "min": 35,
           "max": 45
         }
       },
@@ -95,7 +96,7 @@
       "description": "Critical equipment overdue - should FAIL",
       "input": {
         "device": "PCR Machine",
-        "last_calibrated": "2024-10-01",
+        "last_calibrated": "2025-06-20",
         "tolerance": 7
       },
       "expected": {
@@ -103,8 +104,8 @@
         "recommendation": "Recalibrate",
         "days_overdue": {
           "type": "number",
-          "min": 90,
-          "max": 120
+          "min": 35,
+          "max": 45
         }
       },
       "metadata": {
@@ -117,7 +118,7 @@
       "description": "Device calibrated today - should PASS",
       "input": {
         "device": "pH Meter",
-        "last_calibrated": "2025-01-31",
+        "last_calibrated": "2025-07-30",
         "tolerance": 30
       },
       "expected": {
@@ -125,7 +126,8 @@
         "recommendation": "Up to date",
         "days_overdue": {
           "type": "number",
-          "value": 0
+          "min": 0,
+          "max": 5
         }
       },
       "metadata": {

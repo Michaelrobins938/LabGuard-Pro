@@ -174,203 +174,28 @@ interface DashboardState {
   addNotification: (notification: Notification) => void;
 }
 
-// Mock data for development
-const mockEquipment: Equipment[] = [
-  {
-    id: '1',
-    name: 'Analytical Balance',
-    type: 'balance',
-    status: 'operational',
-    location: 'Lab A - Bench 1',
-    lastCalibration: '2024-01-15T10:00:00Z',
-    nextCalibration: '2024-04-15T10:00:00Z',
-    healthScore: 95,
-    manufacturer: 'Mettler Toledo',
-    model: 'MS204S',
-    serialNumber: 'MT-2024-001',
-    purchaseDate: '2023-01-15T00:00:00Z',
-    warrantyExpiry: '2026-01-15T00:00:00Z',
-    assignedTechnician: 'Dr. Sarah Johnson',
-    notes: 'High precision balance for analytical work',
-    createdAt: '2023-01-15T00:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z',
-  },
-  {
-    id: '2',
-    name: 'pH Meter',
-    type: 'ph_meter',
-    status: 'calibration_due',
-    location: 'Lab B - Bench 3',
-    lastCalibration: '2024-01-01T09:00:00Z',
-    nextCalibration: '2024-02-01T09:00:00Z',
-    healthScore: 78,
-    manufacturer: 'Thermo Scientific',
-    model: 'Orion Star A211',
-    serialNumber: 'TS-2023-045',
-    purchaseDate: '2022-06-01T00:00:00Z',
-    assignedTechnician: 'Mike Chen',
-    notes: 'Used for pH measurements in buffer solutions',
-    createdAt: '2022-06-01T00:00:00Z',
-    updatedAt: '2024-01-01T09:00:00Z',
-  },
-  {
-    id: '3',
-    name: 'Spectrophotometer',
-    type: 'spectrophotometer',
-    status: 'maintenance',
-    location: 'Lab A - Equipment Room',
-    lastCalibration: '2024-01-10T14:00:00Z',
-    nextCalibration: '2024-04-10T14:00:00Z',
-    healthScore: 62,
-    manufacturer: 'PerkinElmer',
-    model: 'Lambda 35',
-    serialNumber: 'PE-2022-123',
-    purchaseDate: '2021-12-01T00:00:00Z',
-    assignedTechnician: 'Dr. Sarah Johnson',
-    notes: 'Requires lamp replacement',
-    createdAt: '2021-12-01T00:00:00Z',
-    updatedAt: '2024-01-20T16:00:00Z',
-  },
-];
-
-const mockCalibrations: Calibration[] = [
-  {
-    id: '1',
-    equipmentId: '1',
-    equipmentName: 'Analytical Balance',
-    status: 'completed',
-    scheduledDate: '2024-01-15T10:00:00Z',
-    completedDate: '2024-01-15T11:30:00Z',
-    technicianId: 'tech-1',
-    technicianName: 'Dr. Sarah Johnson',
-    type: 'routine',
-    results: {
-      accuracy: 99.8,
-      precision: 0.001,
-      drift: 0.0005,
-      notes: 'Excellent calibration results, within specifications',
-    },
-    certificate: 'CAL-2024-001.pdf',
-    cost: 150,
-    duration: 90,
-    aiValidation: {
-      status: 'approved',
-      confidence: 98.5,
-      notes: 'AI validation confirms calibration meets all standards',
-    },
-    createdAt: '2024-01-10T00:00:00Z',
-    updatedAt: '2024-01-15T11:30:00Z',
-  },
-  {
-    id: '2',
-    equipmentId: '2',
-    equipmentName: 'pH Meter',
-    status: 'overdue',
-    scheduledDate: '2024-02-01T09:00:00Z',
-    technicianId: 'tech-2',
-    technicianName: 'Mike Chen',
-    type: 'routine',
-    createdAt: '2024-01-15T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z',
-  },
-];
-
-const mockAIInsights: AIInsight[] = [
-  {
-    id: '1',
-    type: 'equipment_optimization',
-    title: 'pH Meter Calibration Optimization',
-    description: 'The pH meter shows signs of drift. Recommend immediate calibration to maintain accuracy.',
-    priority: 'high',
-    status: 'new',
-    confidence: 94.2,
-    impact: {
-      cost: -200,
-      time: -2,
-      accuracy: 15,
-    },
-    equipmentIds: ['2'],
-    recommendations: [
-      'Schedule immediate calibration',
-      'Check electrode condition',
-      'Update calibration schedule to monthly',
-    ],
-    createdAt: '2024-01-20T10:00:00Z',
-    updatedAt: '2024-01-20T10:00:00Z',
-  },
-  {
-    id: '2',
-    type: 'cost_savings',
-    title: 'Spectrophotometer Maintenance Savings',
-    description: 'Preventive maintenance on spectrophotometer could save $500 in repair costs.',
-    priority: 'medium',
-    status: 'reviewed',
-    confidence: 87.5,
-    impact: {
-      cost: -500,
-      time: 4,
-      accuracy: 5,
-    },
-    equipmentIds: ['3'],
-    recommendations: [
-      'Schedule preventive maintenance',
-      'Replace lamp during next maintenance',
-      'Update maintenance schedule',
-    ],
-    createdAt: '2024-01-19T14:30:00Z',
-    updatedAt: '2024-01-20T09:00:00Z',
-  },
-];
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'calibration_due',
-    title: 'pH Meter Calibration Overdue',
-    message: 'The pH meter calibration is 5 days overdue. Please schedule immediately.',
-    priority: 'high',
-    status: 'unread',
-    equipmentId: '2',
-    calibrationId: '2',
-    createdAt: '2024-01-20T08:00:00Z',
-  },
-  {
-    id: '2',
-    type: 'ai_insight',
-    title: 'New AI Insight Available',
-    message: 'AI has identified optimization opportunities for your equipment.',
-    priority: 'medium',
-    status: 'unread',
-    insightId: '1',
-    createdAt: '2024-01-20T10:00:00Z',
-  },
-];
-
-const mockStats: DashboardStats = {
-  totalEquipment: 3,
-  operationalEquipment: 1,
-  maintenanceEquipment: 1,
-  calibrationDue: 1,
-  overdueCalibrations: 1,
-  complianceScore: 85.7,
-  aiInsights: 2,
-  unreadNotifications: 2,
-  teamProductivity: 88,
-  timeSaved: 12.5,
-  costSavings: 700,
-};
-
 export const useDashboardStore = create<DashboardState>()(
   devtools(
     (set, get) => ({
       // Initial state
-      equipment: mockEquipment,
-      calibrations: mockCalibrations,
-      aiInsights: mockAIInsights,
-      notifications: mockNotifications,
+      equipment: [],
+      calibrations: [],
+      aiInsights: [],
+      notifications: [],
       user: null,
-      stats: mockStats,
-      
+      stats: {
+        totalEquipment: 0,
+        operationalEquipment: 0,
+        maintenanceEquipment: 0,
+        calibrationDue: 0,
+        overdueCalibrations: 0,
+        complianceScore: 0,
+        aiInsights: 0,
+        unreadNotifications: 0,
+        teamProductivity: 0,
+        timeSaved: 0,
+        costSavings: 0,
+      },
       loading: {
         equipment: false,
         calibrations: false,
@@ -378,7 +203,6 @@ export const useDashboardStore = create<DashboardState>()(
         notifications: false,
         stats: false,
       },
-      
       sidebarOpen: false,
       selectedEquipment: null,
       selectedCalibration: null,
@@ -387,7 +211,7 @@ export const useDashboardStore = create<DashboardState>()(
         calibrationStatus: [],
         dateRange: null,
       },
-      
+
       // UI Actions
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setSelectedEquipment: (equipment) => set({ selectedEquipment: equipment }),
@@ -395,196 +219,284 @@ export const useDashboardStore = create<DashboardState>()(
       setFilters: (filters) => set((state) => ({ 
         filters: { ...state.filters, ...filters } 
       })),
-      
-      // Data fetching
+
+      // Data fetching with real API calls
       fetchEquipment: async () => {
         set((state) => ({ loading: { ...state.loading, equipment: true } }));
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          set({ equipment: mockEquipment });
+          const response = await fetch('/api/equipment');
+          if (response.ok) {
+            const equipment = await response.json();
+            set({ equipment });
+          } else {
+            console.error('Failed to fetch equipment');
+            set({ equipment: [] });
+          }
         } catch (error) {
-          console.error('Failed to fetch equipment:', error);
+          console.error('Error fetching equipment:', error);
+          set({ equipment: [] });
         } finally {
           set((state) => ({ loading: { ...state.loading, equipment: false } }));
         }
       },
-      
+
       fetchCalibrations: async () => {
         set((state) => ({ loading: { ...state.loading, calibrations: true } }));
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          set({ calibrations: mockCalibrations });
+          const response = await fetch('/api/calibrations');
+          if (response.ok) {
+            const calibrations = await response.json();
+            set({ calibrations });
+          } else {
+            console.error('Failed to fetch calibrations');
+            set({ calibrations: [] });
+          }
         } catch (error) {
-          console.error('Failed to fetch calibrations:', error);
+          console.error('Error fetching calibrations:', error);
+          set({ calibrations: [] });
         } finally {
           set((state) => ({ loading: { ...state.loading, calibrations: false } }));
         }
       },
-      
+
       fetchAIInsights: async () => {
         set((state) => ({ loading: { ...state.loading, aiInsights: true } }));
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          set({ aiInsights: mockAIInsights });
+          const response = await fetch('/api/ai-insights');
+          if (response.ok) {
+            const aiInsights = await response.json();
+            set({ aiInsights });
+          } else {
+            console.error('Failed to fetch AI insights');
+            set({ aiInsights: [] });
+          }
         } catch (error) {
-          console.error('Failed to fetch AI insights:', error);
+          console.error('Error fetching AI insights:', error);
+          set({ aiInsights: [] });
         } finally {
           set((state) => ({ loading: { ...state.loading, aiInsights: false } }));
         }
       },
-      
+
       fetchNotifications: async () => {
         set((state) => ({ loading: { ...state.loading, notifications: true } }));
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          set({ notifications: mockNotifications });
+          const response = await fetch('/api/notifications');
+          if (response.ok) {
+            const notifications = await response.json();
+            set({ notifications });
+          } else {
+            console.error('Failed to fetch notifications');
+            set({ notifications: [] });
+          }
         } catch (error) {
-          console.error('Failed to fetch notifications:', error);
+          console.error('Error fetching notifications:', error);
+          set({ notifications: [] });
         } finally {
           set((state) => ({ loading: { ...state.loading, notifications: false } }));
         }
       },
-      
+
       fetchStats: async () => {
         set((state) => ({ loading: { ...state.loading, stats: true } }));
         try {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          set({ stats: mockStats });
+          const response = await fetch('/api/stats');
+          if (response.ok) {
+            const stats = await response.json();
+            set({ stats });
+          } else {
+            console.error('Failed to fetch stats');
+          }
         } catch (error) {
-          console.error('Failed to fetch stats:', error);
+          console.error('Error fetching stats:', error);
         } finally {
           set((state) => ({ loading: { ...state.loading, stats: false } }));
         }
       },
-      
+
       fetchUser: async () => {
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const mockUser: User = {
-            id: 'user-1',
-            email: 'sarah.johnson@labguard.com',
-            firstName: 'Sarah',
-            lastName: 'Johnson',
-            role: 'admin',
-            lastLoginAt: '2024-01-20T10:00:00Z',
-            laboratory: {
-              id: 'lab-1',
-              name: 'Advanced Research Laboratory',
-              planType: 'enterprise',
-              subscriptionStatus: 'active',
-            },
-          };
-          set({ user: mockUser });
+          const response = await fetch('/api/user');
+          if (response.ok) {
+            const user = await response.json();
+            set({ user });
+          } else {
+            console.error('Failed to fetch user');
+            set({ user: null });
+          }
         } catch (error) {
-          console.error('Failed to fetch user:', error);
+          console.error('Error fetching user:', error);
+          set({ user: null });
         }
       },
-      
-      // Data mutations
-      addEquipment: async (equipment) => {
-        const newEquipment: Equipment = {
-          ...equipment,
-          id: `eq-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        set((state) => ({ equipment: [...state.equipment, newEquipment] }));
+
+      // Data mutations with real API calls
+      addEquipment: async (equipmentData) => {
+        try {
+          const response = await fetch('/api/equipment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(equipmentData),
+          });
+          if (response.ok) {
+            const newEquipment = await response.json();
+            set((state) => ({ 
+              equipment: [...state.equipment, newEquipment] 
+            }));
+          }
+        } catch (error) {
+          console.error('Error adding equipment:', error);
+        }
       },
-      
+
       updateEquipment: async (id, updates) => {
-        set((state) => ({
-          equipment: state.equipment.map(eq => 
-            eq.id === id 
-              ? { ...eq, ...updates, updatedAt: new Date().toISOString() }
-              : eq
-          ),
-        }));
+        try {
+          const response = await fetch(`/api/equipment/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+          if (response.ok) {
+            const updatedEquipment = await response.json();
+            set((state) => ({
+              equipment: state.equipment.map(eq => 
+                eq.id === id ? updatedEquipment : eq
+              )
+            }));
+          }
+        } catch (error) {
+          console.error('Error updating equipment:', error);
+        }
       },
-      
+
       deleteEquipment: async (id) => {
-        set((state) => ({
-          equipment: state.equipment.filter(eq => eq.id !== id),
-        }));
+        try {
+          const response = await fetch(`/api/equipment/${id}`, {
+            method: 'DELETE',
+          });
+          if (response.ok) {
+            set((state) => ({
+              equipment: state.equipment.filter(eq => eq.id !== id)
+            }));
+          }
+        } catch (error) {
+          console.error('Error deleting equipment:', error);
+        }
       },
-      
-      addCalibration: async (calibration) => {
-        const newCalibration: Calibration = {
-          ...calibration,
-          id: `cal-${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        set((state) => ({ calibrations: [...state.calibrations, newCalibration] }));
+
+      addCalibration: async (calibrationData) => {
+        try {
+          const response = await fetch('/api/calibrations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(calibrationData),
+          });
+          if (response.ok) {
+            const newCalibration = await response.json();
+            set((state) => ({ 
+              calibrations: [...state.calibrations, newCalibration] 
+            }));
+          }
+        } catch (error) {
+          console.error('Error adding calibration:', error);
+        }
       },
-      
+
       updateCalibration: async (id, updates) => {
-        set((state) => ({
-          calibrations: state.calibrations.map(cal => 
-            cal.id === id 
-              ? { ...cal, ...updates, updatedAt: new Date().toISOString() }
-              : cal
-          ),
-        }));
+        try {
+          const response = await fetch(`/api/calibrations/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+          if (response.ok) {
+            const updatedCalibration = await response.json();
+            set((state) => ({
+              calibrations: state.calibrations.map(cal => 
+                cal.id === id ? updatedCalibration : cal
+              )
+            }));
+          }
+        } catch (error) {
+          console.error('Error updating calibration:', error);
+        }
       },
-      
+
       deleteCalibration: async (id) => {
-        set((state) => ({
-          calibrations: state.calibrations.filter(cal => cal.id !== id),
-        }));
+        try {
+          const response = await fetch(`/api/calibrations/${id}`, {
+            method: 'DELETE',
+          });
+          if (response.ok) {
+            set((state) => ({
+              calibrations: state.calibrations.filter(cal => cal.id !== id)
+            }));
+          }
+        } catch (error) {
+          console.error('Error deleting calibration:', error);
+        }
       },
-      
+
       markNotificationRead: async (id) => {
-        set((state) => ({
-          notifications: state.notifications.map(notif => 
-            notif.id === id 
-              ? { ...notif, status: 'read', readAt: new Date().toISOString() }
-              : notif
-          ),
-        }));
+        try {
+          const response = await fetch(`/api/notifications/${id}/read`, {
+            method: 'PATCH',
+          });
+          if (response.ok) {
+            set((state) => ({
+              notifications: state.notifications.map(notif => 
+                notif.id === id ? { ...notif, status: 'read' } : notif
+              )
+            }));
+          }
+        } catch (error) {
+          console.error('Error marking notification as read:', error);
+        }
       },
-      
+
       dismissNotification: async (id) => {
-        set((state) => ({
-          notifications: state.notifications.map(notif => 
-            notif.id === id 
-              ? { ...notif, status: 'dismissed' }
-              : notif
-          ),
-        }));
+        try {
+          const response = await fetch(`/api/notifications/${id}/dismiss`, {
+            method: 'PATCH',
+          });
+          if (response.ok) {
+            set((state) => ({
+              notifications: state.notifications.map(notif => 
+                notif.id === id ? { ...notif, status: 'dismissed' } : notif
+              )
+            }));
+          }
+        } catch (error) {
+          console.error('Error dismissing notification:', error);
+        }
       },
-      
+
       // Real-time updates
       updateEquipmentStatus: (id, status) => {
         set((state) => ({
           equipment: state.equipment.map(eq => 
-            eq.id === id 
-              ? { ...eq, status, updatedAt: new Date().toISOString() }
-              : eq
-          ),
+            eq.id === id ? { ...eq, status } : eq
+          )
         }));
       },
-      
+
       updateCalibrationStatus: (id, status) => {
         set((state) => ({
           calibrations: state.calibrations.map(cal => 
-            cal.id === id 
-              ? { ...cal, status, updatedAt: new Date().toISOString() }
-              : cal
-          ),
+            cal.id === id ? { ...cal, status } : cal
+          )
         }));
       },
-      
+
       addAIInsight: (insight) => {
         set((state) => ({
-          aiInsights: [insight, ...state.aiInsights],
+          aiInsights: [insight, ...state.aiInsights]
         }));
       },
-      
+
       addNotification: (notification) => {
         set((state) => ({
-          notifications: [notification, ...state.notifications],
+          notifications: [notification, ...state.notifications]
         }));
       },
     }),

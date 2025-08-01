@@ -740,3 +740,76 @@ export function useImageAnalysis(config?: Partial<ImageAnalysisConfig>) {
 }
 
 export default ImageAnalysisService; 
+
+export async function analyzeImageData(imageData: any): Promise<ImageAnalysisResult> {
+  const insights: string[] = []
+  const recommendations: string[] = []
+  const warnings: string[] = []
+
+  try {
+    // Analyze cell morphology
+    if (imageData.cells && Array.isArray(imageData.cells)) {
+      const cells = imageData.cells
+      insights.push(`Detected ${cells.length} cells in the image`)
+      
+      // Check for contamination
+      const contaminatedCells = cells.filter((cell: any) => cell.contaminationLevel > 0.1)
+      if (contaminatedCells.length === 0) {
+        insights.push('No contamination detected')
+      }
+      
+      // Calculate average cell size
+      const cellSizes = cells.map((cell: any) => cell.size)
+      const avgSize = cellSizes.reduce((sum: number, size: number) => sum + size, 0) / cells.length
+      insights.push(`Average cell size: ${avgSize.toFixed(1)}μm`)
+    }
+
+    // Analyze cell viability
+    if (imageData.viability) {
+      const viability = imageData.viability
+      if (viability.percentage < 80) {
+        recommendations.push('Cell viability appears low, check culture conditions')
+      }
+    }
+
+    // Check for contamination
+    if (imageData.contamination) {
+      const contamination = imageData.contamination
+      if (contamination.level > 0.5) {
+        recommendations.push('Investigate contamination source and implement containment measures')
+      }
+      
+      if (contamination.level > 0.8) {
+        warnings.push('⚠️ High level contamination detected - immediate action required')
+      }
+    }
+
+    return {
+      insights,
+      recommendations,
+      warnings,
+      processingTime: Date.now(),
+      confidence: imageData.confidence || 0.85
+    }
+  } catch (error) {
+    console.error('Error analyzing image data:', error)
+    return {
+      insights: ['Error processing image data'],
+      recommendations: ['Review image format and try again'],
+      warnings: ['Image analysis failed'],
+      processingTime: Date.now(),
+      confidence: 0
+    }
+  }
+}
+
+export async function processImageAnalysis(images: any[]): Promise<ImageAnalysisResult[]> {
+  const results: ImageAnalysisResult[] = []
+  
+  for (const image of images) {
+    const result = await analyzeImageData(image)
+    results.push(result)
+  }
+  
+  return results
+} 

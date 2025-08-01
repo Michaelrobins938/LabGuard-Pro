@@ -991,3 +991,75 @@ export function useFileProcessing(config?: Partial<FileProcessingConfig>) {
 }
 
 export default FileProcessingService; 
+
+export async function analyzeFileContent(content: string, fileType: string): Promise<FileAnalysisResult> {
+  const insights: string[] = []
+  const suggestions: string[] = []
+  const warnings: string[] = []
+
+  try {
+    // Analyze file content based on type
+    if (fileType === 'fasta') {
+      const sequences = content.match(/^>.*\n[ATCGN]+/gm)
+      if (sequences) {
+        insights.push(`Found ${sequences.length} sequences in FASTA file`)
+        
+        // Check for proper FASTA format
+        if (!content.match(/^>/m)) {
+          suggestions.push('Check for proper FASTA format with > headers')
+        }
+        
+        // Validate sequence data
+        const sequenceData = content.replace(/^>.*\n/gm, '')
+        if (!sequenceData.match(/^[ATCGN]+$/m)) {
+          suggestions.push('Ensure file contains valid sequence data')
+        }
+      }
+    } else if (fileType === 'fastq') {
+      const records = content.match(/^@.*\n[ATCGN]+\n\+.*\n[!-~]+/gm)
+      if (records) {
+        insights.push(`Found ${records.length} records in FASTQ file`)
+        
+        // Check for proper FASTQ format
+        if (!content.match(/^@/m)) {
+          suggestions.push('Check for proper FASTQ format with 4 lines per record')
+        }
+      }
+    } else if (fileType === 'csv') {
+      const lines = content.split('\n').filter(line => line.trim())
+      if (lines.length > 0) {
+        const columnCount = lines[0].split(',').length
+        insights.push(`Found ${lines.length} rows with ${columnCount} columns`)
+        
+        // Check for consistent column counts
+        const inconsistentRows = lines.filter(line => line.split(',').length !== columnCount)
+        if (inconsistentRows.length > 0) {
+          suggestions.push('Check for consistent column counts across all rows')
+        }
+      }
+    }
+
+    // Extract unique file types for analysis
+    const types = ['dna', 'rna', 'protein', 'unknown']
+    const uniqueTypes = Array.from(new Set(types))
+
+    return {
+      insights,
+      suggestions,
+      warnings,
+      fileType,
+      uniqueTypes,
+      processingTime: Date.now()
+    }
+  } catch (error) {
+    console.error('Error analyzing file content:', error)
+    return {
+      insights: ['Error processing file content'],
+      suggestions: ['Check file format and try again'],
+      warnings: ['File analysis failed'],
+      fileType,
+      uniqueTypes: [],
+      processingTime: Date.now()
+    }
+  }
+} 

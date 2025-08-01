@@ -29,7 +29,10 @@ import {
   PieChart,
   LineChart,
   BarChart,
-  ScatterChart
+  ScatterChart,
+  AlertCircle,
+  Info,
+  Star
 } from 'lucide-react'
 
 interface AnalyticsData {
@@ -75,10 +78,11 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   useEffect(() => {
     fetchAnalyticsData()
-  }, [timeRange, equipment, calibrations, aiInsights])
+  }, [timeRange])
 
   // Initialize data if empty
   useEffect(() => {
@@ -94,13 +98,39 @@ export default function AnalyticsPage() {
     setIsLoading(true)
     setError(null)
     try {
-      // Calculate analytics from store data
+      // Fetch from API first, fallback to local calculation
+      const response = await fetch(`/api/analytics/metrics?timeRange=${timeRange}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setAnalyticsData(data)
+        setLastUpdated(new Date())
+        return
+      }
+      
+      // Fallback to local calculation if API fails
+      console.warn('API failed, using local calculation')
+      calculateLocalAnalytics()
+    } catch (error) {
+      console.error('Error fetching analytics data:', error)
+      // Fallback to local calculation
+      calculateLocalAnalytics()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const calculateLocalAnalytics = () => {
+    try {
+      // Calculate analytics from real store data only
       const equipmentPerformance = {
         total: equipment.length,
         operational: equipment.filter(eq => eq.status === 'operational').length,
         maintenance: equipment.filter(eq => eq.status === 'maintenance').length,
         offline: equipment.filter(eq => eq.status === 'inactive').length,
-        avgHealth: Math.round(equipment.reduce((sum, eq) => sum + eq.healthScore, 0) / Math.max(equipment.length, 1))
+        avgHealth: equipment.length > 0 
+          ? Math.round(equipment.reduce((sum, eq) => sum + eq.healthScore, 0) / equipment.length)
+          : 0
       }
 
       const calibrationMetrics = {
@@ -108,16 +138,24 @@ export default function AnalyticsPage() {
         completed: calibrations.filter(cal => cal.status === 'completed').length,
         overdue: calibrations.filter(cal => cal.status === 'overdue').length,
         scheduled: calibrations.filter(cal => cal.status === 'scheduled').length,
-        avgAccuracy: Math.round(calibrations
-          .filter(cal => cal.results)
-          .reduce((sum, cal) => sum + (cal.results?.accuracy || 0), 0) / 
-          Math.max(calibrations.filter(cal => cal.results).length, 1))
+        avgAccuracy: calibrations.filter(cal => cal.results?.accuracy).length > 0
+          ? Math.round(calibrations
+              .filter(cal => cal.results?.accuracy)
+              .reduce((sum, cal) => sum + (cal.results?.accuracy || 0), 0) / 
+              calibrations.filter(cal => cal.results?.accuracy).length)
+          : 0
       }
 
       const complianceData = {
-        overall: Math.round((equipmentPerformance.operational / Math.max(equipmentPerformance.total, 1)) * 100),
-        uptime: Math.round((equipmentPerformance.operational / Math.max(equipmentPerformance.total, 1)) * 100),
-        calibrationCompliance: Math.round((calibrationMetrics.completed / Math.max(calibrationMetrics.total, 1)) * 100),
+        overall: equipmentPerformance.total > 0 
+          ? Math.round((equipmentPerformance.operational / equipmentPerformance.total) * 100)
+          : 0,
+        uptime: equipmentPerformance.total > 0 
+          ? Math.round((equipmentPerformance.operational / equipmentPerformance.total) * 100)
+          : 0,
+        calibrationCompliance: calibrationMetrics.total > 0 
+          ? Math.round((calibrationMetrics.completed / calibrationMetrics.total) * 100)
+          : 0,
         overdueCalibrations: calibrationMetrics.overdue
       }
 
@@ -125,11 +163,19 @@ export default function AnalyticsPage() {
         total: aiInsights.length,
         implemented: aiInsights.filter(insight => insight.status === 'implemented').length,
         pending: aiInsights.filter(insight => insight.status === 'new').length,
-        accuracy: Math.round(aiInsights.reduce((sum, insight) => sum + insight.confidence, 0) / Math.max(aiInsights.length, 1))
+        accuracy: aiInsights.length > 0 
+          ? Math.round(aiInsights.reduce((sum, insight) => sum + insight.confidence, 0) / aiInsights.length)
+          : 0
       }
 
       // Generate time series data for the last 30 days
-      const timeSeriesData = Array.from({ length: 30 }, (_, i) => {
+      const timeSeriesData: Array<{
+        date: string
+        equipmentHealth: number
+        complianceScore: number
+        aiAccuracy: number
+        calibrationsCompleted: number
+      }> = Array.from({ length: 30 }, (_, i) => {
         const date = new Date()
         date.setDate(date.getDate() - (29 - i))
         return {
@@ -148,12 +194,64 @@ export default function AnalyticsPage() {
         aiInsights: aiInsightsData,
         timeSeriesData
       })
+      setLastUpdated(new Date())
     } catch (error) {
-      console.error('Error fetching analytics data:', error)
-      setError('Failed to load analytics data. Please try again.')
-    } finally {
-      setIsLoading(false)
+      console.error('Error calculating local analytics:', error)
+      setError('Failed to calculate analytics data. Please try again.')
     }
+  }
+
+  const generateRealTimeSeriesData = (equipment: any[], calibrations: any[], aiInsights: any[]) => {
+    const timeSeriesData = []
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(endDate.getDate() - 29) // Last 30 days
+    
+    const currentDate = new Date(startDate)
+    
+    while (currentDate <= endDate) {
+      const dateStr = currentDate.toISOString().split('T')[0]
+      
+      // Calculate metrics for this specific date from real data
+      const dayEquipment = equipment.filter(eq => 
+        new Date(eq.createdAt).toDateString() === currentDate.toDateString()
+      )
+      
+      const dayCalibrations = calibrations.filter(cal => 
+        new Date(cal.createdAt).toDateString() === currentDate.toDateString()
+      )
+      
+      const dayAIInsights = aiInsights.filter(insight => 
+        new Date(insight.createdAt).toDateString() === currentDate.toDateString()
+      )
+      
+      // Calculate daily metrics from real data
+      const equipmentHealth = dayEquipment.length > 0 
+        ? Math.round(dayEquipment.reduce((sum, eq) => sum + (eq.healthScore || 0), 0) / dayEquipment.length)
+        : 0
+      
+      const complianceScore = dayCalibrations.length > 0 
+        ? Math.round((dayCalibrations.filter(cal => cal.status === 'completed').length / dayCalibrations.length) * 100)
+        : 0
+      
+      const aiAccuracy = dayAIInsights.length > 0 
+        ? Math.round(dayAIInsights.reduce((sum, insight) => sum + (insight.confidence || 0), 0) / dayAIInsights.length)
+        : 0
+      
+      const calibrationsCompleted = dayCalibrations.filter(cal => cal.status === 'completed').length
+      
+      timeSeriesData.push({
+        date: dateStr,
+        equipmentHealth,
+        complianceScore,
+        aiAccuracy,
+        calibrationsCompleted
+      })
+      
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+    
+    return timeSeriesData
   }
 
   const handleExportReport = () => {
@@ -163,7 +261,8 @@ export default function AnalyticsPage() {
       analytics: analyticsData,
       exportDate: new Date().toISOString(),
       timeRange,
-      laboratory: 'Advanced Research Laboratory'
+      laboratory: 'Advanced Research Laboratory',
+      generatedBy: 'LabGuard-Pro Analytics System'
     }
 
     const dataStr = JSON.stringify(exportData, null, 2)
@@ -171,7 +270,7 @@ export default function AnalyticsPage() {
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `analytics-report-${timeRange}-${new Date().toISOString().split('T')[0]}.json`
+    link.download = `labguard-analytics-${timeRange}-${new Date().toISOString().split('T')[0]}.json`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -194,10 +293,20 @@ export default function AnalyticsPage() {
     }
   }
 
+  const getHealthStatus = (health: number) => {
+    if (health >= 90) return { status: 'excellent', color: 'text-green-400', icon: <Star className="h-4 w-4" /> }
+    if (health >= 80) return { status: 'good', color: 'text-blue-400', icon: <CheckCircle className="h-4 w-4" /> }
+    if (health >= 70) return { status: 'warning', color: 'text-yellow-400', icon: <AlertCircle className="h-4 w-4" /> }
+    return { status: 'critical', color: 'text-red-400', icon: <AlertTriangle className="h-4 w-4" /> }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-slate-400">Loading analytics data...</p>
+        </div>
       </div>
     )
   }
@@ -234,6 +343,8 @@ export default function AnalyticsPage() {
     )
   }
 
+  const healthStatus = getHealthStatus(analyticsData.equipmentPerformance.avgHealth)
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -245,6 +356,11 @@ export default function AnalyticsPage() {
           <p className="text-slate-400 mt-2">
             Comprehensive laboratory performance analytics and predictive insights
           </p>
+          {lastUpdated && (
+            <p className="text-xs text-slate-500 mt-1">
+              Last updated: {lastUpdated.toLocaleString()}
+            </p>
+          )}
         </div>
         
         <div className="flex items-center space-x-2">
@@ -260,6 +376,15 @@ export default function AnalyticsPage() {
             </SelectContent>
           </Select>
           
+          <Button 
+            onClick={fetchAnalyticsData} 
+            variant="outline" 
+            size="sm"
+            className="border-slate-700/50 text-slate-200 hover:bg-slate-700/50"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          
           <Button onClick={handleExportReport} className="bg-slate-800/50 border-slate-700/50 text-slate-200 hover:bg-slate-700/50 hover:border-slate-600/50 transition-all duration-300">
             <Download className="h-4 w-4 mr-2" />
             Export Report
@@ -270,11 +395,14 @@ export default function AnalyticsPage() {
       {/* Key Metrics */}
       {analyticsData && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800/70 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 transform hover:-translate-y-1">
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800/70 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400">Equipment Health</p>
-                <p className="text-2xl font-bold text-emerald-400">{analyticsData.equipmentPerformance.avgHealth}%</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-2xl font-bold text-emerald-400">{analyticsData.equipmentPerformance.avgHealth}%</p>
+                  {healthStatus.icon}
+                </div>
                 <p className="text-xs text-slate-500">{analyticsData.equipmentPerformance.operational} operational</p>
               </div>
               <div className="p-3 bg-emerald-500/20 rounded-lg">
@@ -296,7 +424,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800/70 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 transform hover:-translate-y-1">
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800/70 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400">AI Accuracy</p>
@@ -309,7 +437,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800/70 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 transform hover:-translate-y-1">
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:bg-slate-800/70 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400">System Uptime</p>
@@ -344,7 +472,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
-                className="bg-emerald-500 h-2 rounded-full"
+                className="bg-emerald-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(analyticsData?.equipmentPerformance.operational || 0) / Math.max(analyticsData?.equipmentPerformance.total || 1, 1) * 100}%` }}
               />
             </div>
@@ -357,7 +485,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
-                className="bg-yellow-500 h-2 rounded-full"
+                className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(analyticsData?.equipmentPerformance.maintenance || 0) / Math.max(analyticsData?.equipmentPerformance.total || 1, 1) * 100}%` }}
               />
             </div>
@@ -370,7 +498,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
-                className="bg-red-500 h-2 rounded-full"
+                className="bg-red-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(analyticsData?.equipmentPerformance.offline || 0) / Math.max(analyticsData?.equipmentPerformance.total || 1, 1) * 100}%` }}
               />
             </div>
@@ -395,7 +523,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
-                className="bg-blue-500 h-2 rounded-full"
+                className="bg-blue-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(analyticsData?.calibrationMetrics.completed || 0) / Math.max(analyticsData?.calibrationMetrics.total || 1, 1) * 100}%` }}
               />
             </div>
@@ -408,7 +536,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
-                className="bg-purple-500 h-2 rounded-full"
+                className="bg-purple-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(analyticsData?.calibrationMetrics.scheduled || 0) / Math.max(analyticsData?.calibrationMetrics.total || 1, 1) * 100}%` }}
               />
             </div>
@@ -421,7 +549,7 @@ export default function AnalyticsPage() {
             </div>
             <div className="w-full bg-slate-700/50 rounded-full h-2">
               <div 
-                className="bg-red-500 h-2 rounded-full"
+                className="bg-red-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(analyticsData?.calibrationMetrics.overdue || 0) / Math.max(analyticsData?.calibrationMetrics.total || 1, 1) * 100}%` }}
               />
             </div>
@@ -452,13 +580,13 @@ export default function AnalyticsPage() {
         <div className="h-64 flex items-end justify-between space-x-1">
           {analyticsData?.timeSeriesData.slice(-7).map((data, index) => (
             <div key={index} className="flex-1 flex flex-col items-center space-y-2">
-              <div className="w-full bg-slate-700/50 rounded-t" style={{ height: `${(data.equipmentHealth / 100) * 200}px` }}>
+              <div className="w-full bg-slate-700/50 rounded-t transition-all duration-300 hover:bg-slate-600/50" style={{ height: `${(data.equipmentHealth / 100) * 200}px` }}>
                 <div className="w-full bg-emerald-500 rounded-t" style={{ height: `${(data.equipmentHealth / 100) * 200}px` }}></div>
               </div>
-              <div className="w-full bg-slate-700/50 rounded-t" style={{ height: `${(data.complianceScore / 100) * 200}px` }}>
+              <div className="w-full bg-slate-700/50 rounded-t transition-all duration-300 hover:bg-slate-600/50" style={{ height: `${(data.complianceScore / 100) * 200}px` }}>
                 <div className="w-full bg-blue-500 rounded-t" style={{ height: `${(data.complianceScore / 100) * 200}px` }}></div>
               </div>
-              <div className="w-full bg-slate-700/50 rounded-t" style={{ height: `${(data.aiAccuracy / 100) * 200}px` }}>
+              <div className="w-full bg-slate-700/50 rounded-t transition-all duration-300 hover:bg-slate-600/50" style={{ height: `${(data.aiAccuracy / 100) * 200}px` }}>
                 <div className="w-full bg-purple-500 rounded-t" style={{ height: `${(data.aiAccuracy / 100) * 200}px` }}></div>
               </div>
               <span className="text-xs text-slate-400">{new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
@@ -477,23 +605,56 @@ export default function AnalyticsPage() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+          <div className="text-center p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-all duration-300">
             <Brain className="h-8 w-8 text-purple-400 mx-auto mb-2" />
             <p className="text-2xl font-bold text-purple-400">{analyticsData?.aiInsights.total}</p>
             <p className="text-sm text-slate-400">Total Insights</p>
           </div>
           
-          <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+          <div className="text-center p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-all duration-300">
             <CheckCircle className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
             <p className="text-2xl font-bold text-emerald-400">{analyticsData?.aiInsights.implemented}</p>
             <p className="text-sm text-slate-400">Implemented</p>
           </div>
           
-          <div className="text-center p-4 bg-slate-700/30 rounded-lg">
+          <div className="text-center p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-all duration-300">
             <Clock className="h-8 w-8 text-amber-400 mx-auto mb-2" />
             <p className="text-2xl font-bold text-amber-400">{analyticsData?.aiInsights.pending}</p>
             <p className="text-sm text-slate-400">Pending</p>
           </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-slate-200 mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button 
+            variant="outline" 
+            className="border-slate-700/50 text-slate-200 hover:bg-slate-700/50 hover:border-slate-600/50"
+            onClick={() => window.location.href = '/dashboard/equipment'}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Manage Equipment
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="border-slate-700/50 text-slate-200 hover:bg-slate-700/50 hover:border-slate-600/50"
+            onClick={() => window.location.href = '/dashboard/calibrations'}
+          >
+            <Target className="h-4 w-4 mr-2" />
+            View Calibrations
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="border-slate-700/50 text-slate-200 hover:bg-slate-700/50 hover:border-slate-600/50"
+            onClick={() => window.location.href = '/dashboard/ai'}
+          >
+            <Brain className="h-4 w-4 mr-2" />
+            AI Insights
+          </Button>
         </div>
       </div>
     </div>

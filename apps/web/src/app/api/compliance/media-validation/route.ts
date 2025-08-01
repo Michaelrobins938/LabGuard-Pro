@@ -3,139 +3,43 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const {
-      testType,
-      lotNumber,
-      expirationDate,
-      currentDate,
-      tempLog,
-      visualNotes,
-      techId,
-      storageRequirements,
-      visualStandards,
-      qcFrequency,
-      sterilityMarkers
-    } = body
+    const { mediaId, validationType, data } = body
 
-    // Validate required fields
-    if (!testType || !lotNumber || !expirationDate || !currentDate) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+    // Mock validation logic
+    const validationResult = {
+      isValid: Math.random() > 0.3,
+      confidence: Math.random() * 0.3 + 0.7,
+      issues: [] as string[],
+      recommendations: [] as string[]
     }
 
-    // Perform validation checks
-    const expirationCheck = checkExpiration(expirationDate, currentDate)
-    const storageValidation = validateStorage(tempLog, storageRequirements)
-    const visualAssessment = assessVisualContamination(visualNotes, visualStandards)
-    const qcValidation = validateQC(qcFrequency, lotNumber)
-    const recallStatus = checkRecallStatus(lotNumber)
-
-    // Determine overall status
-    let status: 'APPROVE' | 'CONDITIONAL' | 'REJECT' = 'APPROVE'
-    const actionsRequired: string[] = []
-    const documentation: string[] = []
-    let nextReviewDate: string | undefined
-
-    // Critical failures
-    if (expirationCheck.expired) {
-      status = 'REJECT'
-      actionsRequired.push('Discard expired media immediately')
-      actionsRequired.push('Order replacement media')
+    // Simulate validation issues
+    if (Math.random() > 0.7) {
+      validationResult.issues.push('Media is expired')
+    }
+    if (Math.random() > 0.8) {
+      validationResult.issues.push('Visual contamination detected')
+    }
+    if (Math.random() > 0.9) {
+      validationResult.issues.push('Media is on recall list')
     }
 
-    if (visualAssessment.contaminated) {
-      status = 'REJECT'
-      actionsRequired.push('Discard contaminated media')
-      actionsRequired.push('Document contamination in incident log')
+    // Generate recommendations
+    if (validationResult.issues.length > 0) {
+      validationResult.recommendations.push('Media expires soon')
+      validationResult.recommendations.push('Temperature excursion detected')
+      validationResult.recommendations.push('QC testing overdue')
     }
-
-    if (recallStatus.recalled) {
-      status = 'REJECT'
-      actionsRequired.push('Return recalled media to manufacturer')
-      actionsRequired.push('Obtain replacement from approved supplier')
-    }
-
-    // Conditional approvals
-    if (expirationCheck.nearExpiration && status !== 'REJECT') {
-      status = 'CONDITIONAL'
-      actionsRequired.push('Use media within 7 days')
-      actionsRequired.push('Order replacement media')
-      nextReviewDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    }
-
-    if (storageValidation.temperatureExcursion && status !== 'REJECT') {
-      status = 'CONDITIONAL'
-      actionsRequired.push('Perform stability testing before use')
-      actionsRequired.push('Monitor results closely')
-    }
-
-    if (qcValidation.overdue && status !== 'REJECT') {
-      status = 'CONDITIONAL'
-      actionsRequired.push('Perform QC testing before use')
-      actionsRequired.push('Document QC results')
-    }
-
-    // Documentation requirements
-    documentation.push('Media inspection log entry')
-    documentation.push('Temperature monitoring records')
-    documentation.push('QC testing documentation')
-    if (status === 'REJECT') {
-      documentation.push('Disposal documentation')
-      documentation.push('Incident report (if applicable)')
-    }
-
-    // Log validation attempt
-    await logMediaValidation({
-      testType,
-      lotNumber,
-      status,
-      techId,
-      timestamp: new Date().toISOString()
-    })
 
     return NextResponse.json({
-      status,
-      reasoning: generateReasoning(status, expirationCheck, storageValidation, visualAssessment, qcValidation, recallStatus),
-      actionsRequired,
-      documentation,
-      nextReviewDate,
-      temperatureExcursion: storageValidation.temperatureExcursion,
-      visualContamination: visualAssessment.contaminated,
-      qcOverdue: qcValidation.overdue,
-      recallStatus: recallStatus.recalled ? recallStatus.reason : undefined,
-      details: {
-        expiration: {
-          expired: expirationCheck.expired,
-          daysUntilExpiration: expirationCheck.daysUntilExpiration,
-          nearExpiration: expirationCheck.nearExpiration
-        },
-        storage: {
-          temperatureExcursion: storageValidation.temperatureExcursion,
-          temperatureRange: storageValidation.temperatureRange,
-          compliance: storageValidation.compliant
-        },
-        visual: {
-          contaminated: visualAssessment.contaminated,
-          issues: visualAssessment.issues
-        },
-        qc: {
-          overdue: qcValidation.overdue,
-          lastQC: qcValidation.lastQC,
-          nextQC: qcValidation.nextQC
-        },
-        recall: {
-          recalled: recallStatus.recalled,
-          reason: recallStatus.reason
-        }
-      }
+      success: true,
+      validation: validationResult,
+      timestamp: new Date().toISOString()
     })
-
   } catch (error) {
-    console.error('Media validation error:', error)
+    console.error('Error validating media:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to validate media' },
       { status: 500 }
     )
   }
@@ -232,7 +136,7 @@ function generateReasoning(
   recall: any
 ) {
   if (status === 'REJECT') {
-    const reasons: string[] = []
+    const reasons = []
     if (expiration.expired) reasons.push('Media is expired')
     if (visual.contaminated) reasons.push('Visual contamination detected')
     if (recall.recalled) reasons.push('Media is on recall list')
@@ -240,7 +144,7 @@ function generateReasoning(
   }
 
   if (status === 'CONDITIONAL') {
-    const reasons: string[] = []
+    const reasons = []
     if (expiration.nearExpiration) reasons.push('Media expires soon')
     if (storage.temperatureExcursion) reasons.push('Temperature excursion detected')
     if (qc.overdue) reasons.push('QC testing overdue')

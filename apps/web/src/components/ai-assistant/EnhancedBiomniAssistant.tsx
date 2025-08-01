@@ -34,18 +34,12 @@ import {
 } from 'lucide-react';
 
 interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'assistant';
-  timestamp: Date;
-  type?: 'text' | 'protocol' | 'analysis' | 'compliance' | 'demo';
-  metadata?: {
-    protocolSteps?: string[];
-    analysisData?: any;
-    complianceScore?: number;
-    equipmentStatus?: string;
-    aiConfidence?: number;
-  };
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp: Date
+  type?: 'text' | 'protocol' | 'analysis' | 'compliance' | 'demo' | 'optimization'
+  metadata?: any
 }
 
 interface DemoScenario {
@@ -78,7 +72,7 @@ I'm your AI laboratory assistant, powered by Stanford's cutting-edge research. I
 4. **Equipment Optimization** - "Optimize HPLC parameters for protein analysis"
 
 Or ask me anything about laboratory research, equipment, or compliance!`,
-      sender: 'assistant',
+      role: 'assistant',
       timestamp: new Date(),
       type: 'demo'
     }
@@ -134,7 +128,7 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
   }, [messages]);
 
   // Simulate AI processing with realistic delays and confidence scores
-  const simulateAIProcessing = async (query: string, scenario?: string | null) => {
+  const simulateAIProcessing = async (query: string, scenario?: string) => {
     setProcessingSpeed(0);
     const interval = setInterval(() => {
       setProcessingSpeed(prev => {
@@ -154,7 +148,7 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
     setProcessingSpeed(100);
   };
 
-  const generateDemoResponse = async (query: string, scenario?: string | null): Promise<Message> => {
+  const generateDemoResponse = async (query: string, scenario?: string): Promise<Message> => {
     const lowerQuery = query.toLowerCase();
     
     // PCR Protocol Response
@@ -197,7 +191,7 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
 **Compliance:** FDA EUA approved
 
 *This protocol has been optimized using Stanford's Biomni AI and validated across multiple laboratory environments.*`,
-        sender: 'assistant',
+        role: 'assistant',
         timestamp: new Date(),
         type: 'protocol',
         metadata: {
@@ -251,7 +245,7 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
 **Database Sources:** 59 scientific databases accessed
 
 *Analysis powered by Stanford's Biomni AI with access to the latest cancer genomics databases.*`,
-        sender: 'assistant',
+        role: 'assistant',
         timestamp: new Date(),
         type: 'analysis',
         metadata: {
@@ -319,7 +313,7 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
 3. Review emergency contact list
 
 *Compliance verification powered by Stanford's Biomni AI with real-time regulatory database access.*`,
-        sender: 'assistant',
+        role: 'assistant',
         timestamp: new Date(),
         type: 'compliance',
         metadata: {
@@ -375,9 +369,9 @@ Or ask me anything about laboratory research, equipment, or compliance!`,
 3. Update SOP documentation
 
 *Optimization powered by Stanford's Biomni AI with access to 150+ analytical tools.*`,
-        sender: 'assistant',
+        role: 'assistant',
         timestamp: new Date(),
-        type: 'analysis',
+        type: 'optimization',
         metadata: {
           equipmentStatus: 'optimized',
           aiConfidence: 97.8,
@@ -428,7 +422,7 @@ I understand you're asking about "${query}". As your AI laboratory assistant, I 
 **Database Access:** 59 scientific databases
 
 *Powered by Stanford's cutting-edge Biomni AI research platform.*`,
-      sender: 'assistant',
+      role: 'assistant',
       timestamp: new Date(),
       type: 'demo',
       metadata: {
@@ -438,13 +432,14 @@ I understand you're asking about "${query}". As your AI laboratory assistant, I 
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputValue?.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
+      role: 'user',
       content: inputValue,
-      sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      type: 'text'
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -452,11 +447,13 @@ I understand you're asking about "${query}". As your AI laboratory assistant, I 
     setIsLoading(true);
 
     // Simulate AI processing
-    await simulateAIProcessing(inputValue, currentScenario);
-    
-    // Generate demo response
-    const assistantMessage = await generateDemoResponse(inputValue, currentScenario);
-    setMessages(prev => [...prev, assistantMessage]);
+    if (inputValue) {
+      await simulateAIProcessing(inputValue, currentScenario || undefined);
+      
+      // Generate demo response
+      const assistantMessage = await generateDemoResponse(inputValue, currentScenario || undefined);
+      setMessages(prev => [...prev, assistantMessage]);
+    }
     
     // Update AI confidence with slight variation
     setAiConfidence(prev => Math.max(95, Math.min(99.9, prev + (Math.random() - 0.5) * 2)));
@@ -471,17 +468,20 @@ I understand you're asking about "${query}". As your AI laboratory assistant, I 
     
     const userMessage: Message = {
       id: Date.now().toString(),
+      role: 'user',
       content: scenario.demoQuery,
-      sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      type: 'text'
     };
 
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
-    await simulateAIProcessing(scenario.demoQuery, scenario.id);
-    const assistantMessage = await generateDemoResponse(scenario.demoQuery, scenario.id);
-    setMessages(prev => [...prev, assistantMessage]);
+    if (scenario.demoQuery) {
+      await simulateAIProcessing(scenario.demoQuery, scenario.id);
+      const assistantMessage = await generateDemoResponse(scenario.demoQuery, scenario.id);
+      setMessages(prev => [...prev, assistantMessage]);
+    }
     
     setAiConfidence(prev => Math.max(95, Math.min(99.9, prev + (Math.random() - 0.5) * 2)));
     setIsLoading(false);
@@ -590,11 +590,11 @@ I understand you're asking about "${query}". As your AI laboratory assistant, I 
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`max-w-[80%] ${message.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white/10 text-white'} rounded-lg p-4`}>
+                <div className={`max-w-[80%] ${message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white/10 text-white'} rounded-lg p-4`}>
                   <div className="flex items-start space-x-2">
-                    {message.sender === 'user' ? (
+                    {message.role === 'user' ? (
                       <User className="h-5 w-5 text-blue-200 mt-1" />
                     ) : (
                       <Bot className="h-5 w-5 text-blue-400 mt-1" />
