@@ -10,6 +10,8 @@ import authRoutes from './routes/auth.routes'
 import equipmentRoutes from './routes/equipment.routes'
 import calibrationRoutes from './routes/calibration.routes'
 import complianceRoutes from './routes/compliance.routes'
+import reportsRoutes from './routes/reports.routes'
+import billingRoutes from './routes/billing.routes'
 
 const app = express()
 
@@ -64,6 +66,8 @@ app.use('/api/auth', authRoutes)
 app.use('/api/equipment', equipmentRoutes)
 app.use('/api/calibration', calibrationRoutes)
 app.use('/api/compliance', complianceRoutes)
+app.use('/api/reports', reportsRoutes)
+app.use('/api/billing', billingRoutes)
 
 // 404 handler
 app.use('*', (req, res) => {

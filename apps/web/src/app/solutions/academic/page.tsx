@@ -1,20 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { Metadata } from 'next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
-  FlaskConical, 
-  Beaker, 
-  TestTube, 
-  Microscope, 
-  Brain, 
-  Shield, 
-  Calendar, 
+  GraduationCap, 
+  BookOpen, 
   Users, 
+  Shield, 
   Database, 
   Zap, 
   ArrowRight, 
@@ -24,63 +21,93 @@ import {
   FileText,
   Settings,
   Target,
-  Activity
+  Beaker,
+  TestTube,
+  Microscope,
+  Brain,
+  Calendar,
+  Globe,
+  Award
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function ResearchLabsPage() {
+export default function AcademicInstitutionsPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [trialForm, setTrialForm] = useState({
     name: '',
     email: '',
-    organization: '',
+    institution: '',
+    department: '',
     researchArea: '',
     message: ''
   });
 
   const handleTrialSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle trial submission
-    console.log('Trial form submitted:', trialForm);
-    alert('Thank you! We\'ll contact you within 24 hours to set up your research trial.');
+    console.log('Academic trial form submitted:', trialForm);
+    alert('Thank you! We\'ll contact you within 24 hours to set up your academic institution trial.');
   };
 
   const handleInputChange = (field: string, value: string) => {
     setTrialForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const researchFeatures = [
+  const academicFeatures = [
     {
-      icon: FlaskConical,
-      title: "Custom Protocol Builder",
-      description: "Design and customize experimental protocols with drag-and-drop interface",
-      benefits: ["Visual protocol designer", "Template library", "Version control", "Collaborative editing"]
+      icon: GraduationCap,
+      title: "Educational Tools",
+      description: "Comprehensive tools for teaching laboratory techniques and research methods",
+      benefits: ["Student training modules", "Virtual labs", "Assessment tools", "Progress tracking"]
     },
     {
-      icon: Beaker,
-      title: "Experimental Tracking",
-      description: "Comprehensive tracking of experiments, data collection, and results",
-      benefits: ["Real-time monitoring", "Data validation", "Progress tracking", "Automated reporting"]
+      icon: BookOpen,
+      title: "Research Management",
+      description: "Streamlined research project management for academic laboratories",
+      benefits: ["Project tracking", "Collaboration tools", "Publication support", "Grant management"]
     },
     {
       icon: Database,
       title: "Data Management",
-      description: "Secure and organized data storage with advanced search and retrieval",
-      benefits: ["Encrypted storage", "Automated backups", "Advanced search", "Data versioning"]
+      description: "Secure and organized data storage for academic research and teaching",
+      benefits: ["Research data storage", "Student records", "Publication data", "Collaborative access"]
     },
     {
-      icon: Users,
-      title: "Team Collaboration",
-      description: "Enable seamless collaboration with shared workspaces and communication",
-      benefits: ["Shared workspaces", "Real-time chat", "Access controls", "Activity tracking"]
+      icon: Shield,
+      title: "Compliance & Safety",
+      description: "Built-in safety protocols and compliance tools for academic environments",
+      benefits: ["Safety training", "Compliance tracking", "Incident reporting", "Audit readiness"]
     }
   ];
 
-  const researchMetrics = [
-    { metric: "60%", label: "Faster Setup", description: "Reduced experimental setup time" },
-    { metric: "85%", label: "Data Accuracy", description: "Improved data collection accuracy" },
-    { metric: "40%", label: "Cost Reduction", description: "Lower operational costs" },
-    { metric: "24/7", label: "Monitoring", description: "Continuous experiment monitoring" }
+  const academicMetrics = [
+    { metric: "500+", label: "Institutions", description: "Academic institutions served" },
+    { metric: "10,000+", label: "Students", description: "Students trained annually" },
+    { metric: "95%", label: "Satisfaction", description: "Student satisfaction rate" },
+    { metric: "24/7", label: "Support", description: "Academic support available" }
+  ];
+
+  const institutionTypes = [
+    "University",
+    "College",
+    "Research Institute",
+    "Medical School",
+    "Community College",
+    "Technical Institute",
+    "Graduate School",
+    "Other"
+  ];
+
+  const departments = [
+    "Biology",
+    "Chemistry",
+    "Physics",
+    "Engineering",
+    "Medicine",
+    "Pharmacy",
+    "Environmental Science",
+    "Computer Science",
+    "Mathematics",
+    "Other"
   ];
 
   return (
@@ -100,28 +127,28 @@ export default function ResearchLabsPage() {
           className="text-center mb-16"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 rounded-full backdrop-blur-sm mb-6">
-            <FlaskConical className="w-4 h-4" />
-            <span className="text-sm font-medium">Research Laboratories</span>
+            <GraduationCap className="w-4 h-4" />
+            <span className="text-sm font-medium">Academic Institutions</span>
           </div>
           <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6">
-            Research{' '}
+            Academic{' '}
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-              Laboratories
+              Institutions
             </span>
           </h1>
           <p className="text-xl lg:text-2xl text-gray-300 max-w-4xl mx-auto mb-8 leading-relaxed">
-            Specialized tools for research laboratories with flexible compliance requirements. 
-            Accelerate your research with AI-powered insights and collaborative workflows.
+            Comprehensive laboratory management solutions designed for academic institutions. 
+            Enhance teaching, research, and learning with our advanced educational tools.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Badge className="bg-green-500/20 text-green-300 border-green-500/30 px-4 py-2">
-              🧪 Custom Protocols
+              🎓 Education
             </Badge>
             <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2">
-              📊 Data Management
+              🔬 Research
             </Badge>
             <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 px-4 py-2">
-              🤝 Team Collaboration
+              👥 Collaboration
             </Badge>
           </div>
         </motion.div>
@@ -133,7 +160,7 @@ export default function ResearchLabsPage() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="grid lg:grid-cols-2 gap-12 mb-16"
         >
-          {researchFeatures.map((feature, index) => (
+          {academicFeatures.map((feature, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -171,12 +198,12 @@ export default function ResearchLabsPage() {
           className="mb-16"
         >
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">Research Impact</h2>
-            <p className="text-xl text-gray-300">Proven results from research laboratories</p>
+            <h2 className="text-4xl font-bold text-white mb-4">Academic Impact</h2>
+            <p className="text-xl text-gray-300">Proven results from academic institutions</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {researchMetrics.map((metric, index) => (
+            {academicMetrics.map((metric, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -204,8 +231,8 @@ export default function ResearchLabsPage() {
         >
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10 max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-white">Start Research Trial</CardTitle>
-              <p className="text-gray-300">Get started with a free 30-day trial for your research laboratory</p>
+              <CardTitle className="text-2xl font-bold text-white">Start Academic Trial</CardTitle>
+              <p className="text-gray-300">Get started with a free 30-day trial for your academic institution</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleTrialSubmit} className="space-y-4">
@@ -226,13 +253,38 @@ export default function ResearchLabsPage() {
                     required
                   />
                 </div>
-                <Input
-                  placeholder="Organization"
-                  value={trialForm.organization}
-                  onChange={(e) => handleInputChange('organization', e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
-                  required
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative">
+                    <select
+                      value={trialForm.institution}
+                      onChange={(e) => handleInputChange('institution', e.target.value)}
+                      className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Select Institution Type</option>
+                      {institutionTypes.map((type) => (
+                        <option key={type} value={type} className="bg-slate-800 text-white">
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="relative">
+                    <select
+                      value={trialForm.department}
+                      onChange={(e) => handleInputChange('department', e.target.value)}
+                      className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept) => (
+                        <option key={dept} value={dept} className="bg-slate-800 text-white">
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
                 <Input
                   placeholder="Research Area (e.g., Molecular Biology, Chemistry)"
                   value={trialForm.researchArea}
@@ -241,7 +293,7 @@ export default function ResearchLabsPage() {
                   required
                 />
                 <Textarea
-                  placeholder="Tell us about your research needs and goals..."
+                  placeholder="Tell us about your academic needs and goals..."
                   value={trialForm.message}
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   className="bg-white/10 border-white/20 text-white placeholder-gray-400 min-h-[100px]"
@@ -251,8 +303,8 @@ export default function ResearchLabsPage() {
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 >
-                  <FlaskConical className="w-5 h-5 mr-2" />
-                  Start Research Trial
+                  <GraduationCap className="w-5 h-5 mr-2" />
+                  Start Academic Trial
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </form>
