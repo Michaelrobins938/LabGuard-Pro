@@ -87,7 +87,7 @@ export function CAPSafetyIncidentVerifier() {
       const result = await response.json()
       setComplianceResult(result)
     } catch (error) {
-      console.error('Compliance verification failed:', error)
+      // Compliance verification failed
     } finally {
       setIsVerifying(false)
     }

@@ -152,8 +152,6 @@ export default function MobileQRGenerator({
 
       const qrDataURL = await QRCode.toDataURL(JSON.stringify(sampleData), {
         errorCorrectionLevel: 'H',
-        type: 'image/png',
-        quality: 0.92,
         margin: 2,
         color: {
           dark: '#000000',
@@ -164,7 +162,7 @@ export default function MobileQRGenerator({
 
       setQrPreview(qrDataURL);
     } catch (error) {
-      console.error('Failed to generate preview QR:', error);
+      // Failed to generate preview QR
     }
   };
 
@@ -235,7 +233,7 @@ export default function MobileQRGenerator({
       }
 
     } catch (error) {
-      console.error('Print job failed:', error);
+      // Print job failed
       alert(`Print failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsGenerating(false);
@@ -300,8 +298,7 @@ export default function MobileQRGenerator({
           files: [file]
         });
       } catch (error) {
-        console.error('Sharing failed:', error);
-        // Fallback to download
+        // Sharing failed, fallback to download
         await handlePDFDownload(downloadUrl);
       }
     }

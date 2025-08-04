@@ -66,7 +66,7 @@ export function BiochemicalMediaValidator() {
       const data = await response.json()
       setTestTypes(data.testTypes || [])
     } catch (error) {
-      console.error('Failed to load test types:', error)
+      // Failed to load test types
     }
   }
 
@@ -85,7 +85,7 @@ export function BiochemicalMediaValidator() {
       const result = await response.json()
       setValidationResult(result)
     } catch (error) {
-      console.error('Validation failed:', error)
+      // Validation failed
     } finally {
       setIsValidating(false)
     }
