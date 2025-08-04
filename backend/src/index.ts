@@ -18,6 +18,13 @@ import publicHealthRoutes from './routes/public-health.routes';
 import reportsRoutes from './routes/reports.routes';
 import surveillanceRoutes from './routes/surveillance.routes';
 import vectorControlRoutes from './routes/vector-control.routes';
+import westNileVirusRoutes from './routes/west-nile-virus.routes';
+import qrCodeRoutes from './routes/qr-code.routes';
+import wnvSamplesRoutes from './routes/wnv-samples.routes';
+import demoDataRoutes from './routes/demo-data.routes';
+import printerRoutes from './routes/printer.routes';
+import mobilePrintRoutes from './routes/mobile-print.routes';
+import analyticsRoutes from './routes/analytics.routes';
 
 // Import middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -72,6 +79,13 @@ app.use('/api/public-health', publicHealthRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/surveillance', surveillanceRoutes);
 app.use('/api/vector-control', vectorControlRoutes);
+app.use('/api/west-nile-virus', westNileVirusRoutes);
+app.use('/api/qr-codes', qrCodeRoutes);
+app.use('/api/wnv-samples', wnvSamplesRoutes);
+app.use('/api/demo-data', demoDataRoutes);
+app.use('/api/printers', printerRoutes);
+app.use('/api/mobile-print', mobilePrintRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

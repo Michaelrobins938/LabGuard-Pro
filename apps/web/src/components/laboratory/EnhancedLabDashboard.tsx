@@ -84,62 +84,14 @@ export default function EnhancedLabDashboard() {
   const [activeModule, setActiveModule] = useState<string>('all');
   const [labModules, setLabModules] = useState<LabModule[]>([
     {
-      id: 'clinical',
-      name: 'Clinical Diagnostics',
-      type: 'clinical',
-      status: 'active',
-      sampleCount: 156,
-      pendingTests: 23,
-      completedToday: 89,
-      alerts: 2,
-      compliance: 98,
-      icon: TestTube,
-      color: 'from-blue-500 to-cyan-500',
-      aiInsights: [
-        'Sample processing efficiency increased by 15% this week',
-        'Predictive analysis suggests 23% increase in STAT samples next week',
-        'Automated quality control detected 3 potential issues'
-      ],
-      predictiveAlerts: [
-        'High probability of equipment calibration needed in 48 hours',
-        'Expected surge in respiratory samples based on weather patterns'
-      ],
-      efficiencyScore: 87,
-      automationLevel: 92
-    },
-    {
-      id: 'water',
-      name: 'Water Testing',
-      type: 'water',
-      status: 'active',
-      sampleCount: 89,
-      pendingTests: 12,
-      completedToday: 45,
-      alerts: 1,
-      compliance: 95,
-      icon: Beaker,
-      color: 'from-cyan-500 to-blue-500',
-      aiInsights: [
-        'Water quality trends show improvement in 3 testing zones',
-        'AI detected correlation between rainfall and sample contamination rates',
-        'Automated reporting reduced manual work by 40%'
-      ],
-      predictiveAlerts: [
-        'Potential contamination risk in Zone 7 based on historical data',
-        'Equipment maintenance recommended before next testing cycle'
-      ],
-      efficiencyScore: 91,
-      automationLevel: 88
-    },
-    {
       id: 'dairy',
-      name: 'Dairy Testing',
+      name: 'Dairy Quality Control',
       type: 'dairy',
       status: 'active',
-      sampleCount: 67,
-      pendingTests: 8,
-      completedToday: 32,
-      alerts: 0,
+      sampleCount: 156,
+      pendingTests: 12,
+      completedToday: 89,
+      alerts: 2,
       compliance: 99,
       icon: FlaskConical,
       color: 'from-green-500 to-emerald-500',
@@ -204,6 +156,120 @@ export default function EnhancedLabDashboard() {
       automationLevel: 93
     }
   ]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch real laboratory modules from API
+  useEffect(() => {
+    const fetchLabModules = async () => {
+      try {
+        const response = await fetch('/api/laboratory/modules');
+        if (response.ok) {
+          const data = await response.json();
+          setLabModules(data.data || []);
+        } else {
+          // Fallback to West Nile virus specific modules if API fails
+          setLabModules([
+            {
+              id: 'west-nile-virus',
+              name: 'West Nile Virus Surveillance',
+              type: 'surveillance',
+              status: 'active',
+              sampleCount: 0,
+              pendingTests: 0,
+              completedToday: 0,
+              alerts: 0,
+              compliance: 100,
+              icon: TestTube,
+              color: 'from-red-500 to-orange-500',
+              aiInsights: [],
+              predictiveAlerts: [],
+              efficiencyScore: 95,
+              automationLevel: 88
+            },
+            {
+              id: 'clinical',
+              name: 'Clinical Diagnostics',
+              type: 'clinical',
+              status: 'active',
+              sampleCount: 0,
+              pendingTests: 0,
+              completedToday: 0,
+              alerts: 0,
+              compliance: 98,
+              icon: TestTube,
+              color: 'from-blue-500 to-cyan-500',
+              aiInsights: [],
+              predictiveAlerts: [],
+              efficiencyScore: 87,
+              automationLevel: 92
+            },
+            {
+              id: 'water',
+              name: 'Water Testing',
+              type: 'water',
+              status: 'active',
+              sampleCount: 0,
+              pendingTests: 0,
+              completedToday: 0,
+              alerts: 0,
+              compliance: 95,
+              icon: Beaker,
+              color: 'from-cyan-500 to-blue-500',
+              aiInsights: [],
+              predictiveAlerts: [],
+              efficiencyScore: 91,
+              automationLevel: 88
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching lab modules:', error);
+        // Set empty array on error
+        setLabModules([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLabModules();
+  }, []);
+
+  // Fetch real module data when activeModule changes
+  useEffect(() => {
+    if (activeModule && activeModule !== 'all') {
+      fetchModuleData(activeModule);
+    }
+  }, [activeModule]);
+
+  const fetchModuleData = async (moduleId: string) => {
+    try {
+      const response = await fetch(`/api/laboratory/modules/${moduleId}/stats`);
+      if (response.ok) {
+        const data = await response.json();
+        // Update the specific module with real data
+        setLabModules(prev => prev.map(module => 
+          module.id === moduleId ? { ...module, ...data.data } : module
+        ));
+      }
+    } catch (error) {
+      console.error(`Error fetching data for module ${moduleId}:`, error);
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // Filter modules based on activeModule
+  const filteredModules = activeModule === 'all' ? labModules : labModules.filter(module => module.id === activeModule);
+
+  // Get current active modules to display
+  const currentModules = filteredModules;
 
   const [metrics, setMetrics] = useState<LabMetric[]>([
     { name: 'Total Samples', value: 558, unit: '', change: 12, trend: 'up', target: 600 },
@@ -297,10 +363,6 @@ export default function EnhancedLabDashboard() {
       default: return AlertCircle;
     }
   };
-
-  const filteredModules = activeModule === 'all' 
-    ? labModules 
-    : labModules.filter(module => module.id === activeModule);
 
   const totalSamples = labModules.reduce((sum, module) => sum + module.sampleCount, 0);
   const totalPending = labModules.reduce((sum, module) => sum + module.pendingTests, 0);

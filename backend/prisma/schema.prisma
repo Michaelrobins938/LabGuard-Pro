@@ -96,6 +96,10 @@ model Laboratory {
   complianceRules      ComplianceRule[]
   samples              Sample[]
   integrations         Integration[]
+  trapLocations        TrapLocation[]
+  mosquitoPools        MosquitoPool[]
+  pcrBatches           PCRBatch[]
+  surveillanceAlerts   SurveillanceAlert[]
 
   @@map("laboratories")
 }
@@ -139,6 +143,7 @@ model Equipment {
   vectorTests        VectorTest[]        @relation("VectorTestEquipment")
   biomniQueries      BiomniQuery[]
   experimentalData   ExperimentalData[]
+  pcrBatches         PCRBatch[]
 
   @@map("equipment")
 }
@@ -1368,4 +1373,341 @@ model Integration {
   updatedAt   DateTime @updatedAt
 
   @@map("integrations")
-} 
+}
+
+// ========================================
+// WEST NILE VIRUS SURVEILLANCE MODELS
+// ========================================
+
+model TrapLocation {
+  id              String   @id @default(cuid())
+  trapId          String   @unique
+  latitude        Float
+  longitude       Float
+  address         String
+  city            String
+  zipCode         String
+  county          String   @default("Tarrant")
+  state           String   @default("TX")
+  habitat         HabitatType
+  waterSource     WaterSourceType
+  isActive        Boolean  @default(true)
+  installDate     DateTime?
+  lastServiceDate DateTime?
+  notes           String?
+  
+  // Relations
+  laboratoryId    String
+  laboratory      Laboratory @relation(fields: [laboratoryId], references: [id])
+  mosquitoPools   MosquitoPool[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+  
+  @@index([trapId])
+  @@index([latitude, longitude])
+  @@index([city])
+  @@map("trap_locations")
+}
+
+model MosquitoPool {
+  id                    String   @id @default(cuid())
+  poolId                String   @unique
+  trapLocationId        String
+  trapLocation          TrapLocation @relation(fields: [trapLocationId], references: [id])
+  
+  // Collection details
+  collectionDate        DateTime
+  collectionWeek        Int      // Epidemiological week
+  collectionYear        Int
+  collectedBy           String?
+  
+  // Pool characteristics
+  mosquitoSpecies       MosquitoSpecies
+  poolSize              Int      // Number of mosquitoes in pool
+  poolCondition         PoolCondition
+  
+  // Testing information
+  testResult            TestResult @default(PENDING)
+  pcrBatchId            String?
+  pcrBatch              PCRBatch? @relation(fields: [pcrBatchId], references: [id])
+  ctValue               Float?   // Cycle threshold value
+  internalControlCt     Float?   // Internal control Ct value
+  
+  // Quality control
+  qcStatus              QCStatus @default(PENDING)
+  qcNotes               String?
+  retestRequired        Boolean  @default(false)
+  
+  // Chain of custody
+  qrCode                String?  // QR code data
+  chainOfCustodyId      String?
+  
+  // GPS coordinates (if different from trap)
+  collectionLatitude    Float?
+  collectionLongitude   Float?
+  
+  // Environmental conditions
+  temperature           Float?
+  humidity              Float?
+  weatherConditions     String?
+  
+  // Metadata
+  notes                 String?
+  photos                Json?    // Array of photo URLs
+  
+  // Relations
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+  
+  @@index([poolId])
+  @@index([collectionDate])
+  @@index([testResult])
+  @@index([mosquitoSpecies])
+  @@index([collectionWeek, collectionYear])
+  @@map("mosquito_pools")
+}
+
+model PCRBatch {
+  id                    String   @id @default(cuid())
+  batchId               String   @unique
+  batchDate             DateTime
+  plateLayout           PlateLayout @default(PLATE_96)
+  
+  // Batch details
+  technician            String
+  protocol              String?
+  kitLotNumber          String?
+  
+  // Controls
+  positiveControls      Json     // Array of positive control wells
+  negativeControls      Json     // Array of negative control wells
+  internalControls      Json     // Array of internal control wells
+  
+  // Results
+  status                BatchStatus @default(PENDING)
+  completedAt           DateTime?
+  validatedAt           DateTime?
+  validatedBy           String?
+  
+  // Quality metrics
+  positiveControlCt     Float?
+  negativeControlCt     Float?
+  internalControlRange  Json?    // Min/max Ct values for internal controls
+  overallQcStatus       QCStatus @default(PENDING)
+  
+  // Equipment
+  equipmentId           String?
+  equipment             Equipment? @relation(fields: [equipmentId], references: [id])
+  thermalCycler         String?
+  
+  // Metadata
+  notes                 String?
+  
+  // Relations
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  mosquitoPools         MosquitoPool[]
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+  
+  @@index([batchId])
+  @@index([batchDate])
+  @@index([status])
+  @@map("pcr_batches")
+}
+
+model SurveillanceAlert {
+  id                    String   @id @default(cuid())
+  alertType             AlertType
+  severity              AlertSeverity
+  title                 String
+  description           String
+  
+  // Geographic scope
+  affectedAreas         Json     // Array of affected zip codes or areas
+  coordinates           Json?    // Polygon or point coordinates
+  
+  // Temporal scope
+  startDate             DateTime
+  endDate               DateTime?
+  isActive              Boolean  @default(true)
+  
+  // Response actions
+  recommendedActions    Json     // Array of recommended actions
+  publicHealthResponse  ResponseLevel
+  notificationsSent     Boolean  @default(false)
+  
+  // Associated data
+  triggerData           Json?    // Data that triggered the alert
+  positivityRate        Float?
+  affectedPoolCount     Int?
+  
+  // Relations
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id])
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+  
+  @@index([alertType])
+  @@index([severity])
+  @@index([startDate])
+  @@index([isActive])
+  @@map("surveillance_alerts")
+}
+
+model WeatherData {
+  id                    String   @id @default(cuid())
+  date                  DateTime @unique
+  
+  // Temperature data (Celsius)
+  temperatureMax        Float
+  temperatureMin        Float
+  temperatureAvg        Float
+  
+  // Precipitation (mm)
+  precipitation         Float    @default(0)
+  
+  // Humidity (%)
+  humidityAvg           Float
+  humidityMax           Float?
+  humidityMin           Float?
+  
+  // Other conditions
+  windSpeed             Float?   // km/h
+  windDirection         String?
+  barometricPressure    Float?   // hPa
+  
+  // Location
+  latitude              Float
+  longitude             Float
+  weatherStation        String?
+  
+  // Calculated indices
+  degreeDay             Float?   // Growing degree days
+  daysAboveThreshold    Int?     // Days above development threshold
+  
+  // Data source
+  dataSource            String   @default("NOAA")
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@index([date])
+  @@index([latitude, longitude])
+  @@map("weather_data")
+}
+
+
+
+// ========================================
+// WEST NILE VIRUS SURVEILLANCE ENUMS
+// ========================================
+
+enum HabitatType {
+  URBAN
+  SUBURBAN
+  RURAL
+  INDUSTRIAL
+  WETLAND
+  PARK
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+enum WaterSourceType {
+  CREEK
+  POND
+  LAKE
+  STORM_DRAIN
+  IRRIGATION
+  RETENTION_POND
+  FOUNTAIN
+  SWIMMING_POOL
+  NONE
+  OTHER
+}
+
+enum MosquitoSpecies {
+  CULEX_QUINQUEFASCIATUS
+  CULEX_PIPIENS
+  CULEX_RESTUANS
+  CULEX_SALINARIUS
+  CULEX_TARSALIS
+  AEDES_ALBOPICTUS
+  AEDES_AEGYPTI
+  AEDES_VEXANS
+  ANOPHELES_QUADRIMACULATUS
+  OCHLEROTATUS_SOLLICITANS
+  UNKNOWN
+  MIXED
+}
+
+enum PoolCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  DEGRADED
+}
+
+enum TestResult {
+  PENDING
+  POSITIVE
+  NEGATIVE
+  INCONCLUSIVE
+  INVALID
+  RETEST_REQUIRED
+}
+
+enum PlateLayout {
+  PLATE_96
+  PLATE_384
+  CUSTOM
+}
+
+enum BatchStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+  AWAITING_QC
+  QC_APPROVED
+  QC_REJECTED
+}
+
+enum AlertType {
+  POSITIVE_POOL
+  ELEVATED_ACTIVITY
+  OUTBREAK_THRESHOLD
+  QUALITY_CONTROL
+  EQUIPMENT_FAILURE
+  WEATHER_ALERT
+  SYSTEM_MAINTENANCE
+}
+
+enum AlertSeverity {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+  EMERGENCY
+}
+
+enum ResponseLevel {
+  ROUTINE_MONITORING
+  ENHANCED_SURVEILLANCE
+  ADVISORY_ISSUED
+  PUBLIC_ALERT
+  EMERGENCY_RESPONSE
+}
