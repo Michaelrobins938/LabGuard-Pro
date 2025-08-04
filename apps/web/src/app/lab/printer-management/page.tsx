@@ -561,7 +561,7 @@ export default function PrinterManagement() {
                     <div>
                       <p className="font-medium">{job.qrCodes.length} labels</p>
                       <p className="text-sm text-gray-600">
-                        {job.printerConfig.name} • {job.createdAt.toLocaleString()}
+                        {job.printMethod} • {job.createdAt.toLocaleString()}
                       </p>
                       {job.errorMessage && (
                         <p className="text-xs text-red-600">{job.errorMessage}</p>

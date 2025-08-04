@@ -94,10 +94,8 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
         disableFlip: false,
         videoConstraints: {
           facingMode: facingMode,
-          advanced: [
-            { focusMode: 'continuous' },
-            { torch: torchEnabled }
-          ]
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         },
         supportedScanTypes: scannerType === 'BOTH' 
           ? [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
@@ -282,7 +280,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
             <div className="absolute top-2 right-2 flex gap-2">
               <Button
                 size="sm"
-                variant="secondary"
+                variant="outline"
                 onClick={toggleTorch}
                 className="p-2 h-8 w-8"
               >
@@ -295,7 +293,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
               
               <Button
                 size="sm"
-                variant="secondary"
+                variant="outline"
                 onClick={toggleCamera}
                 className="p-2 h-8 w-8"
               >
