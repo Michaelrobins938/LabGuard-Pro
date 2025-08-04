@@ -1,5 +1,4 @@
 import QRCode from 'qrcode';
-import { createCanvas, loadImage } from 'canvas';
 import PDFDocument from 'pdfkit';
 import path from 'path';
 import fs from 'fs/promises';
@@ -204,7 +203,19 @@ class QRCodeService {
     qrPayload: string,
     options: Required<QRCodeOptions>
   ): Promise<{ base64: string; filePath: string }> {
-    // Generate base QR code
+    // Generate base QR code as PNG buffer
+    const qrCodeBuffer = await QRCode.toBuffer(qrPayload, {
+      width: options.size,
+      margin: options.margin,
+      errorCorrectionLevel: options.errorCorrectionLevel,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+
+    // For Vercel compatibility, we'll use a simpler approach
+    // Generate QR code as data URL
     const qrCodeDataURL = await QRCode.toDataURL(qrPayload, {
       width: options.size,
       margin: options.margin,
@@ -215,62 +226,16 @@ class QRCodeService {
       }
     });
 
-    // Create canvas for customization
-    const canvas = createCanvas(options.size + 100, options.size + (options.includeText ? 60 : 20));
-    const ctx = canvas.getContext('2d');
-
-    // White background
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Load and draw QR code
-    const qrImage = await loadImage(qrCodeDataURL);
-    const qrX = (canvas.width - options.size) / 2;
-    const qrY = 10;
-    ctx.drawImage(qrImage, qrX, qrY, options.size, options.size);
-
-    // Add logo if specified
-    if (options.logoPath) {
-      try {
-        const logo = await loadImage(options.logoPath);
-        const logoSize = options.size * 0.2; // 20% of QR code size
-        const logoX = qrX + (options.size - logoSize) / 2;
-        const logoY = qrY + (options.size - logoSize) / 2;
-        
-        // White background for logo
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(logoX - 5, logoY - 5, logoSize + 10, logoSize + 10);
-        
-        ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
-      } catch (error) {
-        console.warn('Failed to load logo:', error);
-      }
-    }
-
-    // Add text labels if requested
-    if (options.includeText) {
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      
-      const textY = qrY + options.size + 25;
-      ctx.fillText(`Pool ID: ${sampleData.poolId}`, canvas.width / 2, textY);
-      
-      ctx.font = '10px Arial';
-      ctx.fillText(`Trap: ${sampleData.trapId}`, canvas.width / 2, textY + 15);
-      ctx.fillText(new Date(sampleData.collectionDate).toLocaleDateString(), canvas.width / 2, textY + 30);
-    }
-
-    // Convert to base64
-    const base64 = canvas.toDataURL('image/png').split(',')[1];
-
     // Save to file
     const fileName = `${sampleData.poolId}_${Date.now()}.png`;
     const filePath = path.join(this.outputDir, fileName);
-    await fs.writeFile(filePath, base64, 'base64');
+    
+    // Convert data URL to buffer and save
+    const base64Data = qrCodeDataURL.split(',')[1];
+    await fs.writeFile(filePath, base64Data, 'base64');
 
     return {
-      base64: `data:image/png;base64,${base64}`,
+      base64: qrCodeDataURL,
       filePath: `/qr-codes/${fileName}`
     };
   }
