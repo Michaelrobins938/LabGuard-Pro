@@ -38,8 +38,7 @@ export async function GET(request: NextRequest) {
       // PCR machines, centrifuges, extraction systems, etc.
       prisma.equipment.count({
         where: { 
-          laboratoryId,
-          deletedAt: null
+          laboratoryId
         }
       }),
       
@@ -47,8 +46,7 @@ export async function GET(request: NextRequest) {
       prisma.equipment.count({
         where: { 
           laboratoryId,
-          status: 'ACTIVE',
-          deletedAt: null
+          status: 'ACTIVE'
         }
       }),
       
@@ -56,7 +54,6 @@ export async function GET(request: NextRequest) {
       prisma.equipment.count({
         where: {
           laboratoryId,
-          deletedAt: null,
           OR: [
             { nextCalibrationAt: { lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) } },
             { nextCalibrationAt: null }
@@ -85,8 +82,7 @@ export async function GET(request: NextRequest) {
       prisma.user.count({
         where: {
           laboratoryId,
-          isActive: true,
-          deletedAt: null
+          isActive: true
         }
       }),
       
