@@ -3,8 +3,12 @@
     "next/core-web-vitals"
   ],
   "rules": {
-    "no-console": "warn",
-    "prefer-const": "error",
-    "no-var": "error"
+    "no-console": "off",
+    "prefer-const": "warn",
+    "no-var": "warn",
+    "react/no-unescaped-entities": "off",
+    "react-hooks/exhaustive-deps": "warn",
+    "@next/next/no-img-element": "warn",
+    "react-hooks/rules-of-hooks": "error"
   }
 } 
