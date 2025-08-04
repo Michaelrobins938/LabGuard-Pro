@@ -1,4 +1,4 @@
-// prisma/schema.prisma - Simple Auth Schema
+// prisma/schema.prisma - LabGuard Pro Public Health Schema
 generator client {
   provider = "prisma-client-js"
 }
@@ -23,6 +23,11 @@ model User {
   
   laboratory              Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
   
+  // Public Health specific relations
+  surveillanceTests       SurveillanceTest[]
+  equipmentMonitoring     EquipmentMonitoring[]
+  automatedReports        AutomatedReport[]
+  
   @@map("users")
 }
 
@@ -37,7 +42,121 @@ model Laboratory {
   
   users                   User[]
   
+  // Public Health specific relations
+  mosquitoPools           MosquitoPool[]
+  countyConfigurations    CountyConfiguration[]
+  systemIntegrations      SystemIntegration[]
+  
   @@map("laboratories")
+}
+
+// Public Health Surveillance Models
+model MosquitoPool {
+  id                String    @id @default(cuid())
+  poolId            String    @unique
+  collectionDate    DateTime
+  countyId          String
+  trapId            String?
+  species           String?
+  mosquitoCount     Int?
+  locationLat       Decimal?  @db.Decimal(10, 7)
+  locationLng       Decimal?  @db.Decimal(10, 7)
+  collectionMethod  String?
+  laboratoryId      String
+  createdAt         DateTime  @default(now())
+  
+  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  surveillanceTests SurveillanceTest[]
+  
+  @@map("mosquito_pools")
+}
+
+model SurveillanceTest {
+  id                String    @id @default(cuid())
+  sampleId          String?   // Reference to existing samples table
+  testType          String    // 'west_nile', 'zika', 'chikungunya'
+  pcrResult         String?   // 'positive', 'negative', 'indeterminate'
+  ctValue           Decimal?  @db.Decimal(5, 2)
+  amplificationCurve String?  // JSON data
+  interpretation    String?
+  confirmedBy       String?
+  reportedAt        DateTime?
+  mosquitoPoolId    String?
+  createdAt         DateTime  @default(now())
+  
+  mosquitoPool      MosquitoPool? @relation(fields: [mosquitoPoolId], references: [id])
+  confirmedByUser   User? @relation(fields: [confirmedBy], references: [id])
+  
+  @@map("surveillance_tests")
+}
+
+model CountyConfiguration {
+  id                    String    @id @default(cuid())
+  countyName            String
+  countyCode            String    @unique
+  nedssCode             String?
+  contactEmail          String?
+  reportTemplate        String?
+  specificRequirements  Json?
+  laboratoryId          String
+  createdAt             DateTime  @default(now())
+  
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  automatedReports      AutomatedReport[]
+  
+  @@map("county_configurations")
+}
+
+model AutomatedReport {
+  id                String    @id @default(cuid())
+  reportType        String
+  countyId          String?
+  generatedAt       DateTime  @default(now())
+  dataPeriodStart   DateTime?
+  dataPeriodEnd     DateTime?
+  reportContent     Json?
+  distributionList  String[]  // Array of email addresses
+  status            String    @default("pending") // 'pending', 'generated', 'sent', 'failed'
+  errorMessage      String?
+  generatedBy       String?
+  
+  county            CountyConfiguration? @relation(fields: [countyId], references: [id])
+  generatedByUser   User? @relation(fields: [generatedBy], references: [id])
+  
+  @@map("automated_reports")
+}
+
+model EquipmentMonitoring {
+  id                String    @id @default(cuid())
+  equipmentId       String?   // Reference to existing equipment table
+  parameterName     String    // 'temperature', 'humidity', 'pressure'
+  measuredValue     Decimal   @db.Decimal(10, 3)
+  acceptableRange   String?
+  status            String    // 'normal', 'warning', 'critical'
+  recordedAt        DateTime  @default(now())
+  sourceSystem      String    // 'sensoscientific', 'manual', 'vwr'
+  recordedBy        String?
+  
+  recordedByUser    User? @relation(fields: [recordedBy], references: [id])
+  
+  @@map("equipment_monitoring")
+}
+
+model SystemIntegration {
+  id                String    @id @default(cuid())
+  systemName        String
+  integrationType   String    // 'api', 'odbc', 'file_transfer', 'web_automation'
+  connectionString  String?
+  apiCredentials    Json?
+  lastSyncAt        DateTime?
+  syncStatus        String?
+  configuration     Json?
+  laboratoryId      String
+  createdAt         DateTime  @default(now())
+  
+  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  
+  @@map("system_integrations")
 }
 
 enum UserRole {

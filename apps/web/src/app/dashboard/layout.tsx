@@ -127,6 +127,18 @@ const navigation = [
     current: false
   },
   {
+    name: 'Public Health',
+    href: '/dashboard/public-health',
+    icon: Activity,
+    current: false,
+    children: [
+      { name: 'Surveillance Data', href: '/dashboard/public-health', icon: Activity },
+      { name: 'System Integrations', href: '/dashboard/public-health/integrations', icon: Globe },
+      { name: 'Automated Reports', href: '/dashboard/public-health/reports', icon: FileText },
+      { name: 'AI Analysis', href: '/dashboard/public-health/analytics', icon: Brain }
+    ]
+  },
+  {
     name: 'Notifications',
     href: '/dashboard/notifications',
     icon: Bell,

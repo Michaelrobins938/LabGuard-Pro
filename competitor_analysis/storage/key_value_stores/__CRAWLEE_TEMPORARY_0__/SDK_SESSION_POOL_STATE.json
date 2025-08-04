@@ -1,0 +1,126 @@
+{
+  "usableSessionsCount": 3,
+  "retiredSessionsCount": 0,
+  "sessions": [
+    {
+      "id": "session_pwHhL1DRi2",
+      "cookieJar": {
+        "version": "tough-cookie@5.1.2",
+        "storeType": "MemoryCookieStore",
+        "rejectPublicSuffixes": true,
+        "enableLooseMode": false,
+        "allowSpecialUseDomain": true,
+        "prefixSecurity": "silent",
+        "cookies": [
+          {
+            "key": "PHPSESSID",
+            "value": "6aa5224259b8e761cb57bb43d9d546c1",
+            "domain": "www.clinisys.com",
+            "path": "/",
+            "hostOnly": true,
+            "creation": "2025-08-03T23:14:03.875Z",
+            "lastAccessed": "2025-08-03T23:14:03.875Z"
+          },
+          {
+            "key": "__cf_bm",
+            "value": "HXMbxbho0nN8nPM3BezQTJtldskudIosHeiszCAP1Ts-1754262844-1.0.1.1-xA0PjVnr1UVw7ZRxS21HVdSZrWy6awL.U6uFgh2yfKuaHH24m_CZnIKw_IKmu8H1CkVrNn2HsL51NYdNgnljuNZwTXhyt8_zPHv14n9svC0",
+            "expires": "2025-08-03T23:44:04.000Z",
+            "domain": "clinisys.com",
+            "path": "/",
+            "secure": true,
+            "httpOnly": true,
+            "hostOnly": false,
+            "creation": "2025-08-03T23:14:03.875Z",
+            "lastAccessed": "2025-08-03T23:14:03.875Z",
+            "sameSite": "none"
+          }
+        ]
+      },
+      "userData": {},
+      "maxErrorScore": 3,
+      "errorScoreDecrement": 0.5,
+      "expiresAt": "2025-08-04T00:04:00.986Z",
+      "createdAt": "2025-08-03T23:14:00.986Z",
+      "usageCount": 1,
+      "maxUsageCount": 50,
+      "errorScore": 0
+    },
+    {
+      "id": "session_o43VbugSL0",
+      "cookieJar": {
+        "version": "tough-cookie@5.1.2",
+        "storeType": "MemoryCookieStore",
+        "rejectPublicSuffixes": true,
+        "enableLooseMode": false,
+        "allowSpecialUseDomain": true,
+        "prefixSecurity": "silent",
+        "cookies": [
+          {
+            "key": "__cf_bm",
+            "value": "OjEDjwzswspErQyIyKQ2891C2_EAIhIkz4nwxQh3PW0-1754262842-1.0.1.1-9J160ap1OAjQgg_h0am__WFMHc.bbvoIRoMegdAyX86x8iQDT0CmFfrCqrKhbRLvWV3ORLNDdV6WwVlhUdv8MTrObsTkmM8YP4uraP0OIuU",
+            "expires": "2025-08-03T23:44:02.000Z",
+            "domain": "clinisys.com",
+            "path": "/",
+            "secure": true,
+            "httpOnly": true,
+            "hostOnly": false,
+            "creation": "2025-08-03T23:14:01.314Z",
+            "lastAccessed": "2025-08-03T23:14:01.321Z",
+            "sameSite": "none"
+          }
+        ]
+      },
+      "userData": {},
+      "maxErrorScore": 3,
+      "errorScoreDecrement": 0.5,
+      "expiresAt": "2025-08-04T00:04:01.001Z",
+      "createdAt": "2025-08-03T23:14:01.001Z",
+      "usageCount": 1,
+      "maxUsageCount": 50,
+      "errorScore": 0
+    },
+    {
+      "id": "session_enzv1X39kc",
+      "cookieJar": {
+        "version": "tough-cookie@5.1.2",
+        "storeType": "MemoryCookieStore",
+        "rejectPublicSuffixes": true,
+        "enableLooseMode": false,
+        "allowSpecialUseDomain": true,
+        "prefixSecurity": "silent",
+        "cookies": [
+          {
+            "key": "PHPSESSID",
+            "value": "db920b2280dd920ab21012bd616750fd",
+            "domain": "www.clinisys.com",
+            "path": "/",
+            "hostOnly": true,
+            "creation": "2025-08-03T23:14:01.746Z",
+            "lastAccessed": "2025-08-03T23:14:01.746Z"
+          },
+          {
+            "key": "__cf_bm",
+            "value": "85Att1hbmgI7O8RKG8ufvE.5NJRL_pRhM1o4nR63d48-1754262843-1.0.1.1-f_zjzQEKuhUw2wYGjdScblym5Kv2hjIwRWCvykSusOqvsz8jgFy8HdAuznTon_ES71XA7LEQDDMGVoHQQtOlh9GjQY63EFhKD9ei1j.s7ao",
+            "expires": "2025-08-03T23:44:03.000Z",
+            "domain": "clinisys.com",
+            "path": "/",
+            "secure": true,
+            "httpOnly": true,
+            "hostOnly": false,
+            "creation": "2025-08-03T23:14:01.746Z",
+            "lastAccessed": "2025-08-03T23:14:01.746Z",
+            "sameSite": "none"
+          }
+        ]
+      },
+      "userData": {},
+      "maxErrorScore": 3,
+      "errorScoreDecrement": 0.5,
+      "expiresAt": "2025-08-04T00:04:01.014Z",
+      "createdAt": "2025-08-03T23:14:01.014Z",
+      "usageCount": 1,
+      "maxUsageCount": 50,
+      "errorScore": 0
+    }
+  ]
+}

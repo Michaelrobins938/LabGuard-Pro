@@ -305,9 +305,9 @@ export class BillingController {
       ])
 
       const stats = {
-        totalComplianceChecks: usageLogs.filter(log => log.action === 'compliance_check').length,
-        totalTokensUsed: usageLogs.reduce((sum, log) => sum + (log.quantity || 0), 0),
-        totalCost: usageLogs.reduce((sum, log) => sum + (log.cost || 0), 0),
+        totalComplianceChecks: usageLogs.filter((log: any) => log.action === 'compliance_check').length,
+        totalTokensUsed: usageLogs.reduce((sum: number, log: any) => sum + (log.quantity || 0), 0),
+        totalCost: usageLogs.reduce((sum: number, log: any) => sum + (log.cost || 0), 0),
         equipmentCount,
         period
       }

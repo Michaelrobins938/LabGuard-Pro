@@ -13,33 +13,33 @@ datasource db {
 
 // User and Authentication
 model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  hashedPassword    String   // Changed from password to hashedPassword
-  firstName         String
-  lastName          String
-  name              String?  // Computed field for display
-  role              UserRole @default(TECHNICIAN)
-  isActive          Boolean  @default(true)
-  emailVerified     Boolean  @default(false)
-  emailVerifiedAt   DateTime?
-  lastLoginAt       DateTime?
-  failedLoginAttempts Int    @default(0)
-  lockedUntil       DateTime?
-  passwordChangedAt DateTime @default(now())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  hashedPassword      String // Changed from password to hashedPassword
+  firstName           String
+  lastName            String
+  name                String? // Computed field for display
+  role                UserRole  @default(TECHNICIAN)
+  isActive            Boolean   @default(true)
+  emailVerified       Boolean   @default(false)
+  emailVerifiedAt     DateTime?
+  lastLoginAt         DateTime?
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  passwordChangedAt   DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
 
   // Relations
-  laboratoryId      String
-  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id])
-  calibrations      CalibrationRecord[]
-  notifications     Notification[]
-  auditLogs         AuditLog[]
-  passwordResetTokens PasswordResetToken[]
+  laboratoryId            String
+  laboratory              Laboratory               @relation(fields: [laboratoryId], references: [id])
+  calibrations            CalibrationRecord[]
+  notifications           Notification[]
+  auditLogs               AuditLog[]
+  passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
-  sessions          Session[]
+  sessions                Session[]
 
   // Indexes for performance
   @@index([email])
@@ -51,27 +51,32 @@ model User {
 }
 
 model Laboratory {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
-  phone       String?
-  address     String?
-  website     String?
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  address       String?
+  website       String?
   licenseNumber String?
-  isActive    Boolean  @default(true)
-  settings    Json?    // Laboratory settings as JSON
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive      Boolean  @default(true)
+  settings      Json? // Laboratory settings as JSON
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
-  users       User[]
-  equipment   Equipment[]
-  calibrations CalibrationRecord[]
-  subscriptions Subscription[]
-  usageTracking UsageTracking[]
-  usageEvents UsageEvent[]
-  notifications Notification[]
-  auditLogs   AuditLog[]
+  users                User[]
+  equipment            Equipment[]
+  calibrations         CalibrationRecord[]
+  subscriptions        Subscription[]
+  usageTracking        UsageTracking[]
+  usageEvents          UsageEvent[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  countyConfigurations CountyConfiguration[]
+  automatedReports     AutomatedReport[]
+  systemIntegrations   SystemIntegration[]
+  mosquitoPools        MosquitoPool[]
+  surveillanceTests    SurveillanceTest[]
 
   // Indexes for performance
   @@index([email])
@@ -82,13 +87,13 @@ model Laboratory {
 
 // Authentication Tokens
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id        String    @id @default(cuid())
+  token     String    @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([token])
   @@index([userId])
@@ -97,13 +102,13 @@ model PasswordResetToken {
 }
 
 model EmailVerificationToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id        String    @id @default(cuid())
+  token     String    @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([token])
   @@index([userId])
@@ -127,24 +132,25 @@ model Session {
 
 // Equipment Management
 model Equipment {
-  id              String           @id @default(cuid())
+  id              String          @id @default(cuid())
   name            String
   model           String?
-  serialNumber    String?          @unique
+  serialNumber    String?         @unique
   manufacturer    String?
   location        String?
-  status          EquipmentStatus  @default(ACTIVE)
+  status          EquipmentStatus @default(ACTIVE)
   lastCalibrated  DateTime?
   nextCalibration DateTime?
   notes           String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   // Relations
-  laboratoryId    String
-  laboratory      Laboratory       @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  calibrations    CalibrationRecord[]
-  maintenance     MaintenanceRecord[]
+  laboratoryId        String
+  laboratory          Laboratory            @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  calibrations        CalibrationRecord[]
+  maintenance         MaintenanceRecord[]
+  equipmentMonitoring EquipmentMonitoring[]
 
   // Indexes for performance
   @@index([laboratoryId])
@@ -157,23 +163,23 @@ model Equipment {
 
 // Calibration Records
 model CalibrationRecord {
-  id              String              @id @default(cuid())
-  equipmentId     String
-  equipment       Equipment           @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
-  userId          String
-  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  laboratoryId    String
-  laboratory      Laboratory          @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  
+  id           String     @id @default(cuid())
+  equipmentId  String
+  equipment    Equipment  @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+
   calibrationDate DateTime
   dueDate         DateTime
-  status          CalibrationStatus  @default(PENDING)
-  result          CalibrationResult  @default(PASS)
+  status          CalibrationStatus @default(PENDING)
+  result          CalibrationResult @default(PASS)
   notes           String?
-  aiValidation    Json?              // AI compliance check results
-  complianceScore Float?             // 0-100 compliance score
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  aiValidation    Json? // AI compliance check results
+  complianceScore Float? // 0-100 compliance score
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   // Indexes for performance
   @@index([equipmentId])
@@ -189,17 +195,17 @@ model CalibrationRecord {
 
 // Maintenance Records
 model MaintenanceRecord {
-  id              String              @id @default(cuid())
+  id              String            @id @default(cuid())
   equipmentId     String
-  equipment       Equipment           @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  equipment       Equipment         @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
   maintenanceDate DateTime
   type            MaintenanceType
   description     String
   performedBy     String?
   cost            Float?
-  status          MaintenanceStatus  @default(COMPLETED)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  status          MaintenanceStatus @default(COMPLETED)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   // Indexes for performance
   @@index([equipmentId])
@@ -212,18 +218,18 @@ model MaintenanceRecord {
 
 // Notifications
 model Notification {
-  id          String           @id @default(cuid())
-  userId      String?
-  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String           @id @default(cuid())
+  userId       String?
+  user         User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   laboratoryId String
-  laboratory  Laboratory       @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  type        NotificationType
-  title       String
-  message     String
-  isRead      Boolean          @default(false)
-  metadata    Json?            // Additional data for the notification
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  laboratory   Laboratory       @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  type         NotificationType
+  title        String
+  message      String
+  isRead       Boolean          @default(false)
+  metadata     Json? // Additional data for the notification
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   // Indexes for performance
   @@index([userId])
@@ -236,18 +242,18 @@ model Notification {
 
 // Audit Logs
 model AuditLog {
-  id          String      @id @default(cuid())
-  userId      String?
-  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id           String     @id @default(cuid())
+  userId       String?
+  user         User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
   laboratoryId String
-  laboratory  Laboratory  @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  action      String      // CREATE, UPDATE, DELETE, LOGIN, etc.
-  entity      String      // Equipment, Calibration, User, etc.
-  entityId    String?     // ID of the affected entity
-  details     Json?       // Additional details about the action
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime    @default(now())
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  action       String // CREATE, UPDATE, DELETE, LOGIN, etc.
+  entity       String // Equipment, Calibration, User, etc.
+  entityId     String? // ID of the affected entity
+  details      Json? // Additional details about the action
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime   @default(now())
 
   // Indexes for performance
   @@index([userId])
@@ -261,25 +267,25 @@ model AuditLog {
 
 // Subscription Management
 model Subscription {
-  id                String              @id @default(cuid())
-  laboratoryId      String              @unique
-  laboratory        Laboratory          @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  planId            String
-  plan              SubscriptionPlan    @relation(fields: [planId], references: [id])
-  stripeId          String?            @unique
-  stripeCustomerId  String?
-  status            SubscriptionStatus  @default(ACTIVE)
+  id                 String             @id @default(cuid())
+  laboratoryId       String             @unique
+  laboratory         Laboratory         @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  planId             String
+  plan               SubscriptionPlan   @relation(fields: [planId], references: [id])
+  stripeId           String?            @unique
+  stripeCustomerId   String?
+  status             SubscriptionStatus @default(ACTIVE)
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
   trialStart         DateTime?
   trialEnd           DateTime?
-  cancelAtPeriodEnd  Boolean           @default(false)
+  cancelAtPeriodEnd  Boolean            @default(false)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
   // Relations
-  usageTracking     UsageTracking[]
-  invoices          Invoice[]
+  usageTracking UsageTracking[]
+  invoices      Invoice[]
 
   // Indexes for performance
   @@index([planId])
@@ -290,24 +296,24 @@ model Subscription {
 }
 
 model SubscriptionPlan {
-  id                String   @id @default(cuid())
-  name              String   @unique
-  description       String?
-  price             Float
-  currency          String   @default("USD")
-  interval          String   @default("month") // month, year
-  stripeId          String?  @unique
-  equipmentLimit    Int      @default(10)
-  aiChecksLimit     Int      @default(100)
-  teamMembersLimit  Int      @default(5)
-  storageLimit      Int      @default(10) // GB
-  features          Json     // Array of feature names
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String   @id @default(cuid())
+  name             String   @unique
+  description      String?
+  price            Float
+  currency         String   @default("USD")
+  interval         String   @default("month") // month, year
+  stripeId         String?  @unique
+  equipmentLimit   Int      @default(10)
+  aiChecksLimit    Int      @default(100)
+  teamMembersLimit Int      @default(5)
+  storageLimit     Int      @default(10) // GB
+  features         Json // Array of feature names
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Relations
-  subscriptions     Subscription[]
+  subscriptions Subscription[]
 
   // Indexes for performance
   @@index([isActive])
@@ -318,22 +324,22 @@ model SubscriptionPlan {
 
 // Usage Tracking
 model UsageTracking {
-  id                String   @id @default(cuid())
-  laboratoryId      String
-  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  subscriptionId    String
-  subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  equipmentCount    Int      @default(0)
-  aiChecksUsed      Int      @default(0)
-  teamMembersCount  Int      @default(0)
-  storageUsed       Float    @default(0) // GB
-  periodStart       DateTime
-  periodEnd         DateTime
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String       @id @default(cuid())
+  laboratoryId     String
+  laboratory       Laboratory   @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  subscriptionId   String
+  subscription     Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  equipmentCount   Int          @default(0)
+  aiChecksUsed     Int          @default(0)
+  teamMembersCount Int          @default(0)
+  storageUsed      Float        @default(0) // GB
+  periodStart      DateTime
+  periodEnd        DateTime
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   // Relations
-  usageEvents       UsageEvent[]
+  usageEvents UsageEvent[]
 
   // Indexes for performance
   @@index([laboratoryId])
@@ -345,16 +351,16 @@ model UsageTracking {
 
 // Usage Events
 model UsageEvent {
-  id                String   @id @default(cuid())
-  type              String   // Event type (equipment_added, ai_check_performed, etc.)
-  value             Float    // Numeric value associated with the event
-  metadata          Json     // Additional event metadata
-  timestamp         DateTime
-  laboratoryId      String
-  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
-  usageTrackingId   String?
-  usageTracking     UsageTracking? @relation(fields: [usageTrackingId], references: [id], onDelete: Cascade)
-  createdAt         DateTime @default(now())
+  id              String         @id @default(cuid())
+  type            String // Event type (equipment_added, ai_check_performed, etc.)
+  value           Float // Numeric value associated with the event
+  metadata        Json // Additional event metadata
+  timestamp       DateTime
+  laboratoryId    String
+  laboratory      Laboratory     @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  usageTrackingId String?
+  usageTracking   UsageTracking? @relation(fields: [usageTrackingId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
 
   // Indexes for performance
   @@index([laboratoryId])
@@ -366,18 +372,18 @@ model UsageEvent {
 
 // Invoice Management
 model Invoice {
-  id                String   @id @default(cuid())
-  stripeId          String   @unique
-  subscriptionId    String
-  subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  amount            Int      // Amount in cents
-  currency          String   @default("USD")
-  status            String   @default("pending") // pending, paid, failed, void
-  description       String?
-  paidAt            DateTime?
-  failedAt          DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id             String       @id @default(cuid())
+  stripeId       String       @unique
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amount         Int // Amount in cents
+  currency       String       @default("USD")
+  status         String       @default("pending") // pending, paid, failed, void
+  description    String?
+  paidAt         DateTime?
+  failedAt       DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   // Indexes for performance
   @@index([subscriptionId])
@@ -388,14 +394,14 @@ model Invoice {
 
 // Customer Management
 model Customer {
-  id                String   @id @default(cuid())
-  stripeId          String   @unique
-  email             String
-  name              String?
-  phone             String?
-  metadata          Json?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id        String   @id @default(cuid())
+  stripeId  String   @unique
+  email     String
+  name      String?
+  phone     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Indexes for performance
   @@index([stripeId])
@@ -405,21 +411,21 @@ model Customer {
 
 // AI Compliance Templates
 model ComplianceTemplate {
-  id                String   @id @default(cuid())
-  title             String
-  category          TemplateCategory
-  useCase           String
-  promptTemplate    String   @db.Text
-  variables         Json     // Array of template variables
-  safetyChecks      String[] // Array of safety check names
-  validationCriteria Json    // Validation criteria object
+  id                  String           @id @default(cuid())
+  title               String
+  category            TemplateCategory
+  useCase             String
+  promptTemplate      String           @db.Text
+  variables           Json // Array of template variables
+  safetyChecks        String[] // Array of safety check names
+  validationCriteria  Json // Validation criteria object
   regulatoryStandards String[] // Array of regulatory standards
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  isActive            Boolean          @default(true)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   // Relations
-  usageRecords      TemplateUsage[]
+  usageRecords TemplateUsage[]
 
   // Indexes for performance
   @@index([category])
@@ -429,16 +435,16 @@ model ComplianceTemplate {
 }
 
 model TemplateUsage {
-  id                String   @id @default(cuid())
-  templateId        String
-  template          ComplianceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  userId            String
-  laboratoryId      String
-  query             String
-  result            Json?
-  executionTime     Int?     // milliseconds
-  cost              Float?
-  createdAt         DateTime @default(now())
+  id            String             @id @default(cuid())
+  templateId    String
+  template      ComplianceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  userId        String
+  laboratoryId  String
+  query         String
+  result        Json?
+  executionTime Int? // milliseconds
+  cost          Float?
+  createdAt     DateTime           @default(now())
 
   // Indexes for performance
   @@index([templateId])
@@ -450,24 +456,24 @@ model TemplateUsage {
 
 // Enhanced Biomni Integration
 model BiomniQuery {
-  id                String   @id @default(cuid())
-  query             String
-  context           String?
-  userId            String
-  laboratoryId      String
-  result            Json?
-  toolsUsed         String[]
-  databasesQueried  String[]
-  confidence        Float?
-  executionTime     Int?     // milliseconds
-  cost              Float?
-  status            QueryStatus @default(EXECUTING)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String      @id @default(cuid())
+  query            String
+  context          String?
+  userId           String
+  laboratoryId     String
+  result           Json?
+  toolsUsed        String[]
+  databasesQueried String[]
+  confidence       Float?
+  executionTime    Int? // milliseconds
+  cost             Float?
+  status           QueryStatus @default(EXECUTING)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
   // Relations
-  multiModalInputs  MultiModalInput[]
-  agenticTasks      AgenticTask[]
+  multiModalInputs MultiModalInput[]
+  agenticTasks     AgenticTask[]
 
   // Indexes for performance
   @@index([userId])
@@ -479,24 +485,24 @@ model BiomniQuery {
 
 // Enhanced Multi-Modal Input Model
 model MultiModalInput {
-  id                String   @id @default(cuid())
-  type              MultiModalType
-  content           String   // Base64 encoded or file path
-  metadata          Json?    // Format, size, timestamp, source, coordinates
-  userId            String
-  laboratoryId      String
-  queryId           String?
-  taskId            String?
-  processed         Boolean  @default(false)
-  result            Json?
-  confidence        Float?
-  processingTime    Int?     // milliseconds
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id             String         @id @default(cuid())
+  type           MultiModalType
+  content        String // Base64 encoded or file path
+  metadata       Json? // Format, size, timestamp, source, coordinates
+  userId         String
+  laboratoryId   String
+  queryId        String?
+  taskId         String?
+  processed      Boolean        @default(false)
+  result         Json?
+  confidence     Float?
+  processingTime Int? // milliseconds
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   // Relations
-  query             BiomniQuery? @relation(fields: [queryId], references: [id])
-  task              AgenticTask? @relation(fields: [taskId], references: [id])
+  query BiomniQuery? @relation(fields: [queryId], references: [id])
+  task  AgenticTask? @relation(fields: [taskId], references: [id])
 
   // Indexes for performance
   @@index([userId])
@@ -509,31 +515,31 @@ model MultiModalInput {
 
 // Enhanced Agentic Task Model
 model AgenticTask {
-  id                String   @id @default(cuid())
-  type              AgenticTaskType
-  priority          TaskPriority @default(MEDIUM)
-  status            TaskStatus @default(PENDING)
-  description       String
-  expectedOutput    String
-  tools             String[]
-  deadline          DateTime?
-  dependencies      String[]  // Array of task IDs
-  context           Json?
-  userId            String
-  laboratoryId      String
-  queryId           String?
-  progress          Float     @default(0)
-  startTime         DateTime?
-  completionTime    DateTime?
-  result            Json?
-  confidence        Float?
-  executionTime     Int?      // milliseconds
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id             String          @id @default(cuid())
+  type           AgenticTaskType
+  priority       TaskPriority    @default(MEDIUM)
+  status         TaskStatus      @default(PENDING)
+  description    String
+  expectedOutput String
+  tools          String[]
+  deadline       DateTime?
+  dependencies   String[] // Array of task IDs
+  context        Json?
+  userId         String
+  laboratoryId   String
+  queryId        String?
+  progress       Float           @default(0)
+  startTime      DateTime?
+  completionTime DateTime?
+  result         Json?
+  confidence     Float?
+  executionTime  Int? // milliseconds
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   // Relations
-  query             BiomniQuery? @relation(fields: [queryId], references: [id])
-  multiModalInputs  MultiModalInput[]
+  query               BiomniQuery?          @relation(fields: [queryId], references: [id])
+  multiModalInputs    MultiModalInput[]
   conversationHistory ConversationHistory[]
 
   // Indexes for performance
@@ -548,28 +554,28 @@ model AgenticTask {
 
 // Enhanced Research Capabilities Model
 model ResearchCapabilities {
-  id                String   @id @default(cuid())
-  laboratoryId      String
-  bioinformaticsAnalysis Boolean @default(false)
-  protocolDesign    Boolean @default(false)
-  literatureReview  Boolean @default(false)
-  hypothesisGeneration Boolean @default(false)
-  dataAnalysis      Boolean @default(false)
-  multiModalAnalysis Boolean @default(false)
-  predictiveModeling Boolean @default(false)
-  experimentalDesign Boolean @default(false)
-  qualityControl    Boolean @default(false)
-  complianceMonitoring Boolean @default(false)
-  availableTools    Int      @default(0)
-  availableDatabases Int     @default(0)
-  availableSoftware Int      @default(0)
-  customLabTools    String[]
-  speedupFactor     Float    @default(1.0)
-  accuracyLevel     String   @default("standard")
-  contextWindow     Int      @default(4096)
-  realTimeProcessing Boolean @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  laboratoryId           String
+  bioinformaticsAnalysis Boolean  @default(false)
+  protocolDesign         Boolean  @default(false)
+  literatureReview       Boolean  @default(false)
+  hypothesisGeneration   Boolean  @default(false)
+  dataAnalysis           Boolean  @default(false)
+  multiModalAnalysis     Boolean  @default(false)
+  predictiveModeling     Boolean  @default(false)
+  experimentalDesign     Boolean  @default(false)
+  qualityControl         Boolean  @default(false)
+  complianceMonitoring   Boolean  @default(false)
+  availableTools         Int      @default(0)
+  availableDatabases     Int      @default(0)
+  availableSoftware      Int      @default(0)
+  customLabTools         String[]
+  speedupFactor          Float    @default(1.0)
+  accuracyLevel          String   @default("standard")
+  contextWindow          Int      @default(4096)
+  realTimeProcessing     Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   // Indexes for performance
   @@index([laboratoryId])
@@ -582,7 +588,7 @@ model LabContext {
   id                String   @id @default(cuid())
   laboratoryId      String
   userId            String
-  context           Json     // Current lab context, equipment status, etc.
+  context           Json // Current lab context, equipment status, etc.
   activeExperiments String[]
   equipmentStatus   Json?
   complianceStatus  Json?
@@ -599,17 +605,17 @@ model LabContext {
 
 // Enhanced Conversation History Model
 model ConversationHistory {
-  id                String   @id @default(cuid())
-  taskId            String
-  messageType       MessageType
-  content           String
-  metadata          Json?    // Avatar state, suggestions, research result, etc.
-  timestamp         DateTime @default(now())
-  userId            String
-  laboratoryId      String
+  id           String      @id @default(cuid())
+  taskId       String
+  messageType  MessageType
+  content      String
+  metadata     Json? // Avatar state, suggestions, research result, etc.
+  timestamp    DateTime    @default(now())
+  userId       String
+  laboratoryId String
 
   // Relations
-  task              AgenticTask @relation(fields: [taskId], references: [id])
+  task AgenticTask @relation(fields: [taskId], references: [id])
 
   // Indexes for performance
   @@index([taskId])
@@ -617,6 +623,133 @@ model ConversationHistory {
   @@index([laboratoryId])
   @@index([timestamp])
   @@map("conversation_history")
+}
+
+// Public Health Surveillance Models
+model MosquitoPool {
+  id                String             @id @default(cuid())
+  poolId            String             @unique
+  collectionDate    DateTime
+  county            String
+  species           String?
+  mosquitoCount     Int?
+  latitude          Float?
+  longitude         Float?
+  trapId            String?
+  collectionMethod  String?
+  laboratoryId      String
+  laboratory        Laboratory         @relation(fields: [laboratoryId], references: [id])
+  surveillanceTests SurveillanceTest[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([laboratoryId])
+  @@index([county])
+  @@index([collectionDate])
+  @@map("mosquito_pools")
+}
+
+model SurveillanceTest {
+  id                 String       @id @default(cuid())
+  mosquitoPoolId     String
+  mosquitoPool       MosquitoPool @relation(fields: [mosquitoPoolId], references: [id])
+  testType           String // 'west_nile', 'zika', 'chikungunya'
+  pcrResult          String? // 'positive', 'negative', 'indeterminate'
+  ctValue            Float?
+  amplificationCurve Json?
+  interpretation     String?
+  confirmedBy        String?
+  reportedAt         DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  Laboratory         Laboratory?  @relation(fields: [laboratoryId], references: [id])
+  laboratoryId       String?
+
+  @@index([mosquitoPoolId])
+  @@index([testType])
+  @@index([pcrResult])
+  @@map("surveillance_tests")
+}
+
+model CountyConfiguration {
+  id                   String            @id @default(cuid())
+  countyName           String
+  countyCode           String            @unique
+  nedssCode            String?
+  contactEmails        String[]
+  reportTemplate       String
+  specificRequirements Json?
+  laboratoryId         String
+  laboratory           Laboratory        @relation(fields: [laboratoryId], references: [id])
+  automatedReports     AutomatedReport[]
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  @@index([laboratoryId])
+  @@index([countyCode])
+  @@map("county_configurations")
+}
+
+model AutomatedReport {
+  id               String               @id @default(cuid())
+  reportType       String
+  countyId         String?
+  county           CountyConfiguration? @relation(fields: [countyId], references: [id])
+  generatedAt      DateTime             @default(now())
+  dataStart        DateTime
+  dataEnd          DateTime
+  reportContent    Json
+  distributionList String[]
+  status           String               @default("pending")
+  errorMessage     String?
+  fileUrl          String?
+  laboratoryId     String
+  laboratory       Laboratory           @relation(fields: [laboratoryId], references: [id])
+
+  @@index([laboratoryId])
+  @@index([countyId])
+  @@index([reportType])
+  @@index([status])
+  @@map("automated_reports")
+}
+
+model SystemIntegration {
+  id               String     @id @default(cuid())
+  systemName       String // 'labware', 'nedss', 'arbonet', 'sensoscientific'
+  integrationType  String // 'odbc', 'web_automation', 'api', 'file_transfer'
+  connectionConfig Json
+  apiCredentials   Json?
+  lastSyncAt       DateTime?
+  syncStatus       String?
+  laboratoryId     String
+  laboratory       Laboratory @relation(fields: [laboratoryId], references: [id])
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([laboratoryId])
+  @@index([systemName])
+  @@index([syncStatus])
+  @@map("system_integrations")
+}
+
+model EquipmentMonitoring {
+  id            String    @id @default(cuid())
+  equipmentId   String
+  equipment     Equipment @relation(fields: [equipmentId], references: [id])
+  parameterName String // 'temperature', 'humidity', 'pressure'
+  measuredValue Float
+  acceptableMin Float
+  acceptableMax Float
+  status        String // 'normal', 'warning', 'critical'
+  recordedAt    DateTime  @default(now())
+  sourceSystem  String // 'sensoscientific', 'manual', 'vwr'
+  alertSent     Boolean   @default(false)
+
+  @@index([equipmentId])
+  @@index([parameterName])
+  @@index([status])
+  @@index([recordedAt])
+  @@map("equipment_monitoring")
 }
 
 // Enums

@@ -1,0 +1,9 @@
+{
+	"id": "9dN4jENfWBKlXH1",
+	"json": "{\"id\":\"9dN4jENfWBKlXH1\",\"url\":\"https://www.clinisys.com\",\"loadedUrl\":\"https://www.clinisys.com/us/en/\",\"uniqueKey\":\"https://www.clinisys.com\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"depth\":0,\"__crawlee\":{\"state\":4}},\"handledAt\":\"2025-08-03T23:14:01.515Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.clinisys.com",
+	"url": "https://www.clinisys.com"
+}

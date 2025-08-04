@@ -22,6 +22,7 @@ import authRoutes from './routes/auth.routes'
 import equipmentRoutes from './routes/equipment.routes'
 import calibrationRoutes from './routes/calibration.routes'
 import complianceRoutes from './routes/compliance.routes'
+import surveillanceRoutes from './routes/surveillance.routes'
 import { logger } from './utils/logger'
 
 const app = express()
@@ -120,6 +121,17 @@ app.use('/api/compliance', (req, res, next) => {
   req.prisma = prismaInstance
   next()
 }, complianceRoutes)
+
+app.use('/api/surveillance', (req, res, next) => {
+  const prismaInstance = getPrisma()
+  if (!prismaInstance) {
+    return res.status(503).json({ 
+      error: 'Database connection not available' 
+    })
+  }
+  req.prisma = prismaInstance
+  next()
+}, surveillanceRoutes)
 
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

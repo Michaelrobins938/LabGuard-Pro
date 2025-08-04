@@ -43,4 +43,32 @@ export class AuditLogService {
       }
     })
   }
+
+  async logActivity(options: {
+    action: string
+    userId: string
+    laboratoryId: string
+    ipAddress?: string
+    userAgent?: string
+    metadata?: AuditMeta
+  }): Promise<void> {
+    const {
+      action,
+      userId,
+      laboratoryId,
+      ipAddress,
+      userAgent,
+      metadata = {}
+    } = options
+
+    await this.log({
+      laboratoryId,
+      userId,
+      action,
+      entity: 'SURVEILLANCE',
+      details: metadata,
+      ipAddress,
+      userAgent
+    })
+  }
 }

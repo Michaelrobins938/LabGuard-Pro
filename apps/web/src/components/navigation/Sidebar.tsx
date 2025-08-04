@@ -24,7 +24,9 @@ import {
   Zap,
   Bot,
   MessageSquare,
-  Activity
+  Activity,
+  Globe,
+  Brain
 } from 'lucide-react'
 
 interface SidebarItem {
@@ -105,6 +107,34 @@ const sidebarItems: SidebarItem[] = [
     href: '/dashboard/qc-monitoring',
     icon: <Activity className="h-4 w-4" />,
     badge: 'Live'
+  },
+  {
+    title: 'Public Health',
+    href: '/dashboard/public-health',
+    icon: <Microscope className="h-4 w-4" />,
+    badge: 'Live',
+    children: [
+      {
+        title: 'Surveillance Data',
+        href: '/dashboard/public-health',
+        icon: <Activity className="h-4 w-4" />
+      },
+      {
+        title: 'System Integrations',
+        href: '/dashboard/public-health/integrations',
+        icon: <Globe className="h-4 w-4" />
+      },
+      {
+        title: 'Automated Reports',
+        href: '/dashboard/public-health/reports',
+        icon: <FileText className="h-4 w-4" />
+      },
+      {
+        title: 'AI Analysis',
+        href: '/dashboard/public-health/analytics',
+        icon: <Brain className="h-4 w-4" />
+      }
+    ]
   },
   {
     title: 'Settings',

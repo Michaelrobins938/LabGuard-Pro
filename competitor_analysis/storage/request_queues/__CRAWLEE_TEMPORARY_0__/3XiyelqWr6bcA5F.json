@@ -1,0 +1,9 @@
+{
+	"id": "3XiyelqWr6bcA5F",
+	"json": "{\"id\":\"3XiyelqWr6bcA5F\",\"url\":\"https://www.clinisys.com/pages-sitemap.xml\",\"loadedUrl\":\"https://www.clinisys.com/pages-sitemap.xml\",\"uniqueKey\":\"https://www.clinisys.com/pages-sitemap.xml\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"depth\":0,\"__crawlee\":{\"state\":4}},\"handledAt\":\"2025-08-03T23:14:04.164Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.clinisys.com/pages-sitemap.xml",
+	"url": "https://www.clinisys.com/pages-sitemap.xml"
+}

@@ -62,6 +62,7 @@ model Laboratory {
   isActive    Boolean   @default(true)
   planType    PlanType  @default(STARTER)
   trialEndsAt DateTime?
+  settings    Json? // Laboratory settings for integrations
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
@@ -83,6 +84,8 @@ model Laboratory {
   protocolExecutions    ProtocolExecution[]
   researchProjects      ResearchProject[]
   experimentalData      ExperimentalData[]
+  surveillanceReports   SurveillanceReport[]
+  equipmentMonitoring   EquipmentMonitoring[]
 
   @@map("laboratories")
 }
@@ -1075,3 +1078,48 @@ enum BiomniCapabilityType {
 
 // CalibrationRecord model additions:
 // biomniQueries         BiomniQuery[] 
+
+// ========================================
+// SURVEILLANCE MODELS
+// ========================================
+
+model SurveillanceReport {
+  id           String   @id @default(cuid())
+  countyCode   String
+  weekEnding   DateTime
+  reportType   String
+  filePath     String?
+  generatedAt  DateTime @default(now())
+  generatedBy  String
+  summary      Json? // Report summary data
+
+  // Relations
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("surveillance_reports")
+}
+
+model EquipmentMonitoring {
+  id              String   @id @default(cuid())
+  equipmentType   String
+  integrationType String
+  credentials     Json? // Encrypted credentials
+  isActive        Boolean  @default(true)
+  lastCheck       DateTime?
+  status          String? // Monitoring status
+
+  // Relations
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("equipment_monitoring")
+} 

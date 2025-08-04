@@ -1,0 +1,9 @@
+export { default as EnhancedLabDashboard } from './EnhancedLabDashboard';
+export { default as LaboratoryModuleNav } from './LaboratoryModuleNav';
+export { default as ComplianceCenter } from './ComplianceCenter';
+export { default as SampleWorkflowManager } from './SampleWorkflowManager';
+export { default as IntegrationHub } from './IntegrationHub';
+export { default as RegulatoryReporting } from './RegulatoryReporting';
+export { default as SurveillanceReportGenerator } from './SurveillanceReportGenerator';
+export { default as MultiSystemIntegrationHub } from './MultiSystemIntegrationHub';
+export { default as SmartSampleTracking } from './SmartSampleTracking'; 
