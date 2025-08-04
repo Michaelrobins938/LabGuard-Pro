@@ -78,8 +78,6 @@ model Laboratory {
   mosquitoPools        MosquitoPool[]
   surveillanceTests    SurveillanceTest[]
   laboratoryModules    LaboratoryModule[]
-  workflows            Workflow[]
-  complianceRules      ComplianceRule[]
   samples              Sample[]
   integrations         Integration[]
   chainOfCustodyRecords ChainOfCustodyRecord[]
@@ -772,6 +770,7 @@ model LaboratoryModule {
   laboratory      Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
   workflows       Workflow[]
   complianceRules ComplianceRule[]
+  samples         Sample[]
   aiCapabilities  Json?    // AI integration settings for this module
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
