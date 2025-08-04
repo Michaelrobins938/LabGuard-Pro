@@ -121,7 +121,18 @@ const navigation = [
     name: 'Public Health',
     href: '/dashboard/public-health',
     icon: Globe,
-    current: false
+    current: false,
+    children: [
+      { name: 'Public Health Overview', href: '/dashboard/public-health', icon: Globe },
+      { name: 'Surveillance Data', href: '/dashboard/public-health', icon: Activity },
+      { name: 'Emergency Response', href: '/dashboard/public-health/emergency-response', icon: AlertTriangle },
+      { name: 'Bioterrorism Preparedness', href: '/dashboard/public-health/bioterrorism', icon: Shield },
+      { name: 'Sample Submission', href: '/dashboard/public-health/sample-submission', icon: FileText },
+      { name: 'Chain of Custody', href: '/dashboard/public-health/chain-of-custody', icon: Shield },
+      { name: 'System Integrations', href: '/dashboard/public-health/integrations', icon: Globe },
+      { name: 'Automated Reports', href: '/dashboard/public-health/reports', icon: FileText },
+      { name: 'AI Analysis', href: '/dashboard/public-health/analytics', icon: Brain }
+    ]
   },
   {
     name: 'Reports',
@@ -135,16 +146,6 @@ const navigation = [
     ]
   },
   {
-    name: 'Analytics',
-    href: '/dashboard/analytics',
-    icon: BarChart3,
-    current: false,
-    children: [
-      { name: 'Overview', href: '/dashboard/analytics', icon: BarChart3 },
-      { name: 'Enterprise Analytics', href: '/dashboard/analytics/enterprise', icon: Building }
-    ]
-  },
-  {
     name: 'Team',
     href: '/dashboard/team',
     icon: Users,
@@ -152,45 +153,6 @@ const navigation = [
     children: [
       { name: 'Team Overview', href: '/dashboard/team', icon: Users },
       { name: 'Invite Members', href: '/dashboard/team/invite', icon: UserCheck }
-    ]
-  },
-  {
-    name: 'QC Monitoring',
-    href: '/dashboard/qc-monitoring',
-    icon: Target,
-    current: false
-  },
-  {
-    name: 'Surveillance',
-    href: '/dashboard/surveillance',
-    icon: Activity,
-    current: false,
-    children: [
-      { name: 'Dashboard', href: '/dashboard/surveillance', icon: BarChart3 },
-      { name: 'LabWare Integration', href: '/dashboard/surveillance/labware', icon: Database },
-      { name: 'NEDSS Automation', href: '/dashboard/surveillance/nedss', icon: Globe },
-      { name: 'ArboNET Upload', href: '/dashboard/surveillance/arboret', icon: Globe },
-      { name: 'Report Generation', href: '/dashboard/surveillance/reports', icon: FileText },
-      { name: 'Friday Automation', href: '/dashboard/surveillance/reports/friday-automation', icon: Calendar },
-      { name: 'Equipment Monitoring', href: '/dashboard/surveillance/equipment', icon: Target },
-      { name: 'Analytics', href: '/dashboard/surveillance/analytics', icon: BarChart3 },
-      { name: 'Settings', href: '/dashboard/surveillance/settings', icon: Settings }
-    ]
-  },
-  {
-    name: 'Public Health',
-    href: '/dashboard/public-health',
-    icon: Microscope,
-    current: false,
-    children: [
-      { name: 'Surveillance Data', href: '/dashboard/public-health', icon: Activity },
-      { name: 'Emergency Response', href: '/dashboard/public-health/emergency-response', icon: AlertTriangle },
-      { name: 'Bioterrorism Preparedness', href: '/dashboard/public-health/bioterrorism', icon: Shield },
-      { name: 'Sample Submission', href: '/dashboard/public-health/sample-submission', icon: FileText },
-      { name: 'Chain of Custody', href: '/dashboard/public-health/chain-of-custody', icon: Shield },
-      { name: 'System Integrations', href: '/dashboard/public-health/integrations', icon: Globe },
-      { name: 'Automated Reports', href: '/dashboard/public-health/reports', icon: FileText },
-      { name: 'AI Analysis', href: '/dashboard/public-health/analytics', icon: Brain }
     ]
   },
   {
