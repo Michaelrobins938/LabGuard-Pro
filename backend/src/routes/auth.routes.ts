@@ -1,18 +1,8 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { PrismaClient } from '@prisma/client'
 
 const router = express.Router()
-
-// Extend Request to include prisma
-declare global {
-  namespace Express {
-    interface Request {
-      prisma: PrismaClient
-    }
-  }
-}
 
 // Register new user
 router.post('/register', async (req, res) => {

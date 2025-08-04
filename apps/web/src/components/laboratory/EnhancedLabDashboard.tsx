@@ -30,7 +30,13 @@ import {
   AlertCircle,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  TrendingDown,
+  AlertOctagon,
+  CheckCircle2,
+  XCircle,
+  Info
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -46,6 +52,10 @@ interface LabModule {
   compliance: number;
   icon: React.ComponentType<any>;
   color: string;
+  aiInsights?: string[];
+  predictiveAlerts?: string[];
+  efficiencyScore?: number;
+  automationLevel?: number;
 }
 
 interface LabMetric {
@@ -59,12 +69,15 @@ interface LabMetric {
 
 interface Alert {
   id: string;
-  type: 'critical' | 'warning' | 'info';
+  type: 'critical' | 'warning' | 'info' | 'ai' | 'predictive';
   title: string;
   description: string;
   module: string;
   timestamp: Date;
   priority: 'high' | 'medium' | 'low';
+  aiGenerated?: boolean;
+  confidence?: number;
+  recommendedAction?: string;
 }
 
 export default function EnhancedLabDashboard() {
@@ -81,7 +94,18 @@ export default function EnhancedLabDashboard() {
       alerts: 2,
       compliance: 98,
       icon: TestTube,
-      color: 'from-blue-500 to-cyan-500'
+      color: 'from-blue-500 to-cyan-500',
+      aiInsights: [
+        'Sample processing efficiency increased by 15% this week',
+        'Predictive analysis suggests 23% increase in STAT samples next week',
+        'Automated quality control detected 3 potential issues'
+      ],
+      predictiveAlerts: [
+        'High probability of equipment calibration needed in 48 hours',
+        'Expected surge in respiratory samples based on weather patterns'
+      ],
+      efficiencyScore: 87,
+      automationLevel: 92
     },
     {
       id: 'water',
@@ -94,7 +118,18 @@ export default function EnhancedLabDashboard() {
       alerts: 1,
       compliance: 95,
       icon: Beaker,
-      color: 'from-cyan-500 to-blue-500'
+      color: 'from-cyan-500 to-blue-500',
+      aiInsights: [
+        'Water quality trends show improvement in 3 testing zones',
+        'AI detected correlation between rainfall and sample contamination rates',
+        'Automated reporting reduced manual work by 40%'
+      ],
+      predictiveAlerts: [
+        'Potential contamination risk in Zone 7 based on historical data',
+        'Equipment maintenance recommended before next testing cycle'
+      ],
+      efficiencyScore: 91,
+      automationLevel: 88
     },
     {
       id: 'dairy',
@@ -107,7 +142,18 @@ export default function EnhancedLabDashboard() {
       alerts: 0,
       compliance: 99,
       icon: FlaskConical,
-      color: 'from-green-500 to-emerald-500'
+      color: 'from-green-500 to-emerald-500',
+      aiInsights: [
+        'Dairy quality compliance at 99.2% - highest in 6 months',
+        'AI optimization reduced testing time by 25%',
+        'Predictive maintenance prevented 2 equipment failures'
+      ],
+      predictiveAlerts: [
+        'Seasonal increase in dairy samples expected next month',
+        'New testing protocol compliance at 100%'
+      ],
+      efficiencyScore: 94,
+      automationLevel: 95
     },
     {
       id: 'bioterrorism',
@@ -120,7 +166,18 @@ export default function EnhancedLabDashboard() {
       alerts: 1,
       compliance: 100,
       icon: Shield,
-      color: 'from-red-500 to-orange-500'
+      color: 'from-red-500 to-orange-500',
+      aiInsights: [
+        'Response time improved by 60% with AI-assisted protocols',
+        'Real-time threat assessment accuracy at 98.5%',
+        'Automated reporting to CDC reduced manual errors by 90%'
+      ],
+      predictiveAlerts: [
+        'Enhanced surveillance recommended for high-risk areas',
+        'Equipment readiness at optimal levels'
+      ],
+      efficiencyScore: 96,
+      automationLevel: 98
     },
     {
       id: 'surveillance',
@@ -133,7 +190,18 @@ export default function EnhancedLabDashboard() {
       alerts: 3,
       compliance: 97,
       icon: Activity,
-      color: 'from-purple-500 to-pink-500'
+      color: 'from-purple-500 to-pink-500',
+      aiInsights: [
+        'AI detected 3 emerging disease patterns this week',
+        'Automated contact tracing reduced investigation time by 70%',
+        'Predictive modeling accuracy improved to 94%'
+      ],
+      predictiveAlerts: [
+        'Potential outbreak indicators detected in 2 counties',
+        'Surveillance system optimization recommended'
+      ],
+      efficiencyScore: 89,
+      automationLevel: 93
     }
   ]);
 
@@ -167,12 +235,39 @@ export default function EnhancedLabDashboard() {
     },
     {
       id: '3',
-      type: 'info',
+      type: 'ai',
       title: 'AI Pattern Detected',
       description: 'Unusual testing pattern detected in dairy samples - review recommended',
       module: 'dairy',
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      priority: 'low'
+      priority: 'low',
+      aiGenerated: true,
+      confidence: 87,
+      recommendedAction: 'Review sample collection protocols'
+    },
+    {
+      id: '4',
+      type: 'predictive',
+      title: 'Predictive Alert: Equipment Maintenance',
+      description: 'AI predicts equipment failure in 72 hours based on usage patterns',
+      module: 'clinical',
+      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+      priority: 'medium',
+      aiGenerated: true,
+      confidence: 94,
+      recommendedAction: 'Schedule preventive maintenance'
+    },
+    {
+      id: '5',
+      type: 'ai',
+      title: 'Efficiency Optimization Opportunity',
+      description: 'AI suggests 15% efficiency improvement in water testing workflow',
+      module: 'water',
+      timestamp: new Date(Date.now() - 30 * 60 * 1000),
+      priority: 'low',
+      aiGenerated: true,
+      confidence: 92,
+      recommendedAction: 'Implement suggested workflow changes'
     }
   ]);
 
@@ -197,6 +292,8 @@ export default function EnhancedLabDashboard() {
       case 'critical': return AlertTriangle;
       case 'warning': return AlertCircle;
       case 'info': return Eye;
+      case 'ai': return Sparkles;
+      case 'predictive': return Brain;
       default: return AlertCircle;
     }
   };
@@ -451,15 +548,21 @@ export default function EnhancedLabDashboard() {
                   key={alert.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="flex items-start gap-4 p-4 border rounded-lg"
+                  className={`flex items-start gap-4 p-4 border rounded-lg ${
+                    alert.aiGenerated ? 'bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200' : ''
+                  }`}
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     alert.type === 'critical' ? 'bg-red-100' : 
-                    alert.type === 'warning' ? 'bg-yellow-100' : 'bg-blue-100'
+                    alert.type === 'warning' ? 'bg-yellow-100' : 
+                    alert.type === 'ai' ? 'bg-purple-100' :
+                    alert.type === 'predictive' ? 'bg-indigo-100' : 'bg-blue-100'
                   }`}>
                     <AlertIcon className={`w-5 h-5 ${
                       alert.type === 'critical' ? 'text-red-600' : 
-                      alert.type === 'warning' ? 'text-yellow-600' : 'text-blue-600'
+                      alert.type === 'warning' ? 'text-yellow-600' : 
+                      alert.type === 'ai' ? 'text-purple-600' :
+                      alert.type === 'predictive' ? 'text-indigo-600' : 'text-blue-600'
                     }`} />
                   </div>
                   <div className="flex-1">
@@ -468,8 +571,24 @@ export default function EnhancedLabDashboard() {
                       <Badge className={getPriorityColor(alert.priority)}>
                         {alert.priority}
                       </Badge>
+                      {alert.aiGenerated && (
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                          AI Generated
+                        </Badge>
+                      )}
+                      {alert.confidence && (
+                        <Badge variant="outline" className="text-xs">
+                          {alert.confidence}% confidence
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{alert.description}</p>
+                    {alert.recommendedAction && (
+                      <div className="mb-2 p-2 bg-blue-50 rounded border-l-4 border-blue-400">
+                        <p className="text-xs font-medium text-blue-800">Recommended Action:</p>
+                        <p className="text-xs text-blue-700">{alert.recommendedAction}</p>
+                      </div>
+                    )}
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span>{alert.module}</span>
                       <span>{alert.timestamp.toLocaleTimeString()}</span>

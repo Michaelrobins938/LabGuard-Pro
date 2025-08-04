@@ -15,6 +15,11 @@ export const errorHandler = (
     ip: req.ip
   })
 
+  // Call next to pass control to the next error handler if needed
+  if (res.headersSent) {
+    return next(error);
+  }
+
   // Handle different types of errors
   if (error.name === 'ValidationError') {
     return res.status(400).json({

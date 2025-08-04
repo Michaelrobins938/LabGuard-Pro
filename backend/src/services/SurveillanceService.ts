@@ -2,11 +2,12 @@ import * as sql from 'mssql';
 import puppeteer, { Page } from 'puppeteer';
 import { PrismaClient } from '@prisma/client';
 import { AuditLogService } from './AuditLogService';
-import type { AuditMeta } from './AuditLogService';
 import { createObjectCsvWriter } from 'csv-writer';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as QRCode from 'qrcode';
+import * as nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
 const auditLogService = new AuditLogService(prisma);
@@ -82,13 +83,51 @@ export interface CountyReport {
   };
 }
 
+export interface CountyReportTemplate {
+  id: string;
+  countyCode: string;
+  templateName: string;
+  recipients: string[];
+  format: 'pdf' | 'excel' | 'csv';
+  includeMaps: boolean;
+  includeHistorical: boolean;
+  customFields: Record<string, any>;
+  isActive: boolean;
+}
+
+export interface SampleTrackingData {
+  sampleId: string;
+  qrCode: string;
+  barcode: string;
+  chainOfCustody: Array<{
+    timestamp: Date;
+    location: string;
+    handler: string;
+    action: string;
+    notes?: string;
+  }>;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'collected' | 'in_transit' | 'received' | 'processing' | 'completed' | 'archived';
+  location: string;
+  lastUpdated: Date;
+}
+
+export interface MultiSystemSyncData {
+  sourceSystem: 'lims' | 'nedss' | 'arboret';
+  targetSystems: Array<'lims' | 'nedss' | 'arboret'>;
+  data: any;
+  syncStatus: 'pending' | 'in_progress' | 'completed' | 'failed';
+  errorMessage?: string;
+  lastSyncAttempt: Date;
+}
+
 export class SurveillanceService {
   /**
    * Test connection to LabWare LIMS
    */
   static async testLabWareConnection(
     connection: LabWareConnection,
-    laboratoryId: string
+    _laboratoryId: string
   ): Promise<{ success: boolean; message: string; tables?: string[] }> {
     try {
       const config = {
@@ -458,7 +497,7 @@ export class SurveillanceService {
    */
   private static async uploadToArboNETSystem(
     csvData: string,
-    credentials: any
+    _credentials: any
   ): Promise<{ success: boolean; uploaded: number; errors: string[] }> {
     // This would integrate with ArboNET's actual API
     // For now, we'll simulate the upload
@@ -518,7 +557,7 @@ export class SurveillanceService {
             totalSamples: samples.length,
             positiveSamples: samples.filter(s => s.result === 'Positive').length,
             speciesBreakdown: this.getSpeciesBreakdown(samples),
-            locations: [...new Set(samples.map(s => s.location))]
+            locations: Array.from(new Set(samples.map(s => s.location)))
           }
         }
       });
@@ -573,7 +612,7 @@ export class SurveillanceService {
         positiveRate: samples.length > 0 ? (positiveSamples.length / samples.length * 100).toFixed(1) : '0'
       },
       speciesBreakdown,
-      locations: [...new Set(samples.map(s => s.location))],
+      locations: Array.from(new Set(samples.map(s => s.location))),
       positiveSamples: positiveSamples.map(s => ({
         sampleId: s.sampleId,
         species: s.species,
@@ -586,10 +625,10 @@ export class SurveillanceService {
   /**
    * Create PDF report
    */
-  private static async createPDFReport(content: any, data: ReportGenerationData): Promise<Buffer> {
+  private static async createPDFReport(content: any, _data: ReportGenerationData): Promise<Buffer> {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage();
-    const { width, height } = page.getSize();
+    const { height } = page.getSize();
     
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontSize = 12;
@@ -886,5 +925,541 @@ export class SurveillanceService {
       console.error('Error setting up equipment monitoring:', error);
       throw new Error(`Failed to setup equipment monitoring: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Generate automated county reports with email distribution
+   * Addresses the 4-5 hour Friday report generation pain point
+   */
+  static async generateAutomatedCountyReports(
+    laboratoryId: string,
+    userId: string,
+    weekEnding: Date,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<{ success: boolean; reportsGenerated: number; emailsSent: number; errors: string[] }> {
+    const errors: string[] = [];
+    let reportsGenerated = 0;
+    let emailsSent = 0;
+
+    try {
+      // Get laboratory settings for county configurations
+      const laboratory = await prisma.laboratory.findUnique({
+        where: { id: laboratoryId }
+      });
+
+      if (!laboratory?.settings) {
+        throw new Error('Laboratory settings not found');
+      }
+
+      const settings = laboratory.settings as any;
+      const countyConfigurations = settings.countyReportConfigurations || [];
+
+      // Extract data from LabWare for the week
+      const samples = await this.extractLabWareSamples(
+        laboratoryId,
+        new Date(weekEnding.getTime() - 7 * 24 * 60 * 60 * 1000),
+        weekEnding
+      );
+
+      // Generate reports for each county configuration
+      for (const countyConfig of countyConfigurations) {
+        try {
+          const report = await this.generateCountySpecificReport(
+            samples,
+            countyConfig,
+            laboratoryId,
+            userId
+          );
+
+          // Send email to county contacts
+          if (countyConfig.recipients && countyConfig.recipients.length > 0) {
+            await this.sendCountyReportEmail(report, countyConfig.recipients);
+            emailsSent++;
+          }
+
+          reportsGenerated++;
+
+          // Log the report generation
+          await auditLogService.logActivity({
+            action: 'AUTOMATED_COUNTY_REPORT_GENERATED',
+            userId,
+            laboratoryId,
+            ipAddress,
+            userAgent,
+            metadata: {
+              countyCode: countyConfig.countyCode,
+              weekEnding,
+              reportId: report.id,
+              recipients: countyConfig.recipients
+            }
+          });
+
+        } catch (error) {
+          errors.push(`County ${countyConfig.countyCode}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      return { success: reportsGenerated > 0, reportsGenerated, emailsSent, errors };
+
+    } catch (error) {
+      console.error('Error generating automated county reports:', error);
+      throw new Error(`Failed to generate automated county reports: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Generate county-specific report with custom formatting
+   */
+  private static async generateCountySpecificReport(
+    samples: LabWareSample[],
+    countyConfig: any,
+    laboratoryId: string,
+    userId: string
+  ): Promise<CountyReport> {
+    // Filter samples for this county
+    const countySamples = samples.filter(sample => 
+      sample.location.toLowerCase().includes(countyConfig.countyCode.toLowerCase())
+    );
+
+    // Generate county-specific content
+    const reportContent = await this.generateCountySpecificContent(countySamples, countyConfig);
+    
+    // Create PDF with county-specific formatting
+    const pdfBuffer = await this.createCountySpecificPDF(reportContent, countyConfig);
+    
+    // Save report file
+    const fileName = `${countyConfig.countyCode}_surveillance_report_${new Date().toISOString().split('T')[0]}.pdf`;
+    const filePath = path.join(process.cwd(), 'reports', countyConfig.countyCode, fileName);
+    
+    // Ensure directory exists
+    if (!fs.existsSync(path.dirname(filePath))) {
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    }
+    
+    fs.writeFileSync(filePath, pdfBuffer);
+
+    // Save to database
+    const report = await prisma.surveillanceReport.create({
+      data: {
+        countyCode: countyConfig.countyCode,
+        weekEnding: new Date(),
+        reportType: 'weekly',
+        filePath,
+        generatedAt: new Date(),
+        generatedBy: userId,
+        laboratoryId,
+        summary: {
+          totalSamples: countySamples.length,
+          positiveSamples: countySamples.filter(s => s.result === 'Positive').length,
+          speciesBreakdown: this.getSpeciesBreakdown(countySamples),
+          locations: Array.from(new Set(countySamples.map(s => s.location))),
+          countySpecificMetrics: countyConfig.customFields || {}
+        }
+      }
+    });
+
+    return {
+      id: report.id,
+      countyCode: report.countyCode,
+      weekEnding: report.weekEnding,
+      reportType: report.reportType,
+      filePath: report.filePath || '',
+      generatedAt: report.generatedAt,
+      generatedBy: report.generatedBy,
+      summary: report.summary as any
+    };
+  }
+
+  /**
+   * Send county report via email
+   */
+  private static async sendCountyReportEmail(
+    report: CountyReport,
+    recipients: string[]
+  ): Promise<void> {
+    try {
+      // Configure email transporter (would use actual SMTP settings)
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        }
+      });
+
+      const emailContent = `
+        <h2>${report.countyCode} County Vector Surveillance Report</h2>
+        <p>Week ending: ${report.weekEnding.toLocaleDateString()}</p>
+        <p>Total samples: ${report.summary.totalSamples}</p>
+        <p>Positive samples: ${report.summary.positiveSamples}</p>
+        <p>Please find the detailed report attached.</p>
+      `;
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'noreply@labguard-pro.com',
+        to: recipients.join(', '),
+        subject: `${report.countyCode} County Vector Surveillance Report - ${report.weekEnding.toLocaleDateString()}`,
+        html: emailContent,
+        attachments: [{
+          filename: path.basename(report.filePath),
+          path: report.filePath
+        }]
+      });
+
+    } catch (error) {
+      console.error('Error sending county report email:', error);
+      throw new Error(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Multi-system data integration hub
+   * Addresses the triple data entry problem
+   */
+  static async syncDataAcrossSystems(
+    data: any,
+    sourceSystem: 'lims' | 'nedss' | 'arboret',
+    targetSystems: Array<'lims' | 'nedss' | 'arboret'>,
+    laboratoryId: string,
+    userId: string,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<{ success: boolean; syncedSystems: string[]; errors: string[] }> {
+    const errors: string[] = [];
+    const syncedSystems: string[] = [];
+
+    try {
+      // Log the sync attempt
+      await auditLogService.logActivity({
+        action: 'MULTI_SYSTEM_SYNC_STARTED',
+        userId,
+        laboratoryId,
+        ipAddress,
+        userAgent,
+        metadata: {
+          sourceSystem,
+          targetSystems,
+          dataType: typeof data
+        }
+      });
+
+      // Sync to each target system
+      for (const targetSystem of targetSystems) {
+        try {
+          switch (targetSystem) {
+            case 'nedss':
+              if (sourceSystem !== 'nedss') {
+                await this.syncToNEDSS(data, laboratoryId);
+                syncedSystems.push('nedss');
+              }
+              break;
+            case 'arboret':
+              if (sourceSystem !== 'arboret') {
+                await this.syncToArboNET(data, laboratoryId);
+                syncedSystems.push('arboret');
+              }
+              break;
+            case 'lims':
+              if (sourceSystem !== 'lims') {
+                await this.syncToLabWare(data, laboratoryId);
+                syncedSystems.push('lims');
+              }
+              break;
+          }
+        } catch (error) {
+          errors.push(`${targetSystem}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      // Log successful sync
+      await auditLogService.logActivity({
+        action: 'MULTI_SYSTEM_SYNC_COMPLETED',
+        userId,
+        laboratoryId,
+        ipAddress,
+        userAgent,
+        metadata: {
+          sourceSystem,
+          targetSystems,
+          syncedSystems,
+          errors: errors.length
+        }
+      });
+
+      return { success: syncedSystems.length > 0, syncedSystems, errors };
+
+    } catch (error) {
+      console.error('Error syncing data across systems:', error);
+      throw new Error(`Failed to sync data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Smart sample tracking with QR codes
+   * Addresses lost samples and mix-ups
+   */
+  static async createSampleTrackingRecord(
+    sampleId: string,
+    laboratoryId: string,
+    userId: string,
+    priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium',
+    location: string,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<SampleTrackingData> {
+    try {
+      // Generate QR code for the sample
+      const qrCodeData = JSON.stringify({
+        sampleId,
+        laboratoryId,
+        timestamp: new Date().toISOString()
+      });
+      
+      const qrCode = await QRCode.toDataURL(qrCodeData);
+      
+      // Generate barcode
+      const barcode = `LAB-${sampleId}-${Date.now()}`;
+
+      // Create tracking record
+      const trackingData: SampleTrackingData = {
+        sampleId,
+        qrCode,
+        barcode,
+        chainOfCustody: [{
+          timestamp: new Date(),
+          location,
+          handler: userId,
+          action: 'created',
+          notes: 'Sample tracking record created'
+        }],
+        priority,
+        status: 'collected',
+        location,
+        lastUpdated: new Date()
+      };
+
+      // Log the tracking creation
+      await auditLogService.logActivity({
+        action: 'SAMPLE_TRACKING_CREATED',
+        userId,
+        laboratoryId,
+        ipAddress,
+        userAgent,
+        metadata: {
+          sampleId,
+          priority,
+          location,
+          qrCode: qrCode.substring(0, 50) + '...' // Log partial QR code
+        }
+      });
+
+      return trackingData;
+
+    } catch (error) {
+      console.error('Error creating sample tracking record:', error);
+      throw new Error(`Failed to create sample tracking: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Update sample tracking with chain of custody
+   */
+  static async updateSampleTracking(
+    sampleId: string,
+    action: string,
+    location: string,
+    handler: string,
+    notes?: string,
+    ipAddress?: string,
+    userAgent?: string
+  ): Promise<SampleTrackingData> {
+    try {
+      // In a real implementation, this would update a database record
+      // For now, we'll simulate the update
+      const trackingData: SampleTrackingData = {
+        sampleId,
+        qrCode: '', // Would be retrieved from database
+        barcode: '', // Would be retrieved from database
+        chainOfCustody: [{
+          timestamp: new Date(),
+          location,
+          handler,
+          action,
+          notes
+        }],
+        priority: 'medium', // Would be retrieved from database
+        status: 'in_transit', // Would be updated based on action
+        location,
+        lastUpdated: new Date()
+      };
+
+      // Log the tracking update
+      await auditLogService.logActivity({
+        action: 'SAMPLE_TRACKING_UPDATED',
+        userId: handler,
+        laboratoryId: '', // Would be retrieved from sample
+        ipAddress,
+        userAgent,
+        metadata: {
+          sampleId,
+          action,
+          location,
+          notes
+        }
+      });
+
+      return trackingData;
+
+    } catch (error) {
+      console.error('Error updating sample tracking:', error);
+      throw new Error(`Failed to update sample tracking: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Sync data to NEDSS
+   */
+  private static async syncToNEDSS(data: any, _laboratoryId: string): Promise<void> {
+    // Implementation would use the existing NEDSS automation
+    // This is a placeholder for the sync logic
+    console.log('Syncing data to NEDSS:', data);
+  }
+
+  /**
+   * Sync data to ArboNET
+   */
+  private static async syncToArboNET(data: any, _laboratoryId: string): Promise<void> {
+    // Implementation would use the existing ArboNET upload
+    // This is a placeholder for the sync logic
+    console.log('Syncing data to ArboNET:', data);
+  }
+
+  /**
+   * Sync data to LabWare
+   */
+  private static async syncToLabWare(data: any, _laboratoryId: string): Promise<void> {
+    // Implementation would update LabWare database
+    // This is a placeholder for the sync logic
+    console.log('Syncing data to LabWare:', data);
+  }
+
+  /**
+   * Generate county-specific content
+   */
+  private static async generateCountySpecificContent(
+    samples: LabWareSample[],
+    countyConfig: any
+  ): Promise<any> {
+    const positiveSamples = samples.filter(s => s.result === 'Positive');
+    const speciesBreakdown = this.getSpeciesBreakdown(samples);
+    
+    return {
+      title: `${countyConfig.countyCode} County Vector Surveillance Report`,
+      weekEnding: new Date(),
+      summary: {
+        totalSamples: samples.length,
+        positiveSamples: positiveSamples.length,
+        positiveRate: samples.length > 0 ? (positiveSamples.length / samples.length * 100).toFixed(1) : '0'
+      },
+      speciesBreakdown,
+      locations: Array.from(new Set(samples.map(s => s.location))),
+      positiveSamples: positiveSamples.map(s => ({
+        sampleId: s.sampleId,
+        species: s.species,
+        location: s.location,
+        collectionDate: s.collectionDate
+      })),
+      countySpecificData: countyConfig.customFields || {}
+    };
+  }
+
+  /**
+   * Create county-specific PDF
+   */
+  private static async createCountySpecificPDF(content: any, _countyConfig: any): Promise<Buffer> {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const { height } = page.getSize();
+    
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontSize = 12;
+    const lineHeight = fontSize * 1.2;
+    
+    let y = height - 50;
+    
+    // County-specific header
+    page.drawText(content.title, {
+      x: 50,
+      y,
+      size: 18,
+      font,
+      color: rgb(0, 0, 0)
+    });
+    y -= lineHeight * 2;
+    
+    // Summary with county-specific formatting
+    page.drawText('Summary', {
+      x: 50,
+      y,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0)
+    });
+    y -= lineHeight;
+    
+    page.drawText(`Total Samples: ${content.summary.totalSamples}`, {
+      x: 50,
+      y,
+      size: fontSize,
+      font,
+      color: rgb(0, 0, 0)
+    });
+    y -= lineHeight;
+    
+    page.drawText(`Positive Samples: ${content.summary.positiveSamples}`, {
+      x: 50,
+      y,
+      size: fontSize,
+      font,
+      color: rgb(0, 0, 0)
+    });
+    y -= lineHeight;
+    
+    page.drawText(`Positive Rate: ${content.summary.positiveRate}%`, {
+      x: 50,
+      y,
+      size: fontSize,
+      font,
+      color: rgb(0, 0, 0)
+    });
+    y -= lineHeight * 2;
+    
+    // County-specific data
+    if (content.countySpecificData) {
+      page.drawText('County-Specific Data', {
+        x: 50,
+        y,
+        size: 14,
+        font,
+        color: rgb(0, 0, 0)
+      });
+      y -= lineHeight;
+      
+      Object.entries(content.countySpecificData).forEach(([key, value]) => {
+        page.drawText(`${key}: ${value}`, {
+          x: 50,
+          y,
+          size: fontSize,
+          font,
+          color: rgb(0, 0, 0)
+        });
+        y -= lineHeight;
+      });
+    }
+    
+    return Buffer.from(await pdfDoc.save());
   }
 }

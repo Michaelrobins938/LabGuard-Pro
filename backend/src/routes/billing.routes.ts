@@ -12,6 +12,7 @@ router.get('/subscription', async (req, res) => {
   try {
     return await billingController.getSubscription(req, res)
   } catch (error) {
+    console.error('Subscription error:', error)
     return res.status(500).json({ error: 'Failed to get subscription' })
   }
 })
@@ -21,6 +22,7 @@ router.post('/subscriptions', async (req, res) => {
   try {
     return await billingController.createSubscription(req, res)
   } catch (error) {
+    console.error('Create subscription error:', error)
     return res.status(500).json({ error: 'Failed to create subscription' })
   }
 })
@@ -30,6 +32,7 @@ router.put('/subscriptions/:id', async (req, res) => {
   try {
     return await billingController.updateSubscription(req, res)
   } catch (error) {
+    console.error('Update subscription error:', error)
     return res.status(500).json({ error: 'Failed to update subscription' })
   }
 })
@@ -39,6 +42,7 @@ router.post('/subscriptions/:id/cancel', async (req, res) => {
   try {
     return await billingController.cancelSubscription(req, res)
   } catch (error) {
+    console.error('Cancel subscription error:', error)
     return res.status(500).json({ error: 'Failed to cancel subscription' })
   }
 })
@@ -48,6 +52,7 @@ router.get('/invoices', async (req, res) => {
   try {
     return await billingController.getInvoices(req, res)
   } catch (error) {
+    console.error('Get invoices error:', error)
     return res.status(500).json({ error: 'Failed to get invoices' })
   }
 })
@@ -57,6 +62,7 @@ router.get('/payment-methods', async (req, res) => {
   try {
     return await billingController.getPaymentMethods(req, res)
   } catch (error) {
+    console.error('Get payment methods error:', error)
     return res.status(500).json({ error: 'Failed to get payment methods' })
   }
 })
@@ -66,6 +72,7 @@ router.post('/payment-methods', async (req, res) => {
   try {
     return await billingController.addPaymentMethod(req, res)
   } catch (error) {
+    console.error('Add payment method error:', error)
     return res.status(500).json({ error: 'Failed to add payment method' })
   }
 })
@@ -75,6 +82,7 @@ router.get('/usage', async (req, res) => {
   try {
     return await billingController.getUsage(req, res)
   } catch (error) {
+    console.error('Get usage error:', error)
     return res.status(500).json({ error: 'Failed to get usage' })
   }
 })
@@ -84,6 +92,7 @@ router.post('/webhook', async (req, res) => {
   try {
     return await billingController.handleWebhook(req, res)
   } catch (error) {
+    console.error('Webhook handler error:', error)
     return res.status(500).json({ error: 'Webhook handler failed' })
   }
 })

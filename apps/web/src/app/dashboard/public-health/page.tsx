@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,17 +8,25 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Activity, 
+  MapPin, 
+  TrendingUp, 
   AlertTriangle, 
-  FileText, 
-  Globe, 
-  Brain, 
-  Clock,
-  TrendingUp,
-  MapPin,
-  TestTube,
-  Bell,
-  Upload
+  Thermometer,
+  FileText,
+  Download,
+  RefreshCw,
+  Microscope,
+  Globe,
+  Brain,
+  Settings
 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
+import SurveillanceDataManagement from '@/components/public-health/SurveillanceDataManagement';
+import SystemIntegrationsTab from '@/components/public-health/SystemIntegrationsTab';
+import AutomatedReportsTab from '@/components/public-health/AutomatedReportsTab';
+import AIAnalyticsTab from '@/components/public-health/AIAnalyticsTab';
+import EquipmentMonitoringTab from '@/components/public-health/EquipmentMonitoringTab';
+import PublicHealthSettingsTab from '@/components/public-health/PublicHealthSettingsTab';
 
 interface SurveillanceMetrics {
   totalSamplesThisWeek: number;
@@ -26,16 +34,20 @@ interface SurveillanceMetrics {
   positivityRate: number;
   activeClusters: number;
   equipmentAlertsActive: number;
-  pendingReports: number;
   lastSyncTime: string;
+  samplesLastHour: number;
+  weekOverWeekChange: number;
 }
 
-interface Alert {
+interface AlertItem {
   id: string;
+  type: 'outbreak' | 'equipment' | 'compliance' | 'system';
   priority: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
   message: string;
   timestamp: string;
-  type: 'outbreak' | 'equipment' | 'compliance' | 'integration';
+  acknowledged: boolean;
+  actionRequired: boolean;
 }
 
 export default function PublicHealthDashboard() {
@@ -45,11 +57,15 @@ export default function PublicHealthDashboard() {
     positivityRate: 0,
     activeClusters: 0,
     equipmentAlertsActive: 0,
-    pendingReports: 0,
-    lastSyncTime: 'Never'
+    lastSyncTime: '',
+    samplesLastHour: 0,
+    weekOverWeekChange: 0
   });
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -64,119 +80,147 @@ export default function PublicHealthDashboard() {
         fetch('/api/public-health/alerts')
       ]);
 
-      if (metricsResponse.ok) {
-        const metricsData = await metricsResponse.json();
-        setMetrics(metricsData.data);
+      if (!metricsResponse.ok || !alertsResponse.ok) {
+        throw new Error('Failed to fetch dashboard data');
       }
 
-      if (alertsResponse.ok) {
-        const alertsData = await alertsResponse.json();
-        setAlerts(alertsData.data);
-      }
+      const metricsData = await metricsResponse.json();
+      const alertsData = await alertsResponse.json();
 
+      setMetrics(metricsData.data);
+      setAlerts(alertsData.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      setLoading(false);
-    }
-  };
-
-  const generateWeeklyReports = async () => {
-    try {
-      const response = await fetch('/api/public-health/reports/generate-weekly', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reportDate: new Date().toISOString() })
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data. Please try again.",
+        variant: "destructive"
       });
-
-      if (response.ok) {
-        alert('Weekly reports generated and distributed successfully!');
-        fetchDashboardData(); // Refresh data
-      } else {
-        alert('Error generating reports');
-      }
-    } catch (error) {
-      alert('Error generating reports');
+      setLoading(false);
     }
   };
 
   const syncLabWareData = async () => {
+    setSyncing(true);
     try {
-      const response = await fetch('/api/surveillance/labware/samples', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          endDate: new Date().toISOString()
-        })
-      });
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
 
-      if (response.ok) {
-        alert('LabWare data synchronized successfully!');
-        fetchDashboardData(); // Refresh data
-      } else {
-        alert('Error syncing LabWare data');
-      }
-    } catch (error) {
-      alert('Error syncing LabWare data');
-    }
-  };
-
-  const automateNEDSSSubmission = async () => {
-    try {
-      const response = await fetch('/api/surveillance/nedss/automate', {
+      const response = await fetch('/api/public-health/sync/labware', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          countyCode: 'TARRANT',
-          startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          endDate: new Date().toISOString(),
-          caseData: [] // This would be populated with actual case data
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString()
         })
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        alert(`NEDSS automation completed! Processed ${result.data.processed} cases.`);
-        fetchDashboardData();
-      } else {
-        alert('Error automating NEDSS submission');
+      if (!response.ok) {
+        throw new Error('Sync failed');
       }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Sync Complete",
+        description: `Successfully synced ${result.samplesProcessed} samples from LabWare LIMS.`
+      });
+
+      fetchDashboardData(); // Refresh metrics
     } catch (error) {
-      alert('Error automating NEDSS submission');
+      toast({
+        title: "Sync Failed",
+        description: "Failed to sync data from LabWare LIMS. Please check your connection settings.",
+        variant: "destructive"
+      });
+    } finally {
+      setSyncing(false);
     }
   };
 
-  const uploadToArboNET = async () => {
+  const generateWeeklyReports = async () => {
+    setGenerating(true);
     try {
-      const response = await fetch('/api/surveillance/arboret/upload', {
+      const response = await fetch('/api/public-health/reports/generate-weekly', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          countyCode: 'TARRANT',
-          weekEnding: new Date().toISOString(),
-          speciesData: [] // This would be populated with actual species data
+        body: JSON.stringify({ 
+          reportDate: new Date().toISOString(),
+          counties: ['TARRANT', 'DALLAS', 'DENTON', 'COLLIN'] // All active counties
         })
       });
 
+      if (!response.ok) {
+        throw new Error('Report generation failed');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Reports Generated",
+        description: `Successfully generated and distributed ${result.reportsGenerated} county reports.`
+      });
+
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate weekly reports. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const acknowledgeAlert = async (alertId: string) => {
+    try {
+      const response = await fetch(`/api/public-health/alerts/${alertId}/acknowledge`, {
+        method: 'POST'
+      });
+
       if (response.ok) {
-        const result = await response.json();
-        alert(`ArboNET upload completed! Uploaded ${result.data.uploaded} records.`);
-        fetchDashboardData();
-      } else {
-        alert('Error uploading to ArboNET');
+        setAlerts(alerts.map(alert => 
+          alert.id === alertId ? { ...alert, acknowledged: true } : alert
+        ));
+        
+        toast({
+          title: "Alert Acknowledged",
+          description: "Alert has been marked as acknowledged."
+        });
       }
     } catch (error) {
-      alert('Error uploading to ArboNET');
+      toast({
+        title: "Error",
+        description: "Failed to acknowledge alert.",
+        variant: "destructive"
+      });
     }
+  };
+
+  const getAlertBadgeVariant = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'destructive';
+      case 'high': return 'destructive';
+      case 'medium': return 'default';
+      case 'low': return 'secondary';
+      default: return 'default';
+    }
+  };
+
+  const formatChange = (change: number) => {
+    const sign = change > 0 ? '+' : '';
+    const color = change > 0 ? 'text-green-600' : change < 0 ? 'text-red-600' : 'text-gray-600';
+    return <span className={color}>{sign}{change}%</span>;
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <Activity className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Loading surveillance dashboard...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-lg font-medium">Loading surveillance dashboard...</p>
         </div>
       </div>
     );
@@ -184,238 +228,203 @@ export default function PublicHealthDashboard() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Public Health Surveillance</h1>
-          <p className="text-gray-600 mt-1">West Nile Virus surveillance and reporting system</p>
+          <p className="text-gray-600 mt-1">Tarrant County Public Health Laboratory</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={syncLabWareData} variant="outline" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            Sync LabWare
+        <div className="flex space-x-3">
+          <Button 
+            onClick={syncLabWareData} 
+            disabled={syncing}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            <span>{syncing ? 'Syncing...' : 'Sync LabWare'}</span>
           </Button>
-          <Button onClick={automateNEDSSSubmission} variant="outline" className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            Automate NEDSS
-          </Button>
-          <Button onClick={uploadToArboNET} variant="outline" className="flex items-center gap-2">
+          <Button 
+            onClick={generateWeeklyReports} 
+            disabled={generating}
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+          >
             <FileText className="h-4 w-4" />
-            Upload ArboNET
-          </Button>
-          <Button onClick={generateWeeklyReports} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Generate Weekly Reports
+            <span>{generating ? 'Generating...' : 'Generate Reports'}</span>
           </Button>
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Key Metrics Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TestTube className="h-4 w-4" />
-              Samples This Week
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Samples This Week</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalSamplesThisWeek}</div>
-            <p className="text-xs text-gray-500 mt-1">Total mosquito pools tested</p>
+            <p className="text-xs text-muted-foreground">
+              {formatChange(metrics.weekOverWeekChange)} from last week
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              Positive Samples
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Positive Samples</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{metrics.positiveSamplesThisWeek}</div>
-            <p className="text-xs text-gray-500 mt-1">WNV positive pools</p>
+            <div className="text-2xl font-bold text-red-600">
+              {metrics.positiveSamplesThisWeek}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {metrics.samplesLastHour} in last hour
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Positivity Rate
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Positivity Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(metrics.positivityRate * 100).toFixed(1)}%</div>
-            <p className="text-xs text-gray-500 mt-1">Weekly positivity rate</p>
+            <div className="text-2xl font-bold">
+              {(metrics.positivityRate * 100).toFixed(1)}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Current week average
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Active Clusters
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Clusters</CardTitle>
+            <MapPin className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeClusters}</div>
-            <p className="text-xs text-gray-500 mt-1">Geographic clusters detected</p>
+            <div className="text-2xl font-bold text-orange-600">
+              {metrics.activeClusters}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Geographic clusters detected
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Equipment Alerts</CardTitle>
+            <Thermometer className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {metrics.equipmentAlertsActive}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Active monitoring alerts
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Last Sync</CardTitle>
+            <Download className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm font-bold">
+              {metrics.lastSyncTime ? new Date(metrics.lastSyncTime).toLocaleTimeString() : 'Never'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              LabWare LIMS data
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Secondary Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Bell className="h-4 w-4 text-orange-600" />
-              Equipment Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{metrics.equipmentAlertsActive}</div>
-            <p className="text-xs text-gray-500 mt-1">Active temperature alerts</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Pending Reports
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.pendingReports}</div>
-            <p className="text-xs text-gray-500 mt-1">Reports awaiting distribution</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Last Sync
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm font-medium">{metrics.lastSyncTime}</div>
-            <p className="text-xs text-gray-500 mt-1">LabWare data sync</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Active Alerts */}
-      {alerts.length > 0 && (
-        <Card>
+      {/* Active Alerts Section */}
+      {alerts.filter(alert => !alert.acknowledged).length > 0 && (
+        <Card className="border-red-200 bg-red-50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              Active Alerts
+            <CardTitle className="text-red-800 flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5" />
+              <span>Active Alerts ({alerts.filter(alert => !alert.acknowledged).length})</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {alerts.map(alert => (
-                <Alert key={alert.id}>
-                  <AlertDescription>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={alert.priority === 'critical' ? 'destructive' : 
-                                       alert.priority === 'high' ? 'default' : 'secondary'}>
-                          {alert.priority.toUpperCase()}
-                        </Badge>
-                        <span>{alert.message}</span>
-                      </div>
-                      <span className="text-xs text-gray-500">{alert.timestamp}</span>
+            <div className="space-y-3">
+              {alerts.filter(alert => !alert.acknowledged).slice(0, 5).map(alert => (
+                <div key={alert.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                  <div className="flex items-center space-x-3">
+                    <Badge variant={getAlertBadgeVariant(alert.priority)}>
+                      {alert.priority.toUpperCase()}
+                    </Badge>
+                    <div>
+                      <p className="font-medium">{alert.title}</p>
+                      <p className="text-sm text-gray-600">{alert.message}</p>
+                      <p className="text-xs text-gray-400">
+                        {new Date(alert.timestamp).toLocaleString()}
+                      </p>
                     </div>
-                  </AlertDescription>
-                </Alert>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => acknowledgeAlert(alert.id)}
+                  >
+                    Acknowledge
+                  </Button>
+                </div>
               ))}
+              {alerts.filter(alert => !alert.acknowledged).length > 5 && (
+                <p className="text-sm text-gray-500 text-center">
+                  {alerts.filter(alert => !alert.acknowledged).length - 5} more alerts...
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Main Tabs */}
+      {/* Main Content Tabs */}
       <Tabs defaultValue="surveillance" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="surveillance">Surveillance Data</TabsTrigger>
           <TabsTrigger value="integrations">System Integrations</TabsTrigger>
           <TabsTrigger value="reports">Automated Reports</TabsTrigger>
-          <TabsTrigger value="analytics">AI Analysis</TabsTrigger>
+          <TabsTrigger value="analytics">AI Analytics</TabsTrigger>
+          <TabsTrigger value="equipment">Equipment Monitoring</TabsTrigger>
+          <TabsTrigger value="settings">Configuration</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="surveillance">
-          <SurveillanceDataTab />
+        <TabsContent value="surveillance" className="space-y-4">
+          <SurveillanceDataManagement />
         </TabsContent>
 
-        <TabsContent value="integrations">
+        <TabsContent value="integrations" className="space-y-4">
           <SystemIntegrationsTab />
         </TabsContent>
 
-        <TabsContent value="reports">
+        <TabsContent value="reports" className="space-y-4">
           <AutomatedReportsTab />
         </TabsContent>
 
-        <TabsContent value="analytics">
+        <TabsContent value="analytics" className="space-y-4">
           <AIAnalyticsTab />
+        </TabsContent>
+
+        <TabsContent value="equipment" className="space-y-4">
+          <EquipmentMonitoringTab />
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <PublicHealthSettingsTab />
         </TabsContent>
       </Tabs>
     </div>
-  );
-}
-
-// Tab Components
-function SurveillanceDataTab() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Surveillance Data Management</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-600">Surveillance data management interface will be implemented here.</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function SystemIntegrationsTab() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>System Integrations</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-600">System integration management interface will be implemented here.</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AutomatedReportsTab() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Automated Reports</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-600">Automated report management interface will be implemented here.</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AIAnalyticsTab() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>AI Analysis</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-600">AI analysis interface will be implemented here.</p>
-      </CardContent>
-    </Card>
   );
 } 

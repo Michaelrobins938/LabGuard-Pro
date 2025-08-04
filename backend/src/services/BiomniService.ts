@@ -1,9 +1,7 @@
 import { spawn } from 'child_process'
 import { PrismaClient } from '@prisma/client'
 import { AuditLogService } from './AuditLogService'
-import fs from 'fs/promises'
-import path from 'path'
-import crypto from 'crypto'
+import * as crypto from 'crypto'
 
 // Enterprise Biomni Configuration
 interface BiomniConfig {
@@ -338,6 +336,88 @@ export class BiomniService {
   }
 
   /**
+   * Analyze sample data using Biomni
+   */
+  static async analyzeSample(data: {
+    sampleType: string
+    sampleData: any
+    analysisGoals: string[]
+    userId: string
+    labId: string
+  }): Promise<BiomniResponse> {
+    const request: BiomniRequest = {
+      query: this.buildSampleAnalysisQuery(data),
+      analysisType: 'general',
+      priority: 'medium',
+      userId: data.userId,
+      labId: data.labId,
+      context: `Sample analysis for ${data.sampleType}`,
+      tools: ['sample_analysis', 'data_processing', 'quality_assessment'],
+      databases: ['sample_database', 'reference_database']
+    }
+
+    const service = new BiomniService();
+    return service.executeBiomniQuery(request)
+  }
+
+  /**
+   * Analyze laboratory data using Biomni
+   */
+  static async analyzeLaboratoryData(data: any, analysisType: string, laboratoryId: string): Promise<BiomniResponse> {
+    const request: BiomniRequest = {
+      query: this.buildLaboratoryAnalysisQuery(data, analysisType),
+      analysisType: 'general',
+      priority: 'medium',
+      userId: data.userId || 'system',
+      labId: laboratoryId,
+      context: `Laboratory data analysis: ${analysisType}`,
+      tools: ['data_analysis', 'statistical_analysis', 'trend_analysis'],
+      databases: ['laboratory_database', 'historical_data']
+    }
+
+    const service = new BiomniService();
+    return service.executeBiomniQuery(request)
+  }
+
+  /**
+   * Check compliance using Biomni
+   */
+  static async checkCompliance(rule: any): Promise<any> {
+    const service = new BiomniService();
+    const request: BiomniRequest = {
+      query: `Analyze compliance rule: ${JSON.stringify(rule)}`,
+      analysisType: 'general',
+      priority: 'medium',
+      userId: 'system',
+      labId: 'system',
+      context: 'compliance_check',
+      tools: ['compliance_analysis', 'regulatory_check'],
+      databases: ['compliance_database', 'regulatory_database']
+    }
+
+    return service.executeBiomniQuery(request)
+  }
+
+  /**
+   * Analyze laboratory analytics using Biomni
+   */
+  static async analyzeLaboratoryAnalytics(samples: any[], options: any): Promise<any> {
+    const service = new BiomniService();
+    const request: BiomniRequest = {
+      query: `Analyze laboratory analytics: ${JSON.stringify({ samples, options })}`,
+      analysisType: 'general',
+      priority: 'medium',
+      userId: 'system',
+      labId: 'system',
+      context: 'laboratory_analytics',
+      tools: ['data_analysis', 'statistical_analysis', 'trend_analysis'],
+      databases: ['laboratory_database', 'analytics_database']
+    }
+
+    return service.executeBiomniQuery(request)
+  }
+
+  /**
    * Research insights generation
    */
   async generateResearchInsights(data: {
@@ -654,6 +734,45 @@ Please provide:
 `
   }
 
+  private static buildSampleAnalysisQuery(data: any): string {
+    return `
+Analyze sample data:
+
+Sample Type: ${data.sampleType}
+Sample Data: ${JSON.stringify(data.sampleData)}
+Analysis Goals: ${JSON.stringify(data.analysisGoals)}
+
+Please provide:
+1. Sample quality assessment
+2. Data integrity analysis
+3. Statistical analysis results
+4. Anomaly detection
+5. Quality control recommendations
+6. Processing recommendations
+7. Storage and handling suggestions
+8. Compliance assessment
+`
+  }
+
+  private static buildLaboratoryAnalysisQuery(data: any, analysisType: string): string {
+    return `
+Analyze laboratory data:
+
+Analysis Type: ${analysisType}
+Laboratory Data: ${JSON.stringify(data)}
+
+Please provide:
+1. Data quality assessment
+2. Trend analysis
+3. Performance metrics
+4. Compliance status
+5. Risk assessment
+6. Optimization recommendations
+7. Resource utilization analysis
+8. Future planning insights
+`
+  }
+
   // Utility methods
   private extractInsights(result: string): string[] {
     const insights: string[] = []
@@ -805,7 +924,8 @@ Please provide:
 
   private processQueue(): void {
     if (this.queryQueue.size > 0 && this.activeQueries.size < this.config.maxConcurrentQueries) {
-      const [firstQueryId] = this.queryQueue.keys()
+      const keys = Array.from(this.queryQueue.keys())
+      const firstQueryId = keys[0]
       const request = this.queryQueue.get(firstQueryId)
       if (request) {
         this.queryQueue.delete(firstQueryId)

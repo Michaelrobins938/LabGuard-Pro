@@ -8,7 +8,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url = env("database_PRISMA_DATABASE_URL")
-  directUrl = env("database_POSTGRES_URL_NON_POOLING")
 }
 
 // User and Authentication
@@ -86,6 +85,17 @@ model Laboratory {
   experimentalData      ExperimentalData[]
   surveillanceReports   SurveillanceReport[]
   equipmentMonitoring   EquipmentMonitoring[]
+  chainOfCustodyRecords ChainOfCustodyRecord[]
+  custodyTransfers      CustodyTransfer[]
+  clinicalSubmissions   ClinicalSubmission[]
+  environmentalSubmissions EnvironmentalSubmission[]
+  emergencyNotifications EmergencyNotification[]
+  bioterrorismAlerts   BioterrorismAlert[]
+  laboratoryModules     LaboratoryModule[]
+  workflows            Workflow[]
+  complianceRules      ComplianceRule[]
+  samples              Sample[]
+  integrations         Integration[]
 
   @@map("laboratories")
 }
@@ -1122,4 +1132,240 @@ model EquipmentMonitoring {
   deletedAt DateTime?
 
   @@map("equipment_monitoring")
+}
+
+// ========================================
+// PUBLIC HEALTH MODELS
+// ========================================
+
+model ChainOfCustodyRecord {
+  id                String   @id @default(cuid())
+  caseNumber        String   @unique
+  sampleId          String
+  sampleType        String   // 'clinical', 'environmental', 'bioterrorism_suspect'
+  collectionOfficer String
+  collectionDateTime DateTime
+  collectionLocation String
+  suspectedAgent    String?
+  urgencyLevel      String   // 'routine', 'urgent', 'stat', 'bioterrorism'
+  storageConditions String
+  specialInstructions String?
+  currentCustodian  String
+  status            String   // 'active', 'complete', 'compromised'
+  tamperSealsIntact Boolean  @default(true)
+  laboratoryId      String
+  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  transfers         CustodyTransfer[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([caseNumber])
+  @@index([urgencyLevel])
+  @@index([status])
+  @@map("chain_of_custody_records")
+}
+
+model CustodyTransfer {
+  id                    String   @id @default(cuid())
+  chainOfCustodyRecordId String
+  chainOfCustodyRecord  ChainOfCustodyRecord @relation(fields: [chainOfCustodyRecordId], references: [id], onDelete: Cascade)
+  fromPerson            String
+  toPerson              String
+  transferDateTime      DateTime
+  purpose               String
+  condition             String
+  signature             String
+  witnessed             Boolean  @default(false)
+  witnessName           String?
+  laboratoryId          String
+  laboratory            Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([chainOfCustodyRecordId])
+  @@index([transferDateTime])
+  @@map("custody_transfers")
+}
+
+model ClinicalSubmission {
+  id              String   @id @default(cuid())
+  sampleId        String   @unique
+  patientInfo     Json
+  clinicalInfo    Json
+  specimenInfo    Json
+  testingRequested Json
+  urgency         String   // 'routine', 'urgent', 'stat', 'bioterrorism'
+  submittedAt     DateTime
+  laboratoryId    String
+  laboratory      Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([sampleId])
+  @@index([urgency])
+  @@map("clinical_submissions")
+}
+
+model EnvironmentalSubmission {
+  id                   String   @id @default(cuid())
+  sampleId             String   @unique
+  sampleInfo           Json
+  suspectedContamination Json
+  submitterInfo        Json
+  testingRequested     Json
+  urgency              String   // 'routine', 'urgent', 'stat', 'bioterrorism'
+  submittedAt          DateTime
+  laboratoryId         String
+  laboratory           Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([sampleId])
+  @@index([urgency])
+  @@map("environmental_submissions")
+}
+
+model EmergencyNotification {
+  id           String   @id @default(cuid())
+  type         String
+  details      String
+  urgency      String   // 'low', 'medium', 'high', 'critical'
+  timestamp    DateTime
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([timestamp])
+  @@index([urgency])
+  @@map("emergency_notifications")
+}
+
+model BioterrorismAlert {
+  id             String   @id @default(cuid())
+  suspectedAgent String
+  location       String
+  details        String
+  timestamp      DateTime
+  laboratoryId   String
+  laboratory     Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([timestamp])
+  @@index([suspectedAgent])
+  @@map("bioterrorism_alerts")
+}
+
+// ========================================
+// LABORATORY MODULES AND WORKFLOWS
+// ========================================
+
+model LaboratoryModule {
+  id          String   @id @default(cuid())
+  name        String
+  displayName String?
+  description String?
+  type        String
+  isActive    Boolean  @default(true)
+  enabled     Boolean  @default(true)
+  settings    Json?
+  configuration Json?
+  aiCapabilities Json?
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  workflows   Workflow[]
+  complianceRules ComplianceRule[]
+  samples      Sample[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("laboratory_modules")
+}
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  steps       Json
+  isActive    Boolean  @default(true)
+  active      Boolean  @default(true)
+  priority    String   @default("NORMAL") // 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL'
+  estimatedTime Int?
+  aiAssisted  Boolean  @default(false)
+  moduleId    String?
+  module      LaboratoryModule? @relation(fields: [moduleId], references: [id])
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("workflows")
+}
+
+model ComplianceRule {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  rule        String
+  ruleType    String?  // Type of compliance rule
+  automated   Boolean  @default(false)
+  active      Boolean  @default(true)
+  lastChecked DateTime?
+  nextCheck   DateTime?
+  moduleId    String?
+  module      LaboratoryModule? @relation(fields: [moduleId], references: [id])
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("compliance_rules")
+}
+
+model Sample {
+  id          String   @id @default(cuid())
+  sampleId    String?  // External sample ID
+  type        String
+  priority    String
+  status      String
+  receivedDate DateTime?
+  collectedBy String?
+  collectionDate DateTime?
+  processingDate DateTime?
+  completedDate DateTime?
+  location    String?
+  notes       String?
+  data        Json?
+  aiAnalysis  Json?
+  moduleId    String?
+  module      LaboratoryModule? @relation(fields: [moduleId], references: [id])
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("samples")
+}
+
+model Integration {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  config      Json
+  configuration Json?  // Alternative field name
+  status      String?  // 'ACTIVE' | 'INACTIVE' | 'ERROR' | 'MAINTENANCE'
+  isActive    Boolean  @default(true)
+  lastSync    DateTime?
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("integrations")
 } 

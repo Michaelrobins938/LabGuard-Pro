@@ -1,92 +1,84 @@
-import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
-import { PrismaClient } from '@prisma/client'
-import { logger } from './utils/logger'
-import authRoutes from './routes/auth.routes'
-// import equipmentRoutes from './routes/equipment.routes'
-// import calibrationRoutes from './routes/calibration.routes'
-// import billingRoutes from './routes/billing.routes'
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
 
-const app = express()
-const prisma = new PrismaClient()
+// Import routes
+import authRoutes from './routes/auth.routes';
+import billingRoutes from './routes/billing.routes';
+import calibrationRoutes from './routes/calibration.routes';
+import complianceRoutes from './routes/compliance.routes';
+import equipmentRoutes from './routes/equipment.routes';
+import laboratoryRoutes from './routes/laboratory.routes';
+import notificationRoutes from './routes/notification.routes';
+import publicHealthRoutes from './routes/public-health.routes';
+import reportsRoutes from './routes/reports.routes';
+import surveillanceRoutes from './routes/surveillance.routes';
+import vectorControlRoutes from './routes/vector-control.routes';
 
-// Extend Request to include prisma
-declare global {
-  namespace Express {
-    interface Request {
-      prisma: PrismaClient
-    }
-  }
-}
+// Import middleware
+import { errorHandler } from './middleware/error.middleware';
+import { monitoringMiddleware } from './middleware/monitoring';
 
-// Middleware
-app.use(helmet())
-app.use(cors())
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true }))
+// Load environment variables
+dotenv.config();
 
-// Routes with database connection
-app.use('/api/auth', (req, res, next) => {
-  req.prisma = prisma
-  next()
-}, authRoutes)
-// app.use('/api/equipment', equipmentRoutes)
-// app.use('/api/calibrations', calibrationRoutes)
-// app.use('/api/billing', billingRoutes)
+const app = express();
+
+// Security middleware
+app.use(helmet());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use('/api/', limiter);
+
+// Compression
+app.use(compression());
+
+// Logging
+app.use(morgan('combined'));
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Monitoring middleware
+app.use(monitoringMiddleware);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() })
-})
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/billing', billingRoutes);
+app.use('/api/calibration', calibrationRoutes);
+app.use('/api/compliance', complianceRoutes);
+app.use('/api/equipment', equipmentRoutes);
+app.use('/api/laboratory', laboratoryRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/public-health', publicHealthRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/surveillance', surveillanceRoutes);
+app.use('/api/vector-control', vectorControlRoutes);
+
+// Error handling middleware
+app.use(errorHandler);
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' })
-})
+  res.status(404).json({ error: 'Route not found' });
+});
 
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled error:', err)
-  res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
-  })
-})
-
-const PORT = process.env.PORT || 3001
-
-const startServer = async () => {
-  try {
-    // Start the server first
-    app.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`)
-    })
-
-    // Non-blocking database connection
-    prisma.$connect().then(() => {
-      logger.info('Database connected successfully')
-    }).catch((error) => {
-      logger.error('Database connection failed:', error)
-      logger.warn('Server running without database - some features may not work')
-    })
-  } catch (error) {
-    logger.error('Failed to start server:', error)
-    process.exit(1)
-  }
-}
-
-startServer()
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received, shutting down gracefully')
-  await prisma.$disconnect()
-  process.exit(0)
-})
-
-process.on('SIGINT', async () => {
-  logger.info('SIGINT received, shutting down gracefully')
-  await prisma.$disconnect()
-  process.exit(0)
-}) 
+export default app; 

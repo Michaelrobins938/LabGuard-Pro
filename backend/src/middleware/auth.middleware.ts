@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client'
-import { ApiError } from '../utils/errors'
 
 const prisma = new PrismaClient()
 
@@ -51,7 +50,7 @@ export const authMiddleware = async (
     }
 
     return next()
-  } catch (error) {
+  } catch {
     return res.status(401).json({ error: 'Invalid token' })
   }
 }

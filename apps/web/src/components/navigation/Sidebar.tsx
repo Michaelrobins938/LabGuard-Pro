@@ -26,7 +26,10 @@ import {
   MessageSquare,
   Activity,
   Globe,
-  Brain
+  Brain,
+  Database,
+  Upload,
+  Monitor
 } from 'lucide-react'
 
 interface SidebarItem {
@@ -107,6 +110,54 @@ const sidebarItems: SidebarItem[] = [
     href: '/dashboard/qc-monitoring',
     icon: <Activity className="h-4 w-4" />,
     badge: 'Live'
+  },
+  {
+    title: 'Surveillance',
+    href: '/dashboard/surveillance',
+    icon: <Activity className="h-4 w-4" />,
+    badge: 'New',
+    children: [
+      {
+        title: 'Dashboard',
+        href: '/dashboard/surveillance',
+        icon: <BarChart3 className="h-4 w-4" />
+      },
+      {
+        title: 'LabWare Integration',
+        href: '/dashboard/surveillance/labware',
+        icon: <Database className="h-4 w-4" />
+      },
+      {
+        title: 'NEDSS Automation',
+        href: '/dashboard/surveillance/nedss',
+        icon: <Upload className="h-4 w-4" />
+      },
+      {
+        title: 'ArboNET Upload',
+        href: '/dashboard/surveillance/arboret',
+        icon: <Globe className="h-4 w-4" />
+      },
+      {
+        title: 'Report Generation',
+        href: '/dashboard/surveillance/reports',
+        icon: <FileText className="h-4 w-4" />
+      },
+      {
+        title: 'Equipment Monitoring',
+        href: '/dashboard/surveillance/equipment',
+        icon: <Monitor className="h-4 w-4" />
+      },
+      {
+        title: 'Analytics',
+        href: '/dashboard/surveillance/analytics',
+        icon: <BarChart3 className="h-4 w-4" />
+      },
+      {
+        title: 'Settings',
+        href: '/dashboard/surveillance/settings',
+        icon: <Settings className="h-4 w-4" />
+      }
+    ]
   },
   {
     title: 'Public Health',

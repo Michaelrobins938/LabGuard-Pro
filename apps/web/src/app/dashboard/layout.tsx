@@ -133,6 +133,10 @@ const navigation = [
     current: false,
     children: [
       { name: 'Surveillance Data', href: '/dashboard/public-health', icon: Activity },
+      { name: 'Emergency Response', href: '/dashboard/public-health/emergency-response', icon: AlertTriangle },
+      { name: 'Bioterrorism Preparedness', href: '/dashboard/public-health/bioterrorism', icon: Shield },
+      { name: 'Sample Submission', href: '/dashboard/public-health/sample-submission', icon: FileText },
+      { name: 'Chain of Custody', href: '/dashboard/public-health/chain-of-custody', icon: Shield },
       { name: 'System Integrations', href: '/dashboard/public-health/integrations', icon: Globe },
       { name: 'Automated Reports', href: '/dashboard/public-health/reports', icon: FileText },
       { name: 'AI Analysis', href: '/dashboard/public-health/analytics', icon: Brain }

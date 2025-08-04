@@ -77,6 +77,16 @@ model Laboratory {
   systemIntegrations   SystemIntegration[]
   mosquitoPools        MosquitoPool[]
   surveillanceTests    SurveillanceTest[]
+  laboratoryModules    LaboratoryModule[]
+  workflows            Workflow[]
+  complianceRules      ComplianceRule[]
+  samples              Sample[]
+  integrations         Integration[]
+  chainOfCustodyRecords ChainOfCustodyRecord[]
+  clinicalSubmissions ClinicalSubmission[]
+  environmentalSubmissions EnvironmentalSubmission[]
+  emergencyNotifications EmergencyNotification[]
+  bioterrorismAlerts BioterrorismAlert[]
 
   // Indexes for performance
   @@index([email])
@@ -733,23 +743,159 @@ model SystemIntegration {
 }
 
 model EquipmentMonitoring {
-  id            String    @id @default(cuid())
-  equipmentId   String
-  equipment     Equipment @relation(fields: [equipmentId], references: [id])
-  parameterName String // 'temperature', 'humidity', 'pressure'
-  measuredValue Float
-  acceptableMin Float
-  acceptableMax Float
-  status        String // 'normal', 'warning', 'critical'
-  recordedAt    DateTime  @default(now())
-  sourceSystem  String // 'sensoscientific', 'manual', 'vwr'
-  alertSent     Boolean   @default(false)
+  id              String   @id @default(cuid())
+  equipmentId     String
+  equipment       Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  monitoringType  String   // 'temperature', 'humidity', 'pressure', 'vibration'
+  value           Float
+  unit            String
+  threshold       Float?
+  isAlert         Boolean  @default(false)
+  timestamp       DateTime @default(now())
+  createdAt       DateTime @default(now())
 
   @@index([equipmentId])
-  @@index([parameterName])
-  @@index([status])
-  @@index([recordedAt])
+  @@index([timestamp])
+  @@index([monitoringType])
   @@map("equipment_monitoring")
+}
+
+// Enhanced Laboratory Module Management
+model LaboratoryModule {
+  id              String   @id @default(cuid())
+  name            String   // 'clinical', 'water', 'dairy', 'bioterrorism', 'surveillance'
+  displayName     String
+  description     String?
+  enabled         Boolean  @default(true)
+  configuration   Json     // Module-specific configuration
+  laboratoryId    String
+  laboratory      Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  workflows       Workflow[]
+  complianceRules ComplianceRule[]
+  aiCapabilities  Json?    // AI integration settings for this module
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([name])
+  @@index([enabled])
+  @@map("laboratory_modules")
+}
+
+model Workflow {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  steps           Json     // Workflow step definitions
+  moduleId        String
+  module          LaboratoryModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  active          Boolean  @default(true)
+  priority        WorkflowPriority @default(NORMAL)
+  estimatedTime   Int?     // Estimated completion time in minutes
+  aiAssisted      Boolean  @default(false) // Whether AI assists with this workflow
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([moduleId])
+  @@index([active])
+  @@index([priority])
+  @@map("workflows")
+}
+
+model ComplianceRule {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  ruleType        String   // 'CAP', 'CLIA', 'EPA', 'TCEQ', 'FDA'
+  requirements    Json     // Specific compliance requirements
+  moduleId        String
+  module          LaboratoryModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  active          Boolean  @default(true)
+  automated       Boolean  @default(false) // Whether compliance is automated
+  lastChecked     DateTime?
+  nextCheck       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([moduleId])
+  @@index([ruleType])
+  @@index([active])
+  @@map("compliance_rules")
+}
+
+model Sample {
+  id              String   @id @default(cuid())
+  sampleId        String   @unique
+  type            SampleType
+  priority        SamplePriority @default(ROUTINE)
+  status          SampleStatus @default(RECEIVED)
+  moduleId        String
+  module          LaboratoryModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  laboratoryId    String
+  laboratory      Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  collectedBy     String?
+  collectionDate  DateTime?
+  receivedDate    DateTime @default(now())
+  processingDate  DateTime?
+  completedDate   DateTime?
+  location        String?
+  notes           String?
+  aiAnalysis      Json?    // AI analysis results
+  complianceData  Json?    // Compliance tracking data
+  testResults     TestResult[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([moduleId])
+  @@index([laboratoryId])
+  @@index([status])
+  @@index([priority])
+  @@index([sampleId])
+  @@map("samples")
+}
+
+model TestResult {
+  id              String   @id @default(cuid())
+  sampleId        String
+  sample          Sample   @relation(fields: [sampleId], references: [id], onDelete: Cascade)
+  testType        String
+  result          String
+  value           Float?
+  unit            String?
+  referenceRange  String?
+  isAbnormal      Boolean  @default(false)
+  validatedBy     String?
+  validatedAt     DateTime?
+  aiValidation    Json?    // AI validation results
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([sampleId])
+  @@index([testType])
+  @@index([isAbnormal])
+  @@map("test_results")
+}
+
+model Integration {
+  id              String   @id @default(cuid())
+  name            String
+  type            IntegrationType
+  status          IntegrationStatus @default(ACTIVE)
+  configuration   Json     // Integration configuration
+  laboratoryId    String
+  laboratory      Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  lastSync        DateTime?
+  syncStatus      String?
+  errorCount      Int      @default(0)
+  lastError       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([type])
+  @@index([status])
+  @@map("integrations")
 }
 
 // Enums
@@ -864,4 +1010,180 @@ enum MessageType {
   SYSTEM
   TASK
   ALERT
+}
+
+// Enhanced Enums for Laboratory Management
+enum WorkflowPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum SampleType {
+  CLINICAL
+  WATER
+  DAIRY
+  BIOTERRORISM
+  SURVEILLANCE
+  ENVIRONMENTAL
+  FOOD
+  OTHER
+}
+
+enum SamplePriority {
+  ROUTINE
+  STAT
+  URGENT
+  EMERGENCY
+}
+
+enum SampleStatus {
+  RECEIVED
+  PROCESSING
+  TESTING
+  VALIDATION
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum IntegrationType {
+  LIMS
+  EMR
+  LIS
+  INSTRUMENT
+  REPORTING
+  SURVEILLANCE
+  OTHER
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  MAINTENANCE
+}
+
+// Emergency Response & Bioterrorism Models
+model ChainOfCustodyRecord {
+  id                String   @id @default(cuid())
+  caseNumber        String   @unique
+  sampleId          String
+  sampleType        String   // 'clinical', 'environmental', 'bioterrorism_suspect'
+  collectionOfficer String
+  collectionDateTime DateTime
+  collectionLocation String
+  suspectedAgent    String?
+  urgencyLevel      String   // 'routine', 'urgent', 'stat', 'bioterrorism'
+  storageConditions String
+  specialInstructions String?
+  currentCustodian  String
+  status            String   // 'active', 'complete', 'compromised'
+  tamperSealsIntact Boolean  @default(true)
+  laboratoryId      String
+  laboratory        Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  transfers         CustodyTransfer[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([caseNumber])
+  @@index([urgencyLevel])
+  @@index([status])
+  @@map("chain_of_custody_records")
+}
+
+model CustodyTransfer {
+  id                    String   @id @default(cuid())
+  chainOfCustodyRecordId String
+  chainOfCustodyRecord  ChainOfCustodyRecord @relation(fields: [chainOfCustodyRecordId], references: [id], onDelete: Cascade)
+  fromPerson            String
+  toPerson              String
+  transferDateTime      DateTime
+  purpose               String
+  condition             String
+  signature             String
+  witnessed             Boolean  @default(false)
+  witnessName           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([chainOfCustodyRecordId])
+  @@index([transferDateTime])
+  @@map("custody_transfers")
+}
+
+model ClinicalSubmission {
+  id              String   @id @default(cuid())
+  sampleId        String   @unique
+  patientInfo     Json
+  clinicalInfo    Json
+  specimenInfo    Json
+  testingRequested Json
+  urgency         String   // 'routine', 'urgent', 'stat', 'bioterrorism'
+  submittedAt     DateTime
+  laboratoryId    String
+  laboratory      Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([sampleId])
+  @@index([urgency])
+  @@map("clinical_submissions")
+}
+
+model EnvironmentalSubmission {
+  id                   String   @id @default(cuid())
+  sampleId             String   @unique
+  sampleInfo           Json
+  suspectedContamination Json
+  submitterInfo        Json
+  testingRequested     Json
+  urgency              String   // 'routine', 'urgent', 'stat', 'bioterrorism'
+  submittedAt          DateTime
+  laboratoryId         String
+  laboratory           Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([sampleId])
+  @@index([urgency])
+  @@map("environmental_submissions")
+}
+
+model EmergencyNotification {
+  id           String   @id @default(cuid())
+  type         String
+  details      String
+  urgency      String   // 'low', 'medium', 'high', 'critical'
+  timestamp    DateTime
+  laboratoryId String
+  laboratory   Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([timestamp])
+  @@index([urgency])
+  @@map("emergency_notifications")
+}
+
+model BioterrorismAlert {
+  id             String   @id @default(cuid())
+  suspectedAgent String
+  location       String
+  details        String
+  timestamp      DateTime
+  laboratoryId   String
+  laboratory     Laboratory @relation(fields: [laboratoryId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([laboratoryId])
+  @@index([timestamp])
+  @@index([suspectedAgent])
+  @@map("bioterrorism_alerts")
 }

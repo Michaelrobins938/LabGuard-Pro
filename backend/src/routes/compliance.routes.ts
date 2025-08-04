@@ -108,6 +108,9 @@ router.get('/violations', authMiddleware, async (req, res) => {
     const violations: any[] = []
     const total = 0
 
+    // Log pagination for debugging
+    console.log('Pagination - skip:', skip, 'take:', take);
+
     res.json({
       violations,
       pagination: {

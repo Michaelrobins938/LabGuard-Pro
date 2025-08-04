@@ -156,4 +156,11 @@ export const healthCheck = (req: Request, res: Response, next: NextFunction) => 
   }
 
   res.json(health)
+  next()
+}
+
+// Export the monitoring middleware that combines all monitoring functions
+export const monitoringMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  requestLogger(req, res, next);
+  performanceMonitor(req, res, next);
 } 
