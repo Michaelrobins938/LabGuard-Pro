@@ -84,9 +84,43 @@ const navigation = [
     ]
   },
   {
+    name: 'Analytics',
+    href: '/dashboard/analytics',
+    icon: BarChart3,
+    current: false,
+    children: [
+      { name: 'Analytics Overview', href: '/dashboard/analytics', icon: BarChart3 },
+      { name: 'Real-time Analytics', href: '/dashboard/analytics/real-time', icon: Activity },
+      { name: 'Enterprise Analytics', href: '/dashboard/analytics/enterprise', icon: TrendingUp }
+    ]
+  },
+  {
     name: 'Compliance',
     href: '/dashboard/compliance',
     icon: Shield,
+    current: false
+  },
+  {
+    name: 'Surveillance',
+    href: '/dashboard/surveillance',
+    icon: Target,
+    current: false,
+    children: [
+      { name: 'Surveillance Overview', href: '/dashboard/surveillance', icon: Target },
+      { name: 'Surveillance Analytics', href: '/dashboard/surveillance/analytics', icon: BarChart3 },
+      { name: 'Equipment Surveillance', href: '/dashboard/surveillance/equipment', icon: Microscope },
+      { name: 'Labware Surveillance', href: '/dashboard/surveillance/labware', icon: FlaskConical },
+      { name: 'ArboNET Integration', href: '/dashboard/surveillance/arboret', icon: Globe },
+      { name: 'NEDSS Integration', href: '/dashboard/surveillance/nedss', icon: Database },
+      { name: 'Surveillance Reports', href: '/dashboard/surveillance/reports', icon: FileText },
+      { name: 'Friday Automation', href: '/dashboard/surveillance/reports/friday-automation', icon: Zap },
+      { name: 'Surveillance Settings', href: '/dashboard/surveillance/settings', icon: Cog }
+    ]
+  },
+  {
+    name: 'Public Health',
+    href: '/dashboard/public-health',
+    icon: Globe,
     current: false
   },
   {
@@ -287,7 +321,7 @@ export default function DashboardLayout({
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white/95 backdrop-blur-xl border-r border-white/10">
-          <div className="flex h-16 items-center justify-between px-4">
+          <div className="flex h-16 items-center justify-between px-4 flex-shrink-0">
             <h1 className="text-lg font-semibold text-white">LabGuard Pro</h1>
             <Button
               variant="ghost"
@@ -298,7 +332,7 @@ export default function DashboardLayout({
               <Menu className="h-6 w-6" />
             </Button>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
+          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto max-h-[calc(100vh-4rem)]">
             {navigation.map((item) => (
               <div key={item.name}>
                 <Link
@@ -353,7 +387,7 @@ export default function DashboardLayout({
               </div>
             ))}
           </nav>
-          <div className="border-t border-white/10 p-4">
+          <div className="border-t border-white/10 p-4 flex-shrink-0">
             <Button
               variant="ghost"
               className="w-full justify-start text-gray-300 hover:bg-white/10 hover:text-white"
@@ -368,10 +402,10 @@ export default function DashboardLayout({
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-white/5 backdrop-blur-xl border-r border-white/10">
-          <div className="flex h-16 items-center px-4">
+          <div className="flex h-16 items-center px-4 flex-shrink-0">
             <h1 className="text-lg font-semibold text-white">LabGuard Pro</h1>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
+          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto max-h-[calc(100vh-4rem)]">
             {navigation.map((item) => (
               <div key={item.name}>
                 <Link
@@ -426,7 +460,7 @@ export default function DashboardLayout({
               </div>
             ))}
           </nav>
-          <div className="border-t border-white/10 p-4">
+          <div className="border-t border-white/10 p-4 flex-shrink-0">
             <Button
               variant="ghost"
               className="w-full justify-start text-gray-300 hover:bg-white/10 hover:text-white"
