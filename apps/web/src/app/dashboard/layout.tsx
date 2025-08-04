@@ -127,9 +127,26 @@ const navigation = [
     current: false
   },
   {
+    name: 'Surveillance',
+    href: '/dashboard/surveillance',
+    icon: Activity,
+    current: false,
+    children: [
+      { name: 'Dashboard', href: '/dashboard/surveillance', icon: BarChart3 },
+      { name: 'LabWare Integration', href: '/dashboard/surveillance/labware', icon: Database },
+      { name: 'NEDSS Automation', href: '/dashboard/surveillance/nedss', icon: Globe },
+      { name: 'ArboNET Upload', href: '/dashboard/surveillance/arboret', icon: Globe },
+      { name: 'Report Generation', href: '/dashboard/surveillance/reports', icon: FileText },
+      { name: 'Friday Automation', href: '/dashboard/surveillance/reports/friday-automation', icon: Calendar },
+      { name: 'Equipment Monitoring', href: '/dashboard/surveillance/equipment', icon: Target },
+      { name: 'Analytics', href: '/dashboard/surveillance/analytics', icon: BarChart3 },
+      { name: 'Settings', href: '/dashboard/surveillance/settings', icon: Settings }
+    ]
+  },
+  {
     name: 'Public Health',
     href: '/dashboard/public-health',
-    icon: Activity,
+    icon: Microscope,
     current: false,
     children: [
       { name: 'Surveillance Data', href: '/dashboard/public-health', icon: Activity },
