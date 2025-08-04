@@ -55,8 +55,8 @@ export async function GET(request: NextRequest) {
         where: {
           laboratoryId,
           OR: [
-            { nextCalibrationAt: { lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) } },
-            { nextCalibrationAt: null }
+            { nextCalibration: { lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) } },
+            { nextCalibration: null }
           ]
         }
       }),
@@ -99,8 +99,7 @@ export async function GET(request: NextRequest) {
     const overdueCalibrations = await prisma.equipment.count({
       where: {
         laboratoryId,
-        deletedAt: null,
-        nextCalibrationAt: { lt: new Date() }
+        nextCalibration: { lt: new Date() }
       }
     });
 
