@@ -82,81 +82,74 @@ interface Alert {
 
 export default function EnhancedLabDashboard() {
   const [activeModule, setActiveModule] = useState<string>('all');
-  const [labModules, setLabModules] = useState<LabModule[]>([
+  const [labModules, setLabModules] = useState<LabModule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState<LabMetric[]>([
+    { name: 'Total Samples', value: 558, unit: '', change: 12, trend: 'up', target: 600 },
+    { name: 'Tests Completed', value: 327, unit: 'today', change: 8, trend: 'up', target: 350 },
+    { name: 'Average Turnaround', value: 4.2, unit: 'hours', change: -0.5, trend: 'up', target: 4.0 },
+    { name: 'Compliance Rate', value: 97.8, unit: '%', change: 0.3, trend: 'up', target: 95.0 },
+    { name: 'Critical Alerts', value: 7, unit: '', change: -2, trend: 'down', target: 0 },
+    { name: 'AI Insights', value: 23, unit: 'generated', change: 5, trend: 'up', target: 20 }
+  ]);
+  const [alerts, setAlerts] = useState<Alert[]>([
     {
-      id: 'dairy',
-      name: 'Dairy Quality Control',
-      type: 'dairy',
-      status: 'active',
-      sampleCount: 156,
-      pendingTests: 12,
-      completedToday: 89,
-      alerts: 2,
-      compliance: 99,
-      icon: FlaskConical,
-      color: 'from-green-500 to-emerald-500',
-      aiInsights: [
-        'Dairy quality compliance at 99.2% - highest in 6 months',
-        'AI optimization reduced testing time by 25%',
-        'Predictive maintenance prevented 2 equipment failures'
-      ],
-      predictiveAlerts: [
-        'Seasonal increase in dairy samples expected next month',
-        'New testing protocol compliance at 100%'
-      ],
-      efficiencyScore: 94,
-      automationLevel: 95
+      id: '1',
+      type: 'critical',
+      title: 'Critical Sample Overdue',
+      description: 'Sample #WT-2024-001 has exceeded 24-hour processing time',
+      module: 'water',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      priority: 'high'
     },
     {
-      id: 'bioterrorism',
-      name: 'Bioterrorism Response',
-      type: 'bioterrorism',
-      status: 'active',
-      sampleCount: 12,
-      pendingTests: 3,
-      completedToday: 5,
-      alerts: 1,
-      compliance: 100,
-      icon: Shield,
-      color: 'from-red-500 to-orange-500',
-      aiInsights: [
-        'Response time improved by 60% with AI-assisted protocols',
-        'Real-time threat assessment accuracy at 98.5%',
-        'Automated reporting to CDC reduced manual errors by 90%'
-      ],
-      predictiveAlerts: [
-        'Enhanced surveillance recommended for high-risk areas',
-        'Equipment readiness at optimal levels'
-      ],
-      efficiencyScore: 96,
-      automationLevel: 98
+      id: '2',
+      type: 'warning',
+      title: 'Calibration Due',
+      description: 'Microscope #MS-001 requires calibration within 48 hours',
+      module: 'clinical',
+      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+      priority: 'medium'
     },
     {
-      id: 'surveillance',
-      name: 'Public Health Surveillance',
-      type: 'surveillance',
-      status: 'active',
-      sampleCount: 234,
-      pendingTests: 18,
-      completedToday: 156,
-      alerts: 3,
-      compliance: 97,
-      icon: Activity,
-      color: 'from-purple-500 to-pink-500',
-      aiInsights: [
-        'AI detected 3 emerging disease patterns this week',
-        'Automated contact tracing reduced investigation time by 70%',
-        'Predictive modeling accuracy improved to 94%'
-      ],
-      predictiveAlerts: [
-        'Potential outbreak indicators detected in 2 counties',
-        'Surveillance system optimization recommended'
-      ],
-      efficiencyScore: 89,
-      automationLevel: 93
+      id: '3',
+      type: 'ai',
+      title: 'AI Pattern Detected',
+      description: 'Unusual testing pattern detected in dairy samples - review recommended',
+      module: 'dairy',
+      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
+      priority: 'low',
+      aiGenerated: true,
+      confidence: 87,
+      recommendedAction: 'Review sample collection protocols'
+    },
+    {
+      id: '4',
+      type: 'predictive',
+      title: 'Predictive Alert: Equipment Maintenance',
+      description: 'AI predicts equipment failure in 72 hours based on usage patterns',
+      module: 'clinical',
+      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+      priority: 'medium',
+      aiGenerated: true,
+      confidence: 94,
+      recommendedAction: 'Schedule preventive maintenance'
+    },
+    {
+      id: '5',
+      type: 'ai',
+      title: 'Efficiency Optimization Opportunity',
+      description: 'AI suggests 15% efficiency improvement in water testing workflow',
+      module: 'water',
+      timestamp: new Date(Date.now() - 30 * 60 * 1000),
+      priority: 'low',
+      aiGenerated: true,
+      confidence: 92,
+      recommendedAction: 'Implement suggested workflow changes'
     }
   ]);
-  const [loading, setLoading] = useState(true);
+
+  // Fetch real laboratory modules from API
 
   // Fetch real laboratory modules from API
   useEffect(() => {
@@ -270,74 +263,6 @@ export default function EnhancedLabDashboard() {
 
   // Get current active modules to display
   const currentModules = filteredModules;
-
-  const [metrics, setMetrics] = useState<LabMetric[]>([
-    { name: 'Total Samples', value: 558, unit: '', change: 12, trend: 'up', target: 600 },
-    { name: 'Tests Completed', value: 327, unit: 'today', change: 8, trend: 'up', target: 350 },
-    { name: 'Average Turnaround', value: 4.2, unit: 'hours', change: -0.5, trend: 'up', target: 4.0 },
-    { name: 'Compliance Rate', value: 97.8, unit: '%', change: 0.3, trend: 'up', target: 95.0 },
-    { name: 'Critical Alerts', value: 7, unit: '', change: -2, trend: 'down', target: 0 },
-    { name: 'AI Insights', value: 23, unit: 'generated', change: 5, trend: 'up', target: 20 }
-  ]);
-
-  const [alerts, setAlerts] = useState<Alert[]>([
-    {
-      id: '1',
-      type: 'critical',
-      title: 'Critical Sample Overdue',
-      description: 'Sample #WT-2024-001 has exceeded 24-hour processing time',
-      module: 'water',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      priority: 'high'
-    },
-    {
-      id: '2',
-      type: 'warning',
-      title: 'Calibration Due',
-      description: 'Microscope #MS-001 requires calibration within 48 hours',
-      module: 'clinical',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      type: 'ai',
-      title: 'AI Pattern Detected',
-      description: 'Unusual testing pattern detected in dairy samples - review recommended',
-      module: 'dairy',
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      priority: 'low',
-      aiGenerated: true,
-      confidence: 87,
-      recommendedAction: 'Review sample collection protocols'
-    },
-    {
-      id: '4',
-      type: 'predictive',
-      title: 'Predictive Alert: Equipment Maintenance',
-      description: 'AI predicts equipment failure in 72 hours based on usage patterns',
-      module: 'clinical',
-      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-      priority: 'medium',
-      aiGenerated: true,
-      confidence: 94,
-      recommendedAction: 'Schedule preventive maintenance'
-    },
-    {
-      id: '5',
-      type: 'ai',
-      title: 'Efficiency Optimization Opportunity',
-      description: 'AI suggests 15% efficiency improvement in water testing workflow',
-      module: 'water',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
-      priority: 'low',
-      aiGenerated: true,
-      confidence: 92,
-      recommendedAction: 'Implement suggested workflow changes'
-    }
-  ]);
-
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleModuleAction = (moduleId: string, action: string) => {
     console.log(`Action ${action} for module ${moduleId}`);

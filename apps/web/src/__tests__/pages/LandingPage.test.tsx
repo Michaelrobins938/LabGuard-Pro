@@ -30,25 +30,41 @@ jest.mock('next/navigation', () => ({
 
 // Mock Next.js Link component
 jest.mock('next/link', () => {
-  return ({ children, href, ...props }: any) => {
+  const MockLink = ({ children, href, ...props }: any) => {
     return (
       <a href={href} {...props}>
         {children}
       </a>
     )
   }
+  MockLink.displayName = 'MockLink'
+  return MockLink
 })
 
 // Mock Framer Motion
-jest.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    section: ({ children, ...props }: any) => <section {...props}>{children}</section>,
-    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  },
-  AnimatePresence: ({ children }: any) => <div>{children}</div>,
-}))
+jest.mock('framer-motion', () => {
+  const MockMotionDiv = ({ children, ...props }: any) => <div {...props}>{children}</div>
+  const MockMotionSection = ({ children, ...props }: any) => <section {...props}>{children}</section>
+  const MockMotionButton = ({ children, ...props }: any) => <button {...props}>{children}</button>
+  const MockMotionSpan = ({ children, ...props }: any) => <span {...props}>{children}</span>
+  const MockAnimatePresence = ({ children }: any) => <div>{children}</div>
+
+  MockMotionDiv.displayName = 'MockMotionDiv'
+  MockMotionSection.displayName = 'MockMotionSection'
+  MockMotionButton.displayName = 'MockMotionButton'
+  MockMotionSpan.displayName = 'MockMotionSpan'
+  MockAnimatePresence.displayName = 'MockAnimatePresence'
+
+  return {
+    motion: {
+      div: MockMotionDiv,
+      section: MockMotionSection,
+      button: MockMotionButton,
+      span: MockMotionSpan,
+    },
+    AnimatePresence: MockAnimatePresence,
+  }
+})
 
 describe('LandingPage', () => {
   beforeEach(() => {
