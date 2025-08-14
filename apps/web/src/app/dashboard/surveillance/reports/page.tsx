@@ -9,185 +9,98 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, 
-  Mail, 
   Download, 
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Settings,
+  Settings, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle,
   RefreshCw,
   Calendar,
   MapPin,
-  Users
+  BarChart3,
+  History
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface CountyReport {
-  id: string;
-  countyCode: string;
-  weekEnding: string;
-  status: 'pending' | 'generated' | 'sent' | 'failed';
-  recipients: string[];
-  filePath?: string;
-  summary?: {
-    totalSamples: number;
-    positiveSamples: number;
-    speciesBreakdown: Record<string, number>;
-    locations: string[];
-  };
-}
-
-interface CountyConfiguration {
-  countyCode: string;
-  templateName: string;
-  recipients: string[];
-  format: 'pdf' | 'excel' | 'csv';
-  includeMaps: boolean;
-  includeHistorical: boolean;
-  customFields: Record<string, any>;
-  isActive: boolean;
-}
+import { SurveillanceReport, SurveillanceReportHistory } from '@/types/surveillance';
 
 export default function SurveillanceReports() {
-  const { toast } = useToast();
-  const [reports, setReports] = useState<CountyReport[]>([]);
-  const [configurations, setConfigurations] = useState<CountyConfiguration[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'completed' | 'error'>('idle');
-  const [weekEnding, setWeekEnding] = useState('');
+  const [reportData, setReportData] = useState({
+    countyCode: '',
+    weekEnding: new Date(),
+    reportType: 'weekly' as 'weekly' | 'monthly' | 'quarterly',
+    includeMaps: true,
+    includeHistorical: true
+  });
+
+  const [reportHistory, setReportHistory] = useState<SurveillanceReportHistory[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
 
   useEffect(() => {
-    fetchReports();
-    fetchConfigurations();
+    fetchReportHistory();
   }, []);
 
-  const fetchReports = async () => {
+  const fetchReportHistory = async () => {
     try {
-      const response = await fetch('/api/surveillance/reports/history?limit=20');
-      const result = await response.json();
-      setReports(result.data || []);
+      const response = await fetch('/api/surveillance/reports/history');
+      if (response.ok) {
+        const data = await response.json();
+        setReportHistory(data.data || []);
+      }
     } catch (error) {
-      console.error('Error fetching reports:', error);
+      console.error('Error fetching report history:', error);
     }
   };
 
-  const fetchConfigurations = async () => {
-    try {
-      const response = await fetch('/api/surveillance/reports/counties');
-      const result = await response.json();
-      setConfigurations(result.data?.countyConfigurations || []);
-    } catch (error) {
-      console.error('Error fetching configurations:', error);
-    }
-  };
-
-  const generateAutomatedReports = async () => {
-    if (!weekEnding) {
-      toast({
-        title: 'Week Ending Required',
-        description: 'Please select a week ending date.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsGenerating(true);
+  const generateReport = async () => {
+    setLoading(true);
     setGenerationStatus('generating');
 
     try {
-      const response = await fetch('/api/surveillance/reports/automated', {
+      const response = await fetch('/api/surveillance/reports/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          weekEnding
-        })
+        body: JSON.stringify(reportData),
       });
 
-      const result = await response.json();
-
-      if (result.success) {
-        setGenerationStatus('completed');
-        toast({
-          title: 'Reports Generated',
-          description: `Successfully generated ${result.data.reportsGenerated} reports and sent ${result.data.emailsSent} emails.`,
-        });
-        fetchReports(); // Refresh the reports list
+      if (response.ok) {
+        setGenerationStatus('success');
+        fetchReportHistory(); // Refresh history
       } else {
         setGenerationStatus('error');
-        toast({
-          title: 'Generation Failed',
-          description: result.error || 'Failed to generate automated reports.',
-          variant: 'destructive',
-        });
       }
     } catch (error) {
+      console.error('Report generation failed:', error);
       setGenerationStatus('error');
-      toast({
-        title: 'Generation Error',
-        description: 'An error occurred while generating reports.',
-        variant: 'destructive',
-      });
     } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const downloadReport = async (reportId: string, fileName: string) => {
-    try {
-      const response = await fetch(`/api/surveillance/reports/download/${reportId}`);
-      const blob = await response.blob();
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-
-      toast({
-        title: 'Report Downloaded',
-        description: 'Report downloaded successfully.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Download Failed',
-        description: 'Failed to download report.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'sent':
-        return 'text-green-500';
-      case 'generated':
-        return 'text-blue-500';
-      case 'pending':
-        return 'text-yellow-500';
-      case 'failed':
-        return 'text-red-500';
-      default:
-        return 'text-gray-500';
+      setLoading(false);
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'sent':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'generated':
-        return <FileText className="h-4 w-4" />;
-      case 'pending':
-        return <Clock className="h-4 w-4" />;
-      case 'failed':
-        return <AlertCircle className="h-4 w-4" />;
+      case 'success':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'error':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'generating':
+        return <RefreshCw className="w-4 h-4 animate-spin text-yellow-500" />;
       default:
-        return <FileText className="h-4 w-4" />;
+        return <AlertTriangle className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'success':
+        return 'bg-green-100 text-green-800';
+      case 'error':
+        return 'bg-red-100 text-red-800';
+      case 'generating':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -196,229 +109,280 @@ export default function SurveillanceReports() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Surveillance Reports</h1>
-          <p className="text-muted-foreground">
-            Generate and manage automated county reports
-          </p>
+          <h1 className="text-3xl font-bold">Surveillance Reports</h1>
+          <p className="text-gray-600 mt-1">Generate and manage county surveillance reports</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={generationStatus === 'completed' ? 'default' : 'secondary'}>
-            <span className={`mr-1 ${getStatusColor(generationStatus)}`}>
-              {getStatusIcon(generationStatus)}
-            </span>
-            {generationStatus}
+        <div className="flex items-center space-x-2">
+          <Badge className={getStatusColor(generationStatus)}>
+            {getStatusIcon(generationStatus)}
+            <span className="ml-1 capitalize">{generationStatus}</span>
           </Badge>
         </div>
       </div>
 
       <Tabs defaultValue="generate" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="generate">Generate Reports</TabsTrigger>
+          <TabsTrigger value="generate">Generate Report</TabsTrigger>
           <TabsTrigger value="history">Report History</TabsTrigger>
-          <TabsTrigger value="configurations">County Configurations</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="generate" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Report Generation
-                </CardTitle>
-                <CardDescription>
-                  Generate automated county reports for the selected week
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Generate County Report</CardTitle>
+              <CardDescription>
+                Configure and generate automated county surveillance reports
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="countyCode">County Code</Label>
+                  <Input
+                    id="countyCode"
+                    value={reportData.countyCode}
+                    onChange={(e) => setReportData({ ...reportData, countyCode: e.target.value })}
+                    placeholder="e.g., 439 (Tarrant County)"
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="weekEnding">Week Ending</Label>
                   <Input
                     id="weekEnding"
                     type="date"
-                    value={weekEnding}
-                    onChange={(e) => setWeekEnding(e.target.value)}
+                    value={reportData.weekEnding.toISOString().split('T')[0]}
+                    onChange={(e) => setReportData({ ...reportData, weekEnding: new Date(e.target.value) })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Active Counties</p>
-                  <div className="text-sm text-muted-foreground">
-                    {configurations.filter(c => c.isActive).length} counties configured
-                  </div>
-                </div>
-                <Button 
-                  onClick={generateAutomatedReports} 
-                  disabled={isGenerating || !weekEnding}
-                  className="flex items-center gap-2 w-full"
-                >
-                  {isGenerating ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileText className="h-4 w-4" />
-                  )}
-                  {isGenerating ? 'Generating...' : 'Generate Friday Reports'}
-                </Button>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5" />
-                  Distribution Summary
-                </CardTitle>
-                <CardDescription>
-                  Overview of report distribution
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {configurations.filter(c => c.isActive).length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Active Counties</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {configurations.reduce((total, c) => total + c.recipients.length, 0)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Total Recipients</div>
-                  </div>
-                </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">County Breakdown:</p>
-                  <div className="space-y-1">
-                    {configurations.filter(c => c.isActive).map((config) => (
-                      <div key={config.countyCode} className="flex items-center justify-between text-sm">
-                        <span>{config.countyCode}</span>
-                        <span className="text-muted-foreground">
-                          {config.recipients.length} recipients
-                        </span>
-                      </div>
-                    ))}
+                  <Label htmlFor="reportType">Report Type</Label>
+                  <select
+                    id="reportType"
+                    value={reportData.reportType}
+                    onChange={(e) => setReportData({ ...reportData, reportType: e.target.value as 'weekly' | 'monthly' | 'quarterly' })}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="weekly">Weekly Report</option>
+                    <option value="monthly">Monthly Report</option>
+                    <option value="quarterly">Quarterly Report</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Report Options</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="includeMaps"
+                        checked={reportData.includeMaps}
+                        onChange={(e) => setReportData({ ...reportData, includeMaps: e.target.checked })}
+                        className="rounded"
+                      />
+                      <Label htmlFor="includeMaps">Include Maps</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="includeHistorical"
+                        checked={reportData.includeHistorical}
+                        onChange={(e) => setReportData({ ...reportData, includeHistorical: e.target.checked })}
+                        className="rounded"
+                      />
+                      <Label htmlFor="includeHistorical">Include Historical Data</Label>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Report Summary</Label>
+                <div className="p-4 bg-blue-50 rounded border">
+                  <ul className="space-y-1 text-sm">
+                    <li>• County: {reportData.countyCode || 'Not specified'}</li>
+                    <li>• Week Ending: {reportData.weekEnding.toLocaleDateString()}</li>
+                    <li>• Report Type: {reportData.reportType.charAt(0).toUpperCase() + reportData.reportType.slice(1)}</li>
+                    <li>• Include Maps: {reportData.includeMaps ? 'Yes' : 'No'}</li>
+                    <li>• Include Historical Data: {reportData.includeHistorical ? 'Yes' : 'No'}</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={generateReport} 
+                  disabled={loading || !reportData.countyCode}
+                  className="flex-1"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Generate Report
+                </Button>
+                <Button variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Preview Report
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Report History
-              </CardTitle>
+              <CardTitle>Report History</CardTitle>
               <CardDescription>
-                View generated reports and their status
+                View previously generated surveillance reports
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {reports.length > 0 ? (
+              {reportHistory.length > 0 ? (
                 <div className="space-y-4">
-                  {reports.map((report) => (
-                    <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(report.status)}
-                          <div>
-                            <p className="font-medium">{report.countyCode} County</p>
-                            <p className="text-sm text-muted-foreground">
-                              Week ending {new Date(report.weekEnding).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        {report.summary && (
-                          <div className="text-sm text-muted-foreground">
-                            {report.summary.totalSamples} samples, {report.summary.positiveSamples} positive
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={report.status === 'sent' ? 'default' : 'secondary'}>
-                          {report.status}
-                        </Badge>
-                        {report.status === 'generated' && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => downloadReport(report.id, `${report.countyCode}_report.pdf`)}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {report.recipients && report.recipients.length > 0 && (
-                          <span className="text-sm text-muted-foreground">
-                            {report.recipients.length} recipients
-                          </span>
-                        )}
-                      </div>
+                  <div className="flex justify-between items-center">
+                    <Badge variant="secondary">
+                      {reportHistory.length} reports
+                    </Badge>
+                    <Button variant="outline" size="sm" onClick={fetchReportHistory}>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
+
+                  <div className="border rounded-lg">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">County</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Week Ending</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Report Type</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Generated</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Generated By</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {reportHistory.map((report, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-4 py-2 text-sm font-medium">{report.countyCode}</td>
+                              <td className="px-4 py-2 text-sm">{new Date(report.weekEnding).toLocaleDateString()}</td>
+                              <td className="px-4 py-2 text-sm">
+                                <Badge variant="outline">{report.reportType}</Badge>
+                              </td>
+                              <td className="px-4 py-2 text-sm">{new Date(report.generatedAt).toLocaleDateString()}</td>
+                              <td className="px-4 py-2 text-sm">{report.generatedBy}</td>
+                              <td className="px-4 py-2 text-sm">
+                                <div className="flex space-x-1">
+                                  <Button variant="ghost" size="sm">
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm">
+                                    <FileText className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  ))}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    No reports generated yet. Generate reports to see them here.
-                  </p>
+                  <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No reports generated yet</p>
+                  <p className="text-sm text-gray-400">Generated reports will appear here</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="configurations" className="space-y-4">
+        <TabsContent value="templates" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                County Configurations
-              </CardTitle>
+              <CardTitle>Report Templates</CardTitle>
               <CardDescription>
-                Manage county-specific report configurations
+                Manage report templates and configurations
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              {configurations.length > 0 ? (
-                <div className="space-y-4">
-                  {configurations.map((config) => (
-                    <div key={config.countyCode} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <p className="font-medium">{config.countyCode} County</p>
-                          <p className="text-sm text-muted-foreground">
-                            Template: {config.templateName} • Format: {config.format.toUpperCase()}
-                          </p>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            {config.recipients.length} recipients
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={config.isActive ? 'default' : 'secondary'}>
-                          {config.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                        <Button variant="outline" size="sm">
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    No county configurations set up yet. Configure counties to enable automated reporting.
-                  </p>
-                </div>
-              )}
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Weekly Template</CardTitle>
+                    <CardDescription>Standard weekly surveillance report</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Summary statistics</li>
+                      <li>• Species breakdown</li>
+                      <li>• Geographic distribution</li>
+                      <li>• Trend analysis</li>
+                    </ul>
+                    <Button className="mt-4" size="sm">
+                      Use Template
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Monthly Template</CardTitle>
+                    <CardDescription>Comprehensive monthly analysis</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Extended statistics</li>
+                      <li>• Historical comparison</li>
+                      <li>• Risk assessment</li>
+                      <li>• Recommendations</li>
+                    </ul>
+                    <Button className="mt-4" size="sm">
+                      Use Template
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Quarterly Template</CardTitle>
+                    <CardDescription>Quarterly surveillance summary</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Seasonal analysis</li>
+                      <li>• Year-over-year comparison</li>
+                      <li>• Predictive modeling</li>
+                      <li>• Strategic recommendations</li>
+                    </ul>
+                    <Button className="mt-4" size="sm">
+                      Use Template
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Custom Template</CardTitle>
+                    <CardDescription>Create custom report template</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Custom sections</li>
+                      <li>• Flexible formatting</li>
+                      <li>• Branded styling</li>
+                      <li>• Save for reuse</li>
+                    </ul>
+                    <Button className="mt-4" size="sm">
+                      Create Template
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

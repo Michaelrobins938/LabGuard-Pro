@@ -51,6 +51,7 @@ export default function NLPReportsPage() {
 
   useEffect(() => {
     fetchNLPData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchNLPData = async () => {

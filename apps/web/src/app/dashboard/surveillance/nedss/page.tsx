@@ -5,66 +5,70 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Globe, 
   Upload, 
-  Play, 
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Settings,
+  FileText, 
+  Settings, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle,
   RefreshCw,
-  FileText,
-  Users
+  Plus,
+  Trash2,
+  Calendar,
+  MapPin
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface NEDSSCase {
-  patientId: string;
-  sampleId: string;
-  testType: string;
-  result: string;
-  collectionDate: string;
-  location: string;
-}
-
-interface NEDSSAutomation {
-  countyCode: string;
-  startDate: string;
-  endDate: string;
-  caseData: NEDSSCase[];
-}
+import { NEDSSAutomationData } from '@/types/surveillance';
 
 export default function NEDSSAutomation() {
-  const { toast } = useToast();
-  const [automation, setAutomation] = useState<NEDSSAutomation>({
+  const [automationData, setAutomationData] = useState<NEDSSAutomationData>({
     countyCode: '',
-    startDate: '',
-    endDate: '',
+    startDate: new Date(),
+    endDate: new Date(),
     caseData: []
   });
 
-  const [isRunning, setIsRunning] = useState(false);
-  const [automationStatus, setAutomationStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle');
-  const [results, setResults] = useState<{
-    processed: number;
-    errors: string[];
-    success: boolean;
-  } | null>(null);
-
-  const [credentials, setCredentials] = useState({
-    username: '',
-    password: ''
+  const [loading, setLoading] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [newCase, setNewCase] = useState({
+    patientId: '',
+    sampleId: '',
+    testType: '',
+    result: '',
+    collectionDate: '',
+    location: ''
   });
 
-  const [caseDataInput, setCaseDataInput] = useState('');
+  const addCase = () => {
+    if (newCase.patientId && newCase.sampleId) {
+      setAutomationData({
+        ...automationData,
+        caseData: [...automationData.caseData, { ...newCase }]
+      });
+      setNewCase({
+        patientId: '',
+        sampleId: '',
+        testType: '',
+        result: '',
+        collectionDate: '',
+        location: ''
+      });
+    }
+  };
 
-  const runAutomation = async () => {
-    setIsRunning(true);
-    setAutomationStatus('running');
+  const removeCase = (index: number) => {
+    setAutomationData({
+      ...automationData,
+      caseData: automationData.caseData.filter((_, i) => i !== index)
+    });
+  };
+
+  const submitToNEDSS = async () => {
+    setLoading(true);
+    setSubmissionStatus('submitting');
 
     try {
       const response = await fetch('/api/surveillance/nedss/automate', {
@@ -72,127 +76,45 @@ export default function NEDSSAutomation() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(automation)
+        body: JSON.stringify(automationData),
       });
 
-      const result = await response.json();
-
-      if (result.success) {
-        setAutomationStatus('completed');
-        setResults(result.data);
-        toast({
-          title: 'Automation Completed',
-          description: `Successfully processed ${result.data.processed} cases.`,
-        });
+      if (response.ok) {
+        setSubmissionStatus('success');
       } else {
-        setAutomationStatus('error');
-        toast({
-          title: 'Automation Failed',
-          description: result.error || 'Failed to run NEDSS automation.',
-          variant: 'destructive',
-        });
+        setSubmissionStatus('error');
       }
     } catch (error) {
-      setAutomationStatus('error');
-      toast({
-        title: 'Automation Error',
-        description: 'An error occurred while running the automation.',
-        variant: 'destructive',
-      });
+      console.error('NEDSS submission failed:', error);
+      setSubmissionStatus('error');
     } finally {
-      setIsRunning(false);
-    }
-  };
-
-  const parseCaseData = () => {
-    try {
-      const lines = caseDataInput.trim().split('\n');
-      const cases: NEDSSCase[] = [];
-
-      for (const line of lines) {
-        if (line.trim()) {
-          const [patientId, sampleId, testType, result, collectionDate, location] = line.split(',').map(s => s.trim());
-          cases.push({
-            patientId,
-            sampleId,
-            testType,
-            result,
-            collectionDate,
-            location
-          });
-        }
-      }
-
-      setAutomation(prev => ({ ...prev, caseData: cases }));
-      toast({
-        title: 'Data Parsed',
-        description: `Successfully parsed ${cases.length} cases.`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Parse Error',
-        description: 'Failed to parse case data. Please check the format.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const saveCredentials = async () => {
-    try {
-      const response = await fetch('/api/surveillance/nedss/save-credentials', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({
-          title: 'Credentials Saved',
-          description: 'NEDSS credentials saved successfully.',
-        });
-      } else {
-        toast({
-          title: 'Save Failed',
-          description: 'Failed to save credentials.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Save Error',
-        description: 'An error occurred while saving credentials.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-500';
-      case 'running':
-        return 'text-yellow-500';
-      case 'error':
-        return 'text-red-500';
-      default:
-        return 'text-gray-500';
+      setLoading(false);
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'running':
-        return <RefreshCw className="h-4 w-4 animate-spin" />;
+      case 'success':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'error':
-        return <AlertCircle className="h-4 w-4" />;
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'submitting':
+        return <RefreshCw className="w-4 h-4 animate-spin text-yellow-500" />;
       default:
-        return <Globe className="h-4 w-4" />;
+        return <AlertTriangle className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'success':
+        return 'bg-green-100 text-green-800';
+      case 'error':
+        return 'bg-red-100 text-red-800';
+      case 'submitting':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -201,261 +123,309 @@ export default function NEDSSAutomation() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">NEDSS Automation</h1>
-          <p className="text-muted-foreground">
-            Automate Texas NEDSS data entry and reporting
-          </p>
+          <h1 className="text-3xl font-bold">NEDSS Automation</h1>
+          <p className="text-gray-600 mt-1">Automate Texas NEDSS data entry and submissions</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={automationStatus === 'completed' ? 'default' : 'secondary'}>
-            <span className={`mr-1 ${getStatusColor(automationStatus)}`}>
-              {getStatusIcon(automationStatus)}
-            </span>
-            {automationStatus}
+        <div className="flex items-center space-x-2">
+          <Badge className={getStatusColor(submissionStatus)}>
+            {getStatusIcon(submissionStatus)}
+            <span className="ml-1 capitalize">{submissionStatus}</span>
           </Badge>
         </div>
       </div>
 
-      <Tabs defaultValue="automation" className="space-y-4">
+      <Tabs defaultValue="configuration" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="automation">Automation</TabsTrigger>
-          <TabsTrigger value="credentials">Credentials</TabsTrigger>
-          <TabsTrigger value="results">Results</TabsTrigger>
+          <TabsTrigger value="configuration">Configuration</TabsTrigger>
+          <TabsTrigger value="cases">Case Data</TabsTrigger>
+          <TabsTrigger value="submission">Submission</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="automation" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
-                  Automation Settings
-                </CardTitle>
-                <CardDescription>
-                  Configure NEDSS automation parameters
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        <TabsContent value="configuration" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>NEDSS Configuration</CardTitle>
+              <CardDescription>
+                Configure parameters for Texas NEDSS automation
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="countyCode">County Code</Label>
                   <Input
                     id="countyCode"
-                    value={automation.countyCode}
-                    onChange={(e) => setAutomation({ ...automation, countyCode: e.target.value })}
-                    placeholder="e.g., TARRANT"
+                    value={automationData.countyCode}
+                    onChange={(e) => setAutomationData({ ...automationData, countyCode: e.target.value })}
+                    placeholder="e.g., 439 (Tarrant County)"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date</Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      value={automation.startDate}
-                      onChange={(e) => setAutomation({ ...automation, startDate: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={automation.endDate}
-                      onChange={(e) => setAutomation({ ...automation, endDate: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Case Data
-                </CardTitle>
-                <CardDescription>
-                  Import case data for automation
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="caseData">Case Data (CSV format)</Label>
-                  <Textarea
-                    id="caseData"
-                    value={caseDataInput}
-                    onChange={(e) => setCaseDataInput(e.target.value)}
-                    placeholder="patientId,sampleId,testType,result,collectionDate,location"
-                    rows={6}
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={automationData.startDate.toISOString().split('T')[0]}
+                    onChange={(e) => setAutomationData({ ...automationData, startDate: new Date(e.target.value) })}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Format: patientId,sampleId,testType,result,collectionDate,location
-                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={parseCaseData} 
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Parse Data
-                  </Button>
-                  <Button 
-                    onClick={() => setCaseDataInput('')} 
-                    variant="outline"
-                    size="sm"
-                  >
-                    Clear
-                  </Button>
-                </div>
-                {automation.caseData.length > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    {automation.caseData.length} cases loaded
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Play className="h-5 w-5" />
-                Run Automation
-              </CardTitle>
-              <CardDescription>
-                Execute NEDSS automation with loaded data
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">
-                    Ready to process {automation.caseData.length} cases
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    County: {automation.countyCode} | 
-                    Date Range: {automation.startDate} to {automation.endDate}
-                  </p>
+                  <Label htmlFor="endDate">End Date</Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={automationData.endDate.toISOString().split('T')[0]}
+                    onChange={(e) => setAutomationData({ ...automationData, endDate: new Date(e.target.value) })}
+                  />
                 </div>
-                <Button 
-                  onClick={runAutomation} 
-                  disabled={isRunning || automation.caseData.length === 0}
-                  className="flex items-center gap-2"
-                >
-                  {isRunning ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
-                  {isRunning ? 'Running...' : 'Run Automation'}
-                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label>County Information</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>County Name</Label>
+                    <Input placeholder="Tarrant County" disabled />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Health Department</Label>
+                    <Input placeholder="Tarrant County Public Health" disabled />
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="credentials" className="space-y-4">
+        <TabsContent value="cases" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                NEDSS Credentials
-              </CardTitle>
+              <CardTitle>Case Data Management</CardTitle>
               <CardDescription>
-                Configure Texas NEDSS login credentials
+                Add and manage case data for NEDSS submission
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    value={credentials.username}
-                    onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                    placeholder="nedss_username"
-                  />
+              {/* Add New Case Form */}
+              <div className="border rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-4">Add New Case</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="patientId">Patient ID</Label>
+                    <Input
+                      id="patientId"
+                      value={newCase.patientId}
+                      onChange={(e) => setNewCase({ ...newCase, patientId: e.target.value })}
+                      placeholder="Patient identifier"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sampleId">Sample ID</Label>
+                    <Input
+                      id="sampleId"
+                      value={newCase.sampleId}
+                      onChange={(e) => setNewCase({ ...newCase, sampleId: e.target.value })}
+                      placeholder="Sample identifier"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="testType">Test Type</Label>
+                    <Input
+                      id="testType"
+                      value={newCase.testType}
+                      onChange={(e) => setNewCase({ ...newCase, testType: e.target.value })}
+                      placeholder="e.g., WNV PCR"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="result">Result</Label>
+                    <select
+                      id="result"
+                      value={newCase.result}
+                      onChange={(e) => setNewCase({ ...newCase, result: e.target.value })}
+                      className="w-full p-2 border rounded-md"
+                    >
+                      <option value="">Select result</option>
+                      <option value="Positive">Positive</option>
+                      <option value="Negative">Negative</option>
+                      <option value="Indeterminate">Indeterminate</option>
+                      <option value="Pending">Pending</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="collectionDate">Collection Date</Label>
+                    <Input
+                      id="collectionDate"
+                      type="date"
+                      value={newCase.collectionDate}
+                      onChange={(e) => setNewCase({ ...newCase, collectionDate: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={newCase.location}
+                      onChange={(e) => setNewCase({ ...newCase, location: e.target.value })}
+                      placeholder="Collection location"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={credentials.password}
-                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                    placeholder="••••••••"
-                  />
+
+                <div className="flex justify-end mt-4">
+                  <Button onClick={addCase} disabled={!newCase.patientId || !newCase.sampleId}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Case
+                  </Button>
                 </div>
               </div>
-              <Button 
-                onClick={saveCredentials} 
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Save Credentials
-              </Button>
+
+              {/* Case Data Table */}
+              {automationData.caseData.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">Case Data ({automationData.caseData.length} cases)</h3>
+                    <Button variant="outline" size="sm" onClick={() => setAutomationData({ ...automationData, caseData: [] })}>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Clear All
+                    </Button>
+                  </div>
+
+                  <div className="border rounded-lg">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Patient ID</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Sample ID</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Test Type</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Result</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Collection Date</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Location</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {automationData.caseData.map((caseItem, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-4 py-2 text-sm">{caseItem.patientId}</td>
+                              <td className="px-4 py-2 text-sm">{caseItem.sampleId}</td>
+                              <td className="px-4 py-2 text-sm">{caseItem.testType}</td>
+                              <td className="px-4 py-2 text-sm">
+                                <Badge variant={caseItem.result === 'Positive' ? 'destructive' : 'secondary'}>
+                                  {caseItem.result}
+                                </Badge>
+                              </td>
+                              <td className="px-4 py-2 text-sm">{caseItem.collectionDate}</td>
+                              <td className="px-4 py-2 text-sm">{caseItem.location}</td>
+                              <td className="px-4 py-2 text-sm">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeCase(index)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="results" className="space-y-4">
+        <TabsContent value="submission" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5" />
-                Automation Results
-              </CardTitle>
+              <CardTitle>NEDSS Submission</CardTitle>
               <CardDescription>
-                View results from NEDSS automation runs
+                Submit case data to Texas NEDSS system
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              {results ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {results.processed}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Cases Processed</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">
-                        {results.errors.length}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Errors</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {results.success ? 'Success' : 'Failed'}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Status</div>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>County Code</Label>
+                    <div className="p-2 bg-gray-50 rounded border">
+                      {automationData.countyCode || 'Not specified'}
                     </div>
                   </div>
 
-                  {results.errors.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Errors:</h4>
-                      <div className="space-y-1">
-                        {results.errors.map((error, index) => (
-                          <div key={index} className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                            {error}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="space-y-2">
+                    <Label>Date Range</Label>
+                    <div className="p-2 bg-gray-50 rounded border">
+                      {automationData.startDate.toLocaleDateString()} - {automationData.endDate.toLocaleDateString()}
                     </div>
-                  )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Cases to Submit</Label>
+                    <div className="p-2 bg-gray-50 rounded border">
+                      {automationData.caseData.length} cases
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    No automation results yet. Run an automation to see results here.
-                  </p>
+
+                <div className="space-y-2">
+                  <Label>Submission Summary</Label>
+                  <div className="p-4 bg-blue-50 rounded border">
+                    <ul className="space-y-1 text-sm">
+                      <li>• County: {automationData.countyCode}</li>
+                      <li>• Date Range: {automationData.startDate.toLocaleDateString()} - {automationData.endDate.toLocaleDateString()}</li>
+                      <li>• Total Cases: {automationData.caseData.length}</li>
+                      <li>• Positive Cases: {automationData.caseData.filter(c => c.result === 'Positive').length}</li>
+                      <li>• Negative Cases: {automationData.caseData.filter(c => c.result === 'Negative').length}</li>
+                    </ul>
+                  </div>
                 </div>
-              )}
+
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={submitToNEDSS} 
+                    disabled={loading || automationData.caseData.length === 0 || !automationData.countyCode}
+                    className="flex-1"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Submit to NEDSS
+                  </Button>
+                  <Button variant="outline">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Preview Submission
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Submission History</CardTitle>
+              <CardDescription>
+                View previous NEDSS submissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No submission history available</p>
+                <p className="text-sm text-gray-400">Submission history will appear here after successful submissions</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

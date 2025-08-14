@@ -5,41 +5,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Database, 
-  TestTube, 
   Download, 
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Settings,
-  RefreshCw
+  Upload, 
+  Settings, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle,
+  RefreshCw,
+  FileText,
+  Calendar
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface LabWareConnection {
-  server: string;
-  database: string;
-  username: string;
-  password: string;
-  port: number;
-}
-
-interface LabWareSample {
-  sampleId: string;
-  patientId: string;
-  testType: string;
-  result: string;
-  collectionDate: string;
-  location: string;
-  species?: string;
-  poolId?: string;
-}
+import { LabWareConnection, LabWareSample } from '@/types/surveillance';
 
 export default function LabWareIntegration() {
-  const { toast } = useToast();
   const [connection, setConnection] = useState<LabWareConnection>({
     server: '',
     database: '',
@@ -47,11 +30,10 @@ export default function LabWareIntegration() {
     password: '',
     port: 1433
   });
-  
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isExtracting, setIsExtracting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'testing'>('disconnected');
   const [samples, setSamples] = useState<LabWareSample[]>([]);
+  const [loading, setLoading] = useState(false);
   const [extractionParams, setExtractionParams] = useState({
     startDate: '',
     endDate: '',
@@ -59,8 +41,8 @@ export default function LabWareIntegration() {
   });
 
   const testConnection = async () => {
-    setIsConnecting(true);
-    setConnectionStatus('connecting');
+    setLoading(true);
+    setConnectionStatus('testing');
 
     try {
       const response = await fetch('/api/surveillance/labware/connect', {
@@ -68,130 +50,55 @@ export default function LabWareIntegration() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(connection)
+        body: JSON.stringify(connection),
       });
 
-      const result = await response.json();
-
-      if (result.success) {
+      if (response.ok) {
         setConnectionStatus('connected');
-        toast({
-          title: 'Connection Successful',
-          description: 'LabWare LIMS connection established successfully.',
-        });
       } else {
-        setConnectionStatus('error');
-        toast({
-          title: 'Connection Failed',
-          description: result.message || 'Failed to connect to LabWare LIMS.',
-          variant: 'destructive',
-        });
+        setConnectionStatus('disconnected');
       }
     } catch (error) {
-      setConnectionStatus('error');
-      toast({
-        title: 'Connection Error',
-        description: 'An error occurred while testing the connection.',
-        variant: 'destructive',
-      });
+      console.error('Connection test failed:', error);
+      setConnectionStatus('disconnected');
     } finally {
-      setIsConnecting(false);
+      setLoading(false);
     }
   };
 
   const extractSamples = async () => {
-    setIsExtracting(true);
+    setLoading(true);
 
     try {
-      const params = new URLSearchParams();
-      if (extractionParams.startDate) params.append('startDate', extractionParams.startDate);
-      if (extractionParams.endDate) params.append('endDate', extractionParams.endDate);
-      if (extractionParams.sampleType) params.append('sampleType', extractionParams.sampleType);
+      const params = new URLSearchParams({
+        startDate: extractionParams.startDate,
+        endDate: extractionParams.endDate,
+        sampleType: extractionParams.sampleType
+      });
 
-      const response = await fetch(`/api/surveillance/labware/samples?${params.toString()}`);
-      const result = await response.json();
-
-      if (result.success) {
-        setSamples(result.data || []);
-        toast({
-          title: 'Samples Extracted',
-          description: `Successfully extracted ${result.count} samples from LabWare.`,
-        });
-      } else {
-        toast({
-          title: 'Extraction Failed',
-          description: 'Failed to extract samples from LabWare.',
-          variant: 'destructive',
-        });
+      const response = await fetch(`/api/surveillance/labware/samples?${params}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSamples(data.data || []);
       }
     } catch (error) {
-      toast({
-        title: 'Extraction Error',
-        description: 'An error occurred while extracting samples.',
-        variant: 'destructive',
-      });
+      console.error('Sample extraction failed:', error);
     } finally {
-      setIsExtracting(false);
-    }
-  };
-
-  const saveConnection = async () => {
-    try {
-      // Save connection settings to laboratory settings
-      const response = await fetch('/api/surveillance/labware/save-connection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(connection)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({
-          title: 'Settings Saved',
-          description: 'LabWare connection settings saved successfully.',
-        });
-      } else {
-        toast({
-          title: 'Save Failed',
-          description: 'Failed to save connection settings.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Save Error',
-        description: 'An error occurred while saving settings.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return 'text-green-500';
-      case 'connecting':
-        return 'text-yellow-500';
-      case 'error':
-        return 'text-red-500';
-      default:
-        return 'text-gray-500';
+      setLoading(false);
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'connected':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'connecting':
-        return <Clock className="h-4 w-4" />;
-      case 'error':
-        return <AlertCircle className="h-4 w-4" />;
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'disconnected':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'testing':
+        return <RefreshCw className="w-4 h-4 animate-spin text-yellow-500" />;
       default:
-        return <Database className="h-4 w-4" />;
+        return <AlertTriangle className="w-4 h-4 text-gray-500" />;
     }
   };
 
@@ -200,17 +107,13 @@ export default function LabWareIntegration() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">LabWare Integration</h1>
-          <p className="text-muted-foreground">
-            Connect to LabWare LIMS and extract sample data
-          </p>
+          <h1 className="text-3xl font-bold">LabWare Integration</h1>
+          <p className="text-gray-600 mt-1">Connect to LabWare LIMS and extract surveillance data</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={connectionStatus === 'connected' ? 'default' : 'secondary'}>
-            <span className={`mr-1 ${getStatusColor(connectionStatus)}`}>
-              {getStatusIcon(connectionStatus)}
-            </span>
-            {connectionStatus}
+        <div className="flex items-center space-x-2">
+          <Badge className={connectionStatus === 'connected' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+            {getStatusIcon(connectionStatus)}
+            <span className="ml-1 capitalize">{connectionStatus}</span>
           </Badge>
         </div>
       </div>
@@ -220,21 +123,19 @@ export default function LabWareIntegration() {
           <TabsTrigger value="connection">Connection</TabsTrigger>
           <TabsTrigger value="extraction">Data Extraction</TabsTrigger>
           <TabsTrigger value="samples">Sample Data</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="connection" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                LabWare Connection Settings
-              </CardTitle>
+              <CardTitle>LabWare Connection Configuration</CardTitle>
               <CardDescription>
-                Configure connection to LabWare LIMS 7.2
+                Configure connection to LabWare LIMS system
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="server">Server</Label>
                   <Input
@@ -244,6 +145,7 @@ export default function LabWareIntegration() {
                     placeholder="labware-server.example.com"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="database">Database</Label>
                   <Input
@@ -253,6 +155,7 @@ export default function LabWareIntegration() {
                     placeholder="LabWareDB"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="username">Username</Label>
                   <Input
@@ -262,6 +165,7 @@ export default function LabWareIntegration() {
                     placeholder="labware_user"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
@@ -272,38 +176,26 @@ export default function LabWareIntegration() {
                     placeholder="••••••••"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="port">Port</Label>
                   <Input
                     id="port"
                     type="number"
                     value={connection.port}
-                    onChange={(e) => setConnection({ ...connection, port: parseInt(e.target.value) })}
+                    onChange={(e) => setConnection({ ...connection, port: parseInt(e.target.value) || 1433 })}
                     placeholder="1433"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button 
-                  onClick={testConnection} 
-                  disabled={isConnecting}
-                  className="flex items-center gap-2"
-                >
-                  {isConnecting ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Database className="h-4 w-4" />
-                  )}
-                  {isConnecting ? 'Testing...' : 'Test Connection'}
+              <div className="flex space-x-2">
+                <Button onClick={testConnection} disabled={loading}>
+                  <Database className="w-4 h-4 mr-2" />
+                  Test Connection
                 </Button>
-                <Button 
-                  onClick={saveConnection} 
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  Save Settings
+                <Button variant="outline" onClick={() => setConnectionStatus('disconnected')}>
+                  Disconnect
                 </Button>
               </div>
             </CardContent>
@@ -313,16 +205,13 @@ export default function LabWareIntegration() {
         <TabsContent value="extraction" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-5 w-5" />
-                Sample Data Extraction
-              </CardTitle>
+              <CardTitle>Data Extraction Parameters</CardTitle>
               <CardDescription>
-                Extract sample data from LabWare LIMS
+                Configure parameters for extracting surveillance data from LabWare
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="startDate">Start Date</Label>
                   <Input
@@ -332,6 +221,7 @@ export default function LabWareIntegration() {
                     onChange={(e) => setExtractionParams({ ...extractionParams, startDate: e.target.value })}
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="endDate">End Date</Label>
                   <Input
@@ -341,29 +231,27 @@ export default function LabWareIntegration() {
                     onChange={(e) => setExtractionParams({ ...extractionParams, endDate: e.target.value })}
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="sampleType">Sample Type</Label>
                   <Input
                     id="sampleType"
                     value={extractionParams.sampleType}
                     onChange={(e) => setExtractionParams({ ...extractionParams, sampleType: e.target.value })}
-                    placeholder="Mosquito Pool"
+                    placeholder="Mosquito, Human, etc."
                   />
                 </div>
               </div>
 
-              <Button 
-                onClick={extractSamples} 
-                disabled={isExtracting || connectionStatus !== 'connected'}
-                className="flex items-center gap-2"
-              >
-                {isExtracting ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                {isExtracting ? 'Extracting...' : 'Extract Samples'}
-              </Button>
+              <div className="flex space-x-2">
+                <Button onClick={extractSamples} disabled={loading || connectionStatus !== 'connected'}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Extract Samples
+                </Button>
+                <Button variant="outline" onClick={() => setSamples([])}>
+                  Clear Results
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -371,77 +259,126 @@ export default function LabWareIntegration() {
         <TabsContent value="samples" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TestTube className="h-5 w-5" />
-                Extracted Samples
-              </CardTitle>
+              <CardTitle>Extracted Sample Data</CardTitle>
               <CardDescription>
-                Sample data extracted from LabWare LIMS
+                {samples.length} samples extracted from LabWare
               </CardDescription>
             </CardHeader>
             <CardContent>
               {samples.length > 0 ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      {samples.length} samples extracted
-                    </span>
+                  <div className="flex justify-between items-center">
+                    <Badge variant="secondary">
+                      {samples.length} samples
+                    </Badge>
                     <Button variant="outline" size="sm">
+                      <FileText className="w-4 h-4 mr-2" />
                       Export CSV
                     </Button>
                   </div>
-                  
+
                   <div className="border rounded-lg">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-muted/50">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
                           <tr>
-                            <th className="p-2 text-left">Sample ID</th>
-                            <th className="p-2 text-left">Patient ID</th>
-                            <th className="p-2 text-left">Test Type</th>
-                            <th className="p-2 text-left">Result</th>
-                            <th className="p-2 text-left">Collection Date</th>
-                            <th className="p-2 text-left">Location</th>
-                            <th className="p-2 text-left">Species</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Sample ID</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Patient ID</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Test Type</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Result</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Collection Date</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Location</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Status</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-200">
                           {samples.slice(0, 10).map((sample, index) => (
-                            <tr key={index} className="border-t">
-                              <td className="p-2 font-mono text-xs">{sample.sampleId}</td>
-                              <td className="p-2 font-mono text-xs">{sample.patientId}</td>
-                              <td className="p-2">{sample.testType}</td>
-                              <td className="p-2">
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-4 py-2 text-sm">{sample.sampleId}</td>
+                              <td className="px-4 py-2 text-sm">{sample.patientId}</td>
+                              <td className="px-4 py-2 text-sm">{sample.testType}</td>
+                              <td className="px-4 py-2 text-sm">
                                 <Badge variant={sample.result === 'Positive' ? 'destructive' : 'secondary'}>
                                   {sample.result}
                                 </Badge>
                               </td>
-                              <td className="p-2 text-xs">
-                                {new Date(sample.collectionDate).toLocaleDateString()}
+                              <td className="px-4 py-2 text-sm">{sample.collectionDate}</td>
+                              <td className="px-4 py-2 text-sm">{sample.location}</td>
+                              <td className="px-4 py-2 text-sm">
+                                <Badge variant="outline">{sample.status}</Badge>
                               </td>
-                              <td className="p-2">{sample.location}</td>
-                              <td className="p-2">{sample.species || '-'}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   </div>
-                  
+
                   {samples.length > 10 && (
-                    <p className="text-sm text-muted-foreground text-center">
-                      Showing first 10 samples of {samples.length} total
+                    <p className="text-sm text-gray-500 text-center">
+                      Showing first 10 samples. Total: {samples.length}
                     </p>
                   )}
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <TestTube className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    No samples extracted yet. Use the extraction tab to pull data from LabWare.
-                  </p>
+                  <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No samples extracted yet</p>
+                  <p className="text-sm text-gray-400">Use the Data Extraction tab to extract samples from LabWare</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>LabWare Integration Settings</CardTitle>
+              <CardDescription>
+                Configure advanced settings for LabWare integration
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Auto-sync Frequency</Label>
+                  <select className="w-full p-2 border rounded-md">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="manual">Manual Only</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Data Retention</Label>
+                  <select className="w-full p-2 border rounded-md">
+                    <option value="30">30 days</option>
+                    <option value="90">90 days</option>
+                    <option value="365">1 year</option>
+                    <option value="forever">Forever</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Error Notifications</Label>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="emailNotifications" className="rounded" />
+                    <Label htmlFor="emailNotifications">Email notifications for connection errors</Label>
+                  </div>
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Save Settings
+                  </Button>
+                  <Button variant="outline">
+                    Reset to Defaults
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

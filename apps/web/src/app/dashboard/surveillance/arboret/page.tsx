@@ -6,58 +6,69 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Upload, 
-  Download, 
   FileText, 
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Settings,
+  Settings, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle,
   RefreshCw,
+  Plus,
+  Trash2,
+  Calendar,
   MapPin,
-  Calendar
+  Globe
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface ArboNETSpecies {
-  species: string;
-  count: number;
-  location: string;
-  latitude?: number;
-  longitude?: number;
-  trapType: string;
-  collectionDate: string;
-}
-
-interface ArboNETUpload {
-  countyCode: string;
-  weekEnding: string;
-  speciesData: ArboNETSpecies[];
-}
+import { ArboNETUploadData, ArboNETSpeciesEntry } from '@/types/surveillance';
 
 export default function ArboNETUpload() {
-  const { toast } = useToast();
-  const [upload, setUpload] = useState<ArboNETUpload>({
+  const [uploadData, setUploadData] = useState<ArboNETUploadData>({
     countyCode: '',
-    weekEnding: '',
+    weekEnding: new Date(),
     speciesData: []
   });
 
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'completed' | 'error'>('idle');
-  const [results, setResults] = useState<{
-    uploaded: number;
-    errors: string[];
-    success: boolean;
-  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [newSpecies, setNewSpecies] = useState<ArboNETSpeciesEntry>({
+    species: '',
+    count: 0,
+    location: '',
+    latitude: undefined,
+    longitude: undefined,
+    trapType: '',
+    collectionDate: ''
+  });
 
-  const [speciesDataInput, setSpeciesDataInput] = useState('');
+  const addSpecies = () => {
+    if (newSpecies.species && newSpecies.count > 0) {
+      setUploadData({
+        ...uploadData,
+        speciesData: [...uploadData.speciesData, { ...newSpecies }]
+      });
+      setNewSpecies({
+        species: '',
+        count: 0,
+        location: '',
+        latitude: undefined,
+        longitude: undefined,
+        trapType: '',
+        collectionDate: ''
+      });
+    }
+  };
+
+  const removeSpecies = (index: number) => {
+    setUploadData({
+      ...uploadData,
+      speciesData: uploadData.speciesData.filter((_, i) => i !== index)
+    });
+  };
 
   const uploadToArboNET = async () => {
-    setIsUploading(true);
+    setLoading(true);
     setUploadStatus('uploading');
 
     try {
@@ -66,130 +77,45 @@ export default function ArboNETUpload() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(upload)
+        body: JSON.stringify(uploadData),
       });
 
-      const result = await response.json();
-
-      if (result.success) {
-        setUploadStatus('completed');
-        setResults(result.data);
-        toast({
-          title: 'Upload Completed',
-          description: `Successfully uploaded ${result.data.uploaded} records to ArboNET.`,
-        });
+      if (response.ok) {
+        setUploadStatus('success');
       } else {
         setUploadStatus('error');
-        toast({
-          title: 'Upload Failed',
-          description: result.error || 'Failed to upload to ArboNET.',
-          variant: 'destructive',
-        });
       }
     } catch (error) {
+      console.error('ArboNET upload failed:', error);
       setUploadStatus('error');
-      toast({
-        title: 'Upload Error',
-        description: 'An error occurred while uploading to ArboNET.',
-        variant: 'destructive',
-      });
     } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const parseSpeciesData = () => {
-    try {
-      const lines = speciesDataInput.trim().split('\n');
-      const species: ArboNETSpecies[] = [];
-
-      for (const line of lines) {
-        if (line.trim()) {
-          const [speciesName, count, location, latitude, longitude, trapType, collectionDate] = line.split(',').map(s => s.trim());
-          species.push({
-            species: speciesName,
-            count: parseInt(count) || 0,
-            location,
-            latitude: latitude ? parseFloat(latitude) : undefined,
-            longitude: longitude ? parseFloat(longitude) : undefined,
-            trapType,
-            collectionDate
-          });
-        }
-      }
-
-      setUpload(prev => ({ ...prev, speciesData: species }));
-      toast({
-        title: 'Data Parsed',
-        description: `Successfully parsed ${species.length} species records.`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Parse Error',
-        description: 'Failed to parse species data. Please check the format.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const generateCSV = () => {
-    if (upload.speciesData.length === 0) {
-      toast({
-        title: 'No Data',
-        description: 'Please parse species data first.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Generate ArboNET CSV format
-    const csvHeader = 'COUNTY,WEEK_ENDING,SPECIES,COUNT,LOCATION,LATITUDE,LONGITUDE,TRAP_TYPE,COLLECTION_DATE';
-    const csvRows = upload.speciesData.map(species => 
-      `${upload.countyCode},${upload.weekEnding},${species.species},${species.count},${species.location},${species.latitude || ''},${species.longitude || ''},${species.trapType},${species.collectionDate}`
-    );
-    
-    const csvContent = [csvHeader, ...csvRows].join('\n');
-    
-    // Create and download CSV file
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `arboret_${upload.countyCode}_${upload.weekEnding}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-
-    toast({
-      title: 'CSV Generated',
-      description: 'ArboNET CSV file downloaded successfully.',
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-500';
-      case 'uploading':
-        return 'text-yellow-500';
-      case 'error':
-        return 'text-red-500';
-      default:
-        return 'text-gray-500';
+      setLoading(false);
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'uploading':
-        return <RefreshCw className="h-4 w-4 animate-spin" />;
+      case 'success':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'error':
-        return <AlertCircle className="h-4 w-4" />;
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'uploading':
+        return <RefreshCw className="w-4 h-4 animate-spin text-yellow-500" />;
       default:
-        return <Upload className="h-4 w-4" />;
+        return <AlertTriangle className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'success':
+        return 'bg-green-100 text-green-800';
+      case 'error':
+        return 'bg-red-100 text-red-800';
+      case 'uploading':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -198,272 +124,328 @@ export default function ArboNETUpload() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">ArboNET Upload</h1>
-          <p className="text-muted-foreground">
-            Upload vector surveillance data to CDC ArboNET
-          </p>
+          <h1 className="text-3xl font-bold">ArboNET Upload</h1>
+          <p className="text-gray-600 mt-1">Upload vector surveillance data to CDC ArboNET</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={uploadStatus === 'completed' ? 'default' : 'secondary'}>
-            <span className={`mr-1 ${getStatusColor(uploadStatus)}`}>
-              {getStatusIcon(uploadStatus)}
-            </span>
-            {uploadStatus}
+        <div className="flex items-center space-x-2">
+          <Badge className={getStatusColor(uploadStatus)}>
+            {getStatusIcon(uploadStatus)}
+            <span className="ml-1 capitalize">{uploadStatus}</span>
           </Badge>
         </div>
       </div>
 
-      <Tabs defaultValue="upload" className="space-y-4">
+      <Tabs defaultValue="configuration" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="configuration">Configuration</TabsTrigger>
+          <TabsTrigger value="species">Species Data</TabsTrigger>
           <TabsTrigger value="upload">Upload</TabsTrigger>
-          <TabsTrigger value="data">Data Entry</TabsTrigger>
-          <TabsTrigger value="results">Results</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upload" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Upload Settings
-                </CardTitle>
-                <CardDescription>
-                  Configure ArboNET upload parameters
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        <TabsContent value="configuration" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>ArboNET Configuration</CardTitle>
+              <CardDescription>
+                Configure parameters for CDC ArboNET data upload
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="countyCode">County Code</Label>
                   <Input
                     id="countyCode"
-                    value={upload.countyCode}
-                    onChange={(e) => setUpload({ ...upload, countyCode: e.target.value })}
-                    placeholder="e.g., TARRANT"
+                    value={uploadData.countyCode}
+                    onChange={(e) => setUploadData({ ...uploadData, countyCode: e.target.value })}
+                    placeholder="e.g., 439 (Tarrant County)"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="weekEnding">Week Ending</Label>
                   <Input
                     id="weekEnding"
                     type="date"
-                    value={upload.weekEnding}
-                    onChange={(e) => setUpload({ ...upload, weekEnding: e.target.value })}
+                    value={uploadData.weekEnding.toISOString().split('T')[0]}
+                    onChange={(e) => setUploadData({ ...uploadData, weekEnding: new Date(e.target.value) })}
                   />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Upload Actions
-                </CardTitle>
-                <CardDescription>
-                  Generate CSV and upload to ArboNET
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Data Summary</p>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <div>County: {upload.countyCode || 'Not set'}</div>
-                    <div>Week Ending: {upload.weekEnding || 'Not set'}</div>
-                    <div>Species Records: {upload.speciesData.length}</div>
+              <div className="space-y-2">
+                <Label>County Information</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>County Name</Label>
+                    <Input placeholder="Tarrant County" disabled />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Health Department</Label>
+                    <Input placeholder="Tarrant County Public Health" disabled />
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={generateCSV} 
-                    variant="outline"
-                    className="flex items-center gap-2"
-                    disabled={upload.speciesData.length === 0}
-                  >
-                    <Download className="h-4 w-4" />
-                    Generate CSV
-                  </Button>
-                  <Button 
-                    onClick={uploadToArboNET} 
-                    disabled={isUploading || upload.speciesData.length === 0}
-                    className="flex items-center gap-2"
-                  >
-                    {isUploading ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
-                    {isUploading ? 'Uploading...' : 'Upload to ArboNET'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="data" className="space-y-4">
+        <TabsContent value="species" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Species Data Entry
-              </CardTitle>
+              <CardTitle>Species Data Management</CardTitle>
               <CardDescription>
-                Enter vector surveillance species data for ArboNET upload
+                Add and manage vector species data for ArboNET upload
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="speciesData">Species Data (CSV format)</Label>
-                <Textarea
-                  id="speciesData"
-                  value={speciesDataInput}
-                  onChange={(e) => setSpeciesDataInput(e.target.value)}
-                  placeholder="species,count,location,latitude,longitude,trapType,collectionDate"
-                  rows={8}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Format: species,count,location,latitude,longitude,trapType,collectionDate
-                </p>
+              {/* Add New Species Form */}
+              <div className="border rounded-lg p-4">
+                <h3 className="text-lg font-medium mb-4">Add New Species Data</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="species">Species</Label>
+                    <select
+                      id="species"
+                      value={newSpecies.species}
+                      onChange={(e) => setNewSpecies({ ...newSpecies, species: e.target.value })}
+                      className="w-full p-2 border rounded-md"
+                    >
+                      <option value="">Select species</option>
+                      <option value="Culex quinquefasciatus">Culex quinquefasciatus</option>
+                      <option value="Culex pipiens">Culex pipiens</option>
+                      <option value="Aedes aegypti">Aedes aegypti</option>
+                      <option value="Aedes albopictus">Aedes albopictus</option>
+                      <option value="Anopheles quadrimaculatus">Anopheles quadrimaculatus</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="count">Count</Label>
+                    <Input
+                      id="count"
+                      type="number"
+                      value={newSpecies.count}
+                      onChange={(e) => setNewSpecies({ ...newSpecies, count: parseInt(e.target.value) || 0 })}
+                      placeholder="Number of specimens"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={newSpecies.location}
+                      onChange={(e) => setNewSpecies({ ...newSpecies, location: e.target.value })}
+                      placeholder="Collection location"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="latitude">Latitude</Label>
+                    <Input
+                      id="latitude"
+                      type="number"
+                      step="any"
+                      value={newSpecies.latitude || ''}
+                      onChange={(e) => setNewSpecies({ ...newSpecies, latitude: parseFloat(e.target.value) || undefined })}
+                      placeholder="Decimal degrees"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="longitude">Longitude</Label>
+                    <Input
+                      id="longitude"
+                      type="number"
+                      step="any"
+                      value={newSpecies.longitude || ''}
+                      onChange={(e) => setNewSpecies({ ...newSpecies, longitude: parseFloat(e.target.value) || undefined })}
+                      placeholder="Decimal degrees"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="trapType">Trap Type</Label>
+                    <select
+                      id="trapType"
+                      value={newSpecies.trapType}
+                      onChange={(e) => setNewSpecies({ ...newSpecies, trapType: e.target.value })}
+                      className="w-full p-2 border rounded-md"
+                    >
+                      <option value="">Select trap type</option>
+                      <option value="CDC Light Trap">CDC Light Trap</option>
+                      <option value="Gravid Trap">Gravid Trap</option>
+                      <option value="BG-Sentinel">BG-Sentinel</option>
+                      <option value="Ovitrap">Ovitrap</option>
+                      <option value="Resting Trap">Resting Trap</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="collectionDate">Collection Date</Label>
+                    <Input
+                      id="collectionDate"
+                      type="date"
+                      value={newSpecies.collectionDate}
+                      onChange={(e) => setNewSpecies({ ...newSpecies, collectionDate: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-4">
+                  <Button onClick={addSpecies} disabled={!newSpecies.species || newSpecies.count <= 0}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Species Data
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={parseSpeciesData} 
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  Parse Data
-                </Button>
-                <Button 
-                  onClick={() => setSpeciesDataInput('')} 
-                  variant="outline"
-                  size="sm"
-                >
-                  Clear
-                </Button>
-              </div>
-              {upload.speciesData.length > 0 && (
-                <div className="text-sm text-muted-foreground">
-                  {upload.speciesData.length} species records loaded
+
+              {/* Species Data Table */}
+              {uploadData.speciesData.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">Species Data ({uploadData.speciesData.length} entries)</h3>
+                    <Button variant="outline" size="sm" onClick={() => setUploadData({ ...uploadData, speciesData: [] })}>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Clear All
+                    </Button>
+                  </div>
+
+                  <div className="border rounded-lg">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Species</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Count</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Location</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Coordinates</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Trap Type</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Collection Date</th>
+                            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {uploadData.speciesData.map((species, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-4 py-2 text-sm font-medium">{species.species}</td>
+                              <td className="px-4 py-2 text-sm">
+                                <Badge variant="secondary">{species.count}</Badge>
+                              </td>
+                              <td className="px-4 py-2 text-sm">{species.location}</td>
+                              <td className="px-4 py-2 text-sm">
+                                {species.latitude && species.longitude 
+                                  ? `${species.latitude.toFixed(4)}, ${species.longitude.toFixed(4)}`
+                                  : 'Not specified'
+                                }
+                              </td>
+                              <td className="px-4 py-2 text-sm">{species.trapType}</td>
+                              <td className="px-4 py-2 text-sm">{species.collectionDate}</td>
+                              <td className="px-4 py-2 text-sm">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeSpecies(index)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {upload.speciesData.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Species Data Preview
-                </CardTitle>
-                <CardDescription>
-                  Preview of parsed species data
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="border rounded-lg">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted/50">
-                        <tr>
-                          <th className="p-2 text-left">Species</th>
-                          <th className="p-2 text-left">Count</th>
-                          <th className="p-2 text-left">Location</th>
-                          <th className="p-2 text-left">Coordinates</th>
-                          <th className="p-2 text-left">Trap Type</th>
-                          <th className="p-2 text-left">Collection Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {upload.speciesData.slice(0, 10).map((species, index) => (
-                          <tr key={index} className="border-t">
-                            <td className="p-2 font-medium">{species.species}</td>
-                            <td className="p-2">{species.count}</td>
-                            <td className="p-2">{species.location}</td>
-                            <td className="p-2 text-xs">
-                              {species.latitude && species.longitude 
-                                ? `${species.latitude}, ${species.longitude}`
-                                : 'Not set'
-                              }
-                            </td>
-                            <td className="p-2">{species.trapType}</td>
-                            <td className="p-2 text-xs">
-                              {new Date(species.collectionDate).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                {upload.speciesData.length > 10 && (
-                  <p className="text-sm text-muted-foreground text-center mt-2">
-                    Showing first 10 records of {upload.speciesData.length} total
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
-        <TabsContent value="results" className="space-y-4">
+        <TabsContent value="upload" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5" />
-                Upload Results
-              </CardTitle>
+              <CardTitle>ArboNET Upload</CardTitle>
               <CardDescription>
-                View results from ArboNET uploads
+                Upload vector surveillance data to CDC ArboNET system
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>County Code</Label>
+                    <div className="p-2 bg-gray-50 rounded border">
+                      {uploadData.countyCode || 'Not specified'}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Week Ending</Label>
+                    <div className="p-2 bg-gray-50 rounded border">
+                      {uploadData.weekEnding.toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Species Entries</Label>
+                    <div className="p-2 bg-gray-50 rounded border">
+                      {uploadData.speciesData.length} entries
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Upload Summary</Label>
+                  <div className="p-4 bg-blue-50 rounded border">
+                    <ul className="space-y-1 text-sm">
+                      <li>• County: {uploadData.countyCode}</li>
+                      <li>• Week Ending: {uploadData.weekEnding.toLocaleDateString()}</li>
+                      <li>• Total Species Entries: {uploadData.speciesData.length}</li>
+                      <li>• Total Specimens: {uploadData.speciesData.reduce((sum, s) => sum + s.count, 0)}</li>
+                      <li>• Unique Species: {new Set(uploadData.speciesData.map(s => s.species)).size}</li>
+                      <li>• Trap Types: {new Set(uploadData.speciesData.map(s => s.trapType)).size}</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={uploadToArboNET} 
+                    disabled={loading || uploadData.speciesData.length === 0 || !uploadData.countyCode}
+                    className="flex-1"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload to ArboNET
+                  </Button>
+                  <Button variant="outline">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Preview Upload
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload History</CardTitle>
+              <CardDescription>
+                View previous ArboNET uploads
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {results ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {results.uploaded}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Records Uploaded</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">
-                        {results.errors.length}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Errors</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {results.success ? 'Success' : 'Failed'}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Status</div>
-                    </div>
-                  </div>
-
-                  {results.errors.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Errors:</h4>
-                      <div className="space-y-1">
-                        {results.errors.map((error, index) => (
-                          <div key={index} className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                            {error}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    No upload results yet. Upload data to ArboNET to see results here.
-                  </p>
-                </div>
-              )}
+              <div className="text-center py-8">
+                <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No upload history available</p>
+                <p className="text-sm text-gray-400">Upload history will appear here after successful uploads</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

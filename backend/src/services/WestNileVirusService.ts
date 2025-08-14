@@ -415,7 +415,7 @@ export class WestNileVirusService {
             qcResults: data.qcResults,
             runInfo: data.runInfo,
             positiveCount: positiveResults.length,
-            totalSamples: data.results.filter(r => r.sampleType !== 'CONTROL').length
+            totalSamples: data.results.filter((r: any) => r.sampleType !== 'CONTROL').length
           },
           laboratoryId,
           generatedById: userId

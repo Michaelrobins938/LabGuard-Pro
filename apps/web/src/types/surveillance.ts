@@ -61,6 +61,24 @@ export interface SurveillanceAnalytics {
   updatedAt: Date;
 }
 
+// Lightweight metrics used by dashboard UI
+export interface SurveillanceMetrics {
+  totalSamples: number;
+  positiveCases: number;
+  positivityRate: number;
+  counties: number;
+  reportsGenerated: number;
+  lastUpdated: Date;
+}
+
+// Connection status map used by dashboard UI
+export interface SurveillanceConnectionStatus {
+  labware: 'connected' | 'disconnected' | 'error' | 'testing';
+  nedss: 'connected' | 'disconnected' | 'error' | 'testing';
+  arboret: 'connected' | 'disconnected' | 'error' | 'testing';
+  equipment: 'connected' | 'disconnected' | 'error' | 'testing';
+}
+
 export interface EquipmentMonitoring {
   id: string;
   equipmentId: string;
@@ -104,6 +122,15 @@ export interface SurveillanceReport {
   updatedAt: Date;
 }
 
+// UI form/report history types used by pages
+export interface SurveillanceReportHistory {
+  countyCode: string;
+  weekEnding: string | Date;
+  reportType: 'weekly' | 'monthly' | 'quarterly' | 'annual' | 'daily';
+  generatedAt: string | Date;
+  generatedBy: string;
+}
+
 export interface VectorTest {
   id: string;
   laboratoryId: string;
@@ -142,3 +169,56 @@ export interface VectorAlert {
   createdAt: Date;
   updatedAt: Date;
 } 
+
+// LabWare integration
+export interface LabWareConnection {
+  server: string;
+  database: string;
+  username: string;
+  password: string;
+  port: number;
+}
+
+export interface LabWareSample {
+  sampleId: string;
+  patientId: string;
+  testType: string;
+  result: 'Positive' | 'Negative' | 'Indeterminate' | 'Pending' | string;
+  collectionDate: string;
+  location: string;
+  status: string;
+}
+
+// ArboNET upload
+export interface ArboNETSpeciesEntry {
+  species: string;
+  count: number;
+  location: string;
+  latitude?: number;
+  longitude?: number;
+  trapType: string;
+  collectionDate: string;
+}
+
+export interface ArboNETUploadData {
+  countyCode: string;
+  weekEnding: Date;
+  speciesData: ArboNETSpeciesEntry[];
+}
+
+// NEDSS automation
+export interface NEDSSCaseEntry {
+  patientId: string;
+  sampleId: string;
+  testType: string;
+  result: string;
+  collectionDate: string;
+  location: string;
+}
+
+export interface NEDSSAutomationData {
+  countyCode: string;
+  startDate: Date;
+  endDate: Date;
+  caseData: NEDSSCaseEntry[];
+}

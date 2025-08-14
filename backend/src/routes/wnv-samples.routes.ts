@@ -175,7 +175,7 @@ router.post('/', async (req: Request, res: Response) => {
         humidity,
         weatherConditions,
         notes,
-        photos: photos ? photos : null,
+        photos: photos ?? undefined,
         qrCode: qrResult.qrCode,
         laboratoryId
       },

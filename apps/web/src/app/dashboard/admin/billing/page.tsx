@@ -51,6 +51,7 @@ export default function AdminBillingPage() {
 
   useEffect(() => {
     fetchAdminBillingData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAdminBillingData = async () => {

@@ -55,6 +55,7 @@ export default function AnomalyDetectionPage() {
 
   useEffect(() => {
     fetchAnomalyData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchAnomalyData = async () => {

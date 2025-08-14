@@ -212,10 +212,16 @@ router.post('/print-job', async (req: Request, res: Response) => {
     // Create print job request
     const printJobRequest: PrintJobRequest = {
       qrCodes,
-      printerConfig,
+      printFormat: 'INDIVIDUAL_LABELS',
+      labelSize: 'MEDIUM_25MM',
       copies,
       priority,
-      options
+      options,
+      printMethod: 'PDF_DOWNLOAD',
+      printerConfig: {
+        labelSize: printerConfig.labelSize,
+        dpi: printerConfig.dpi
+      }
     };
 
     // Create and execute print job

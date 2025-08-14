@@ -23,7 +23,7 @@ export interface MobilePrinterConfig {
 export interface PrinterStatus {
   id: string;
   name: string;
-  type: 'OFFICE_PRINTER' | 'MOBILE_BROWSER' | 'EMAIL_TO_PRINT' | 'CLOUD_PRINT';
+  type: 'OFFICE_PRINTER' | 'MOBILE_BROWSER' | 'EMAIL_TO_PRINT' | 'CLOUD_PRINT' | 'ZEBRA' | 'BRADY' | 'BROTHER' | 'DYMO' | 'GENERIC';
   connection: string;
   isOnline: boolean;
   hasError: boolean;
@@ -89,11 +89,18 @@ export interface PrintJobRequest {
     paperType?: 'STANDARD' | 'AVERY_5160' | 'AVERY_5161';
   };
   printMethod: 'MOBILE_BROWSER' | 'PDF_DOWNLOAD' | 'EMAIL_TO_PRINTER' | 'NATIVE_SHARE';
+  printerConfig: {
+    labelSize: { width: number; height: number };
+    dpi?: number;
+    darkness?: number;
+    speed?: number;
+  };
 }
 
 export interface ZebraPrintCommand {
   command: string;
   parameters: Record<string, any>;
+  description?: string;
 }
 
 class PrinterService {
@@ -117,6 +124,40 @@ class PrinterService {
   }
 
   /**
+   * Create a desktop print job for QR code labels (wrapper around mobile with content generation)
+   */
+  async createPrintJob(request: PrintJobRequest, laboratoryId: string): Promise<PrintJob> {
+    const jobId = this.generatePrintJobId();
+    const printJob: PrintJob = {
+      id: jobId,
+      qrCodes: request.qrCodes,
+      format: request.printFormat,
+      status: 'PENDING',
+      printMethod: request.printMethod,
+      createdAt: new Date()
+    };
+
+    // Generate printable assets depending on printer type/format
+    switch (request.printFormat) {
+      case 'INDIVIDUAL_LABELS':
+        await this.generateIndividualLabelsHTML(printJob, request);
+        break;
+      case 'SHEET_LAYOUT':
+        await this.generateSheetLayoutHTML(printJob, request);
+        break;
+      case 'ADHESIVE_LABELS':
+        await this.generateAdhesiveLabelsHTML(printJob, request);
+        break;
+      default:
+        await this.generateGenericCommands(printJob, request);
+    }
+
+    const printJobFile = path.join(this.printJobsDir, `${jobId}.json`);
+    await fs.writeFile(printJobFile, JSON.stringify(printJob, null, 2));
+    return printJob;
+  }
+
+  /**
    * Create a mobile print job for QR code labels
    */
   async createMobilePrintJob(request: MobilePrintJobRequest, laboratoryId: string): Promise<MobilePrintJob> {
@@ -133,19 +174,21 @@ class PrinterService {
       };
 
       // Generate mobile-optimized print content based on format
-      switch (request.printFormat) {
-        case 'INDIVIDUAL_LABELS':
-          await this.generateIndividualLabelsHTML(printJob, request);
-          break;
-        case 'SHEET_LAYOUT':
-          await this.generateSheetLayoutHTML(printJob, request);
-          break;
-        case 'ADHESIVE_LABELS':
-          await this.generateAdhesiveLabelsHTML(printJob, request);
-          break;
-        default:
-          throw new Error(`Unsupported format: ${request.printFormat}`);
-      }
+      // Delegate to HTML generator for browser/mobile workflows
+      const desktopRequest: PrintJobRequest = {
+        qrCodes: request.qrCodes,
+        printFormat: request.printFormat,
+        labelSize: request.labelSize,
+        copies: request.copies,
+        priority: request.priority,
+        options: request.options,
+        printMethod: 'MOBILE_BROWSER',
+        printerConfig: {
+          labelSize: this.mapLabelSize(request.labelSize),
+          dpi: 203
+        }
+      };
+      await this.generateGenericCommands(printJob, desktopRequest);
 
       // Store mobile print job
       const printJobFile = path.join(this.printJobsDir, `${jobId}.json`);
@@ -233,6 +276,7 @@ class PrinterService {
 
         commands.push({
           command: zplCommands.join('\n'),
+          parameters: {},
           description: `Label ${i + 1}/${request.qrCodes.length}, Copy ${copy + 1}/${copies}: ${qrCode.data.poolId}`
         });
       }
@@ -405,6 +449,19 @@ class PrinterService {
     console.log(`Generated HTML template for ${request.qrCodes.length} labels`);
   }
 
+  // Simple HTML generators that delegate to generic HTML with configured sizes
+  private async generateIndividualLabelsHTML(printJob: PrintJob, request: PrintJobRequest): Promise<void> {
+    await this.generateGenericCommands(printJob, request);
+  }
+
+  private async generateSheetLayoutHTML(printJob: PrintJob, request: PrintJobRequest): Promise<void> {
+    await this.generateGenericCommands(printJob, request);
+  }
+
+  private async generateAdhesiveLabelsHTML(printJob: PrintJob, request: PrintJobRequest): Promise<void> {
+    await this.generateGenericCommands(printJob, request);
+  }
+
   /**
    * Get printer status (simulate for demo)
    */
@@ -420,6 +477,7 @@ class PrinterService {
         connection: 'USB',
         isOnline: true,
         hasError: false,
+        mobileCompatible: false,
         paperLevel: 85,
         lastPrintJob: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
         totalJobs: 247
@@ -431,6 +489,7 @@ class PrinterService {
         connection: 'USB',
         isOnline: true,
         hasError: false,
+        mobileCompatible: false,
         paperLevel: 45,
         lastPrintJob: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
         totalJobs: 89
@@ -443,6 +502,7 @@ class PrinterService {
         isOnline: false,
         hasError: true,
         errorMessage: 'Paper jam detected',
+        mobileCompatible: true,
         paperLevel: 20,
         lastPrintJob: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
         totalJobs: 156
@@ -481,7 +541,7 @@ class PrinterService {
       const printJob: PrintJob = JSON.parse(jobData);
 
       // Simulate print execution
-      printJob.status = 'PRINTING';
+      printJob.status = 'GENERATING';
       await fs.writeFile(jobFile, JSON.stringify(printJob, null, 2));
 
       // Simulate print time (1-3 seconds per label)
@@ -567,6 +627,19 @@ class PrinterService {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substr(2, 9);
     return `PJ_${timestamp}_${random}`;
+  }
+
+  private mapLabelSize(size: PrintJobRequest['labelSize']): { width: number; height: number } {
+    switch (size) {
+      case 'SMALL_20MM':
+        return { width: 20, height: 20 };
+      case 'MEDIUM_25MM':
+        return { width: 25, height: 25 };
+      case 'LARGE_30MM':
+        return { width: 30, height: 30 };
+      default:
+        return { width: 25, height: 15 };
+    }
   }
 
   /**
